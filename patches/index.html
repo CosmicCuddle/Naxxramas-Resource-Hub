@@ -29,10 +29,11 @@ html,body{margin:0;min-height:100%;background:#090806;color:#c8c0b5;font-family:
       const boot =
         '<script id="naxx-route-page-bootstrap">' +
         'setTimeout(function(){' +
-        'if(typeof window.showSection==="function"){window.showSection(' + JSON.stringify(SECTION) + ');}' +
-        'document.title=' + "Patches \u00b7 Naxxramas Resource Hub" + ';' +
+        'var s=' + JSON.stringify(SECTION) + ';' +
+        'if(typeof window.showSection==="function"){window.showSection(s);}' +
+        'document.title=s+" · Naxxramas Resource Hub";' +
         '},0);' +
-        '<\/script>';
+        '<' + '/script>';
 
       html = html.replace(/<\/body>\s*<\/html>\s*$/i,boot + '</body></html>');
 
@@ -46,6 +47,6 @@ html,body{margin:0;min-height:100%;background:#090806;color:#c8c0b5;font-family:
         ROOT + '">Return to the Resource Hub</a>.</div></div>';
     });
 })();
-<\/script>
+</script>
 </body>
 </html>
