@@ -162,15 +162,9 @@ html.naxx-trial-ui :is(.class-selector,.class-picker,[class*="class-select"]) :i
   border-color:#c59a5c!important;
   background:linear-gradient(170deg,#273b50,#162230)!important;
 }
-html.naxx-trial-ui :is(.naxx-v3-home-banner) {
-  border:1px solid #927044!important;
-  border-left:3px solid #d6aa62!important;
-  border-radius:8px!important;
-  box-shadow:0 9px 28px rgba(0,0,0,.28)!important;
-}
-html.naxx-trial-ui :is(.naxx-v3-home-banner) :is(.hero,.hero-banner) {
-  box-shadow:none!important;
-}
+/* Keep the Home banner's EXISTING outer frame. Do not style the injected
+   .naxx-v3-home-banner inner text container: that caused a duplicate gold
+   border over the heading and navigation pills. */
 html.naxx-trial-ui :is(.naxx-v3-home-intro) {
   width:100%!important;max-width:100%!important;
   grid-column:1 / -1!important;flex:0 0 100%!important;
