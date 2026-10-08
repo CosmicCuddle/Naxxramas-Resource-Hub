@@ -18,7 +18,15 @@
       { name: "Temple of Ahn'Qiraj", at: null },
       { name: "Naxxramas", at: null }
     ],
-    elementalInvasion: { at: null }
+    elementalInvasion: { at: null },
+    // Major annual WoW holidays with predictable calendar dates.
+    // Each time defaults to 00:00 server time; exact game-world activation may vary.
+    seasonalEvents: [
+      { name: "Midsummer Fire Festival", start: [6, 21], end: [7, 5] },
+      { name: "Brewfest", start: [9, 20], end: [10, 6] },
+      { name: "Hallow's End", start: [10, 18], end: [11, 1] },
+      { name: "Feast of Winter Veil", start: [12, 15], end: [1, 2] }
+    ]
   };
 
   // Configured SERVER time zone — never infer this from the visitor’s browser.
@@ -85,6 +93,25 @@
       .sort(function (a, b) { return a.date.getTime() - b.date.getTime(); })[0] || null;
   }
 
+  function nextSeasonal(now) {
+    var year = serverParts(now).year;
+    var upcoming = [], active = [];
+    schedule.seasonalEvents.forEach(function (event) {
+      for (var y = year - 1; y <= year + 1; y++) {
+        var endYear = y + (event.end[0] < event.start[0] ? 1 : 0);
+        var start = new Date(serverTimestamp(y, event.start[0], event.start[1], 0, 0));
+        var ending = new Date(serverTimestamp(endYear, event.end[0], event.end[1] + 1, 0, 0));
+        if (start <= now && now < ending) {
+          active.push({ name: event.name, date: ending, isActive: true });
+        } else if (start > now) {
+          upcoming.push({ name: event.name, date: start, isActive: false });
+        }
+      }
+    });
+    if (active.length) return active.sort(function (a, b) { return a.date - b.date; })[0];
+    return upcoming.sort(function (a, b) { return a.date - b.date; })[0] || null;
+  }
+
   function clockHTML() {
     return '<div class="nc-clock" role="timer" aria-live="off" data-clock hidden>' +
       ['days', 'hours', 'minutes', 'seconds'].map(function (part) {
@@ -114,11 +141,12 @@
       '<h2 class="nc-title" id="naxx-countdowns-title">Azerothian Event Countdowns</h2>' +
       '<div class="nc-heading-rule" aria-hidden="true"></div>' +
       '<div class="nc-grid"></div>' +
-      '<p class="nc-footer">All dates and countdowns use configured server time (currently UTC+02:00).</p>';
+      '<p class="nc-footer">Countdowns use configured server time (UTC+02:00). Seasonal dates follow the standard WoW calendar; actual server activation may vary.</p>';
     var grid = section.querySelector(".nc-grid");
     grid.appendChild(makeCard("honor", "H", "Fortnightly Cycle", "Honor Reset"));
-    grid.appendChild(makeCard("raid", "R", "Vanilla Progression", "Next Raid Unlock"));
+    grid.appendChild(makeCard("raid", "R", "Classic Raid Phases", "Next Raid Unlock"));
     grid.appendChild(makeCard("invasion", "E", "World Event", "Elemental Invasion"));
+    grid.appendChild(makeCard("seasonal", "S", "World Holidays", "Next Seasonal Event"));
     return section;
   }
 
@@ -156,12 +184,46 @@
     present(cards[0], nextHonor(now), "Next automatic honor reset", "");
     var raid = nextRaid(now);
     present(cards[1], raid ? raid.date : null,
-      raid ? raid.name + " unlocks" : "Vanilla raid unlock dates have not been announced.",
+      raid ? raid.name + " unlocks" : "Classic Phase 1: Molten Core / Onyxia; Phase 3: Blackwing Lair; Phase 4: Zul\u0027Gurub; Phase 5: Ahn\u0027Qiraj; Phase 6: Naxxramas.",
       "Schedule to be announced");
     var invasion = readDate(schedule.elementalInvasion.at);
     present(cards[2], invasion && invasion > now ? invasion : null,
       invasion && invasion > now ? "Elemental Invasion begins" : "The invasion start date has not been set.",
       "Date to be announced");
+    var seasonal = nextSeasonal(now);
+    present(cards[3], seasonal ? seasonal.date : null,
+      seasonal ? (seasonal.name + (seasonal.isActive ? " ends" : " begins")) : "Standard WoW calendar",
+      "Seasonal calendar unavailable");
+  }
+
+  function findHomeIntroduction() {
+    // Place AFTER the Home section's descriptive heading, not above it or inside the banner.
+    var descriptions = document.querySelectorAll("p, .page-description, .page-subtitle, .section-subtitle, .intro");
+    for (var i = 0; i < descriptions.length; i++) {
+      var el = descriptions[i];
+      var text = (el.textContent || "").replace(/\s+/g, " ").trim();
+      if (text.indexOf("Everything your Naxxramas character needs in one place") !== 0 || text.length > 500) continue;
+      var target = el;
+      var parent = el.parentElement;
+      // A compact parent containing both Home heading and its description is the whole intro.
+      if (parent && parent.children.length <= 8 && (parent.textContent || "").length < 1400) {
+        var heading = parent.querySelector("h1, h2, h3, h4");
+        if (heading && (heading.textContent || "").trim() === "Home") target = parent;
+      }
+      // Preserve the horizontal separator under the Home introduction.
+      if (target.nextElementSibling && target.nextElementSibling.matches("hr")) {
+        target = target.nextElementSibling;
+      }
+      return target;
+    }
+    return null;
+  }
+
+  function positionBelowHome(section) {
+    var anchor = findHomeIntroduction();
+    if (!anchor || !anchor.parentNode) return false;
+    anchor.insertAdjacentElement("afterend", section);
+    return true;
   }
 
   function start() {
@@ -172,14 +234,15 @@
       document.querySelector(".main-content") ||
       document.querySelector("#content") ||
       document.querySelector("main-content");
-    if (main) {
-      var hero = main.querySelector(".hero, .hero-section, #hero");
-      if (hero && hero.parentNode === main) hero.insertAdjacentElement("afterend", section);
-      else main.insertBefore(section, main.firstChild);
-    } else {
-      var header = document.querySelector("body > header, body > nav");
-      if (header) header.insertAdjacentElement("afterend", section);
-      else document.body.insertBefore(section, document.body.firstChild);
+    if (!positionBelowHome(section)) {
+      // Fallback while a client-side homepage is still rendering.
+      if (main) main.insertBefore(section, main.firstChild);
+      else document.body.appendChild(section);
+      // Move the section into its intended position when Home content becomes available.
+      var observer = new MutationObserver(function () {
+        if (positionBelowHome(section)) observer.disconnect();
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
     }
     update(section);
     window.setInterval(function () {

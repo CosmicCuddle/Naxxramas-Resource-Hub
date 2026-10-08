@@ -4,7 +4,7 @@
 #naxx-countdowns [hidden] { display:none !important; }
 #naxx-countdowns {
   --nc-gold:#e7c17b; --nc-gold-dim:#9b7546; --nc-text:#e8decc; --nc-muted:#b2a28e;
-  position:relative; isolation:isolate; width:min(100%,1240px); margin:30px auto 34px;
+  position:relative; isolation:isolate; width:100%; max-width:none; margin:24px 0 32px;
   padding:21px clamp(14px,2.4vw,28px) 26px; color:var(--nc-text);
   background:radial-gradient(ellipse at 50% -15%,rgba(143,96,37,.20),transparent 53%),
     linear-gradient(155deg,#191815 0%,#0b0b0e 54%,#1b1714 100%);
@@ -26,7 +26,7 @@
   text-shadow:0 2px #080605,0 0 12px rgba(215,146,39,.25);}
 #naxx-countdowns .nc-heading-rule {height:1px;max-width:420px;margin:13px auto 19px;
   background:linear-gradient(90deg,transparent,#986d3c 24%,#e0b56d 50%,#986d3c 76%,transparent);}
-#naxx-countdowns .nc-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;}
+#naxx-countdowns .nc-grid {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px;}
 #naxx-countdowns .nc-card {
   position:relative;min-width:0;min-height:218px;padding:18px 16px 17px;overflow:hidden;
   background:radial-gradient(circle at 12% 4%,var(--nc-glow),transparent 55%),
@@ -37,6 +37,7 @@
 #naxx-countdowns .nc-card--honor {--nc-glow:rgba(196,132,43,.13);--nc-accent:#edbd6a;}
 #naxx-countdowns .nc-card--raid {--nc-glow:rgba(70,133,184,.16);--nc-accent:#9ccff1;}
 #naxx-countdowns .nc-card--invasion {--nc-glow:rgba(178,68,39,.16);--nc-accent:#ee9c74;}
+#naxx-countdowns .nc-card--seasonal {--nc-glow:rgba(144,83,182,.17);--nc-accent:#d9b0f0;}
 #naxx-countdowns .nc-card::before {
   content:"";position:absolute;left:0;right:0;top:0;height:3px;
   background:linear-gradient(90deg,transparent,var(--nc-accent),transparent);opacity:.7;
@@ -73,12 +74,10 @@
   color:#a39177;font:11px/1.5 Arial,sans-serif;}
 @media(max-width:900px) {
   #naxx-countdowns .nc-grid {grid-template-columns:1fr 1fr;}
-  #naxx-countdowns .nc-card--invasion {grid-column:1/-1;}
 }
 @media(max-width:550px) {
   #naxx-countdowns {margin:18px auto 24px;padding:20px 12px;}
   #naxx-countdowns .nc-grid {grid-template-columns:1fr;gap:11px;}
-  #naxx-countdowns .nc-card--invasion {grid-column:auto;}
   #naxx-countdowns .nc-card {min-height:190px;padding:16px 13px;}
   #naxx-countdowns .nc-clock-number {font-size:26px;}
 }
