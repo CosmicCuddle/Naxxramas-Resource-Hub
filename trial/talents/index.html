@@ -7,7 +7,7 @@
 <meta name="description" content="Naxxramas server-specific Wrath 3.3.5 talent calculator with Vanilla, TBC and WotLK row limits and shareable builds.">
 <title>Talent Calculator | Naxxramas Resource Hub</title>
 <link rel="stylesheet" href="calculator.css?v=2">
-<script src="calculator.js?v=2" defer></script>
+<script src="calculator.js?v=3" defer></script>
 </head>
 <body>
 <a class="skip-link" href="#talent-content">Skip to talent calculator</a>
@@ -44,14 +44,14 @@
   <button id="import-code" type="button" class="secondary">Import code</button>
   <button id="reset" type="button" class="danger">Reset points</button>
  </section>
- <div class="settings-row"><span id="era-explanation" class="hint">Vanilla: rows 1–7 are shown. Later-expansion rows are hidden automatically.</span></div>
+ <div class="settings-row"><span id="era-explanation" class="hint">Vanilla: only Vanilla-era talents are shown; later additions are removed completely.</span></div>
  <div id="notice" class="notice" role="status" aria-live="polite"></div>
  <section class="tree-area" aria-label="Talent trees" id="trees"><p class="loading">Reading your Naxxramas talent data…</p></section>
  <section class="reference" aria-labelledby="reference-heading">
   <h2 id="reference-heading">How this calculator works</h2>
   <div class="reference-grid">
    <p><strong>Talent points:</strong> one point per level beginning at 10. Vanilla allows 51 at level 60; TBC 61 at level 70; Wrath 71 at level 80.</p>
-   <p><strong>Row access:</strong> Vanilla shows rows 1–7, TBC rows 1–9, and Wrath all 11. Later-expansion rows are completely hidden, while each new row still requires five points per earlier tier in that tree.</p>
+   <p><strong>Row access:</strong> Vanilla shows only Vanilla-era talents in rows 1–7; TBC shows only talents introduced by TBC in rows 1–9; Wrath shows every talent and all 11 rows. Later-expansion talents disappear even from early rows. Each row still requires five points per earlier tier in that tree.</p>
    <p><strong>Talent requirements:</strong> arrows, prerequisite ranks and the 3.3.5 spell/talent IDs are taken from your supplied DBC files. Missing references are flagged rather than guessed.</p>
    <p><strong>Sharing:</strong> builds save their talent IDs and ranks in the link, so recipients can open them without creating an account. Local saved builds stay in this browser.</p>
   </div>
