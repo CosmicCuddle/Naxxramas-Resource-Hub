@@ -261,32 +261,13 @@ html.naxx-frostbound-ui .naxx-frostbound-home-brand:focus-visible {
   border-radius:5px;
 }
 
-/* Permanent Talents entry, inserted next to the site's real Home navigation. */
+/* Talent Calculator inherits the existing Talent Sets sidebar menu button.
+ * Never paint it as a separate gold-bordered/floating call-to-action. */
 html.naxx-frostbound-ui .naxx-frostbound-talent-link {
-  display:flex!important;align-items:center;gap:8px;width:100%;
-  padding:10px 13px!important;margin:4px 0!important;
-  background:linear-gradient(100deg,#26394e,#142232)!important;
-  border:1px solid #b99b68!important;border-radius:6px!important;
-  color:#f4dfb1!important;font-weight:700!important;
-  text-decoration:none!important;box-shadow:inset 3px 0 0 #d5ac6a!important;
+  cursor:pointer;
+  text-decoration:none;
 }
-html.naxx-frostbound-ui .naxx-frostbound-talent-link:hover,
 html.naxx-frostbound-ui .naxx-frostbound-talent-link:focus-visible {
-  border-color:#b3e5fb!important;background:#304964!important;color:#fff3d8!important;
-}
-html.naxx-frostbound-ui .naxx-frostbound-talent-li {
-  padding:0!important;margin:0!important;list-style:none!important;
-}
-/* Fallback appears only if the original navigation markup cannot be located. */
-html.naxx-frostbound-ui .naxx-frostbound-talent-floating {
-  position:fixed!important;right:16px;bottom:15px;z-index:9998;
-  display:inline-flex!important;align-items:center!important;
-  width:auto!important;max-width:calc(100vw - 32px);
-  padding:11px 16px!important;border:1px solid #cfaa6d!important;
-  background:#182b3f!important;color:#ffe4ae!important;
-  border-radius:8px!important;box-shadow:0 7px 22px #000a!important;
-  font-size:13px!important;font-weight:700!important;text-decoration:none!important;
-}
-@media(max-width:520px){
- html.naxx-frostbound-ui .naxx-frostbound-talent-floating {right:10px;bottom:10px;padding:9px 12px!important;font-size:12px!important;}
+  outline:2px solid #9bdaf4!important;
+  outline-offset:2px;
 }
