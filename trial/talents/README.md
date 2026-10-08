@@ -30,3 +30,10 @@ A short versioned talent-code format `NT1:era:class:talentId36-rank.[...]` store
 ## Safety and rollback
 
 All files live under `/trial/talents/` and the existing `trial/view.html` is amended only to add a link to the calculator. The regular website and its `site-content.html` are untouched. To revert, restore the preview files and remove the `trial/talents` directory. The backup branch `backup/pre-server-talent-calculator-2026-10-08` preserves the pre-feature state.
+## Automatically hide later-expansion talent rows
+
+The calculator displays only talent rows available in the chosen era: Vanilla 1–7,
+TBC 1–9, and WotLK 1–11. The grid height adjusts to avoid empty rows and hidden
+focusable elements. The existing validator still rejects out-of-era allocations,
+including when a build is imported from a link or code. These are progression-era
+row limits on the custom 3.3.5 trees, not historically reconstructed Vanilla/TBC trees.

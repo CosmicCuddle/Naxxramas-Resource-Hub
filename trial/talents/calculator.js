@@ -7,7 +7,7 @@
   const CLASSES=[['warrior','Warrior'],['paladin','Paladin'],['hunter','Hunter'],['rogue','Rogue'],['priest','Priest'],['deathknight','Death Knight'],['shaman','Shaman'],['mage','Mage'],['warlock','Warlock'],['druid','Druid']];
   const PALETTE=['#e7c17e','#eabec3','#a8cc85','#eed29a','#e0e3e8','#da8277','#6bbadd','#a0dafa','#bb9dcf','#e7a970'];
   const BASE='NT1';const STORAGE='naxx.talent.saves.v1';const d=document;
-  const els=Object.fromEntries(['era','class','level','level-display','remaining','spent-summary','trees','notice','hide-locked','era-explanation','tooltip','dialog-overlay','dialog-title','dialog-content','dialog-close','copy-link','copy-code','save-build','load-build','import-code','reset'].map(id=>[id,d.getElementById(id)]));
+  const els=Object.fromEntries(['era','class','level','level-display','remaining','spent-summary','trees','notice','era-explanation','tooltip','dialog-overlay','dialog-title','dialog-content','dialog-close','copy-link','copy-code','save-build','load-build','import-code','reset'].map(id=>[id,d.getElementById(id)]));
   let db=null,records={}, classData=[], activeTooltip=null;
   const model={era:'vanilla',class:'warrior',level:60,points:{}};
   const cap=()=>ERA[model.era].level;
@@ -123,12 +123,12 @@
       els.class.appendChild(opt);
     }
     els.class.value=model.class;els.level.max=cap();els.level.value=model.level;els['level-display'].value=model.level;
-    els['era-explanation'].textContent=ERA[model.era].title+': rows 1–'+(ERA[model.era].maxRow+1)+' available. Higher rows are locked. Hover or focus a talent for its requirements.';
+    els['era-explanation'].textContent=ERA[model.era].title+': rows 1–'+(ERA[model.era].maxRow+1)+' are shown. Later-expansion rows are hidden automatically. Hover or focus a talent for its requirements.';
   }
   function makeTalentButton(t){
     const count=model.points[t[0]]||0,missing=!!(t[6]&&!talentById(t[6]));
-    const locked=t[1]>ERA[model.era].maxRow,reason=lockedReason(t);
-    const b=d.createElement('button');b.type='button';b.className='talent'+(count?' spent':!reason?' ready':' locked')+(locked?' locked-by-era':'')+(missing?' unknown':'')+(locked&&els['hide-locked'].checked?' hide-by-era':'');
+    const reason=lockedReason(t);
+    const b=d.createElement('button');b.type='button';b.className='talent'+(count?' spent':!reason?' ready':' locked')+(missing?' unknown':'');
     b.style.gridRow=t[1]+1;b.style.gridColumn=t[2]+1;b.dataset.talentId=t[0];
     b.setAttribute('aria-label',t[4]+', '+count+' of '+t[3].length+' ranks'+(reason?'. '+reason:''));
     b.innerHTML='<span class="initial" aria-hidden="true">'+cleanHTML(t[4].slice(0,1).toUpperCase())+'</span>'+
@@ -175,7 +175,9 @@
       const left=d.createElement('div');const small=d.createElement('small');small.textContent='TALENT TREE '+(index+1);const h=d.createElement('h2');h.textContent=tree[1];left.append(small,h);
       const output=d.createElement('output');output.textContent=count;output.setAttribute('aria-label',tree[1]+' points spent: '+count);header.append(left,output);
       const grid=d.createElement('div');grid.className='talent-grid';grid.setAttribute('aria-label',tree[1]+' talent tree');
-      for(const t of tree[3])grid.appendChild(makeTalentButton(t));
+      grid.style.setProperty('--visible-rows',String(ERA[model.era].maxRow+1));
+      // Exclude later-expansion talents entirely: no invisible buttons, keyboard focus or blank rows.
+      for(const t of tree[3])if(t[1]<=ERA[model.era].maxRow)grid.appendChild(makeTalentButton(t));
       const footer=d.createElement('div');footer.className='tree-footer';footer.innerHTML='<span class="meta">'+count+' points</span> invested in '+cleanHTML(tree[1]);
       panel.append(header,grid,footer);frag.appendChild(panel);
     });
@@ -239,7 +241,6 @@
       if(spent()>next-9){els.level.value=model.level;notify('Your current build needs at least level '+(spent()+9)+'. Remove some points before reducing the level.');return;}
       model.level=next;els['level-display'].value=model.level;render();notify('');
     });
-    els['hide-locked'].addEventListener('change',render);
     els.reset.addEventListener('click',()=>{if(!spent())return;if(!window.confirm('Reset all points in this build?'))return;model.points={};render();updateURL();notify('Talent points reset.');});
     els['copy-link'].addEventListener('click',()=>copy(buildUrl(),'Share link'));
     els['copy-code'].addEventListener('click',()=>copy(createCode(),'Build code'));
