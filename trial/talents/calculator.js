@@ -4,12 +4,15 @@
 (function(){
   'use strict';
   const ERA={vanilla:{title:'Vanilla',level:60,maxRow:6},tbc:{title:'The Burning Crusade',level:70,maxRow:8},wotlk:{title:'Wrath of the Lich King',level:80,maxRow:10}};
-  const ERA_ORDER={vanilla:0,tbc:1,wotlk:2};
+  // Only the final-row capstone survives the Vanilla/TBC row trim.
+  // These three DBC tree layouts place their real capstone off the centre column.
+  // Keys are TalentTab.dbc IDs, values are Talent.dbc IDs.
+  const OFF_CENTRE_CAPSTONES={vanilla:{263:901,302:1022},tbc:{382:1747}};
   const CLASSES=[['warrior','Warrior'],['paladin','Paladin'],['hunter','Hunter'],['rogue','Rogue'],['priest','Priest'],['deathknight','Death Knight'],['shaman','Shaman'],['mage','Mage'],['warlock','Warlock'],['druid','Druid']];
   const PALETTE=['#e7c17e','#eabec3','#a8cc85','#eed29a','#e0e3e8','#da8277','#6bbadd','#a0dafa','#bb9dcf','#e7a970'];
   const BASE='NT1';const STORAGE='naxx.talent.saves.v1';const d=document;
   const els=Object.fromEntries(['era','class','level','level-display','remaining','spent-summary','trees','notice','era-explanation','tooltip','dialog-overlay','dialog-title','dialog-content','dialog-close','copy-link','copy-code','save-build','load-build','import-code','reset'].map(id=>[id,d.getElementById(id)]));
-  let db=null,records={}, classData=[], activeTooltip=null, eraFirst={};
+  let db=null,records={}, classData=[], activeTooltip=null;
   const model={era:'vanilla',class:'warrior',level:60,points:{}};
   const cap=()=>ERA[model.era].level;
   const budget=()=>Math.max(0,model.level-9);
@@ -17,18 +20,23 @@
   const pointsInTree=(tree,pts=model.points)=>tree[3].reduce((s,t)=>s+(pts[t[0]]||0),0);
   const getTreeOf=(t)=>classData.find(tr=>tr[3].some(v=>v[0]===t[0]));
   const talentById=(id)=>records[Number(id)]||null;
-  // Classify each talent by its own earliest era. Do not hide an old talent
-  // simply because its later 3.3.5 dependency did not exist in the older tree.
-  function availableInEra(t,era=model.era){
-    return t[1]<=ERA[era].maxRow && eraFirst[t[0]]<=ERA_ORDER[era];
+  // Pure position-based filter: all talents ABOVE the last allowed row remain
+  // regardless of release era. On the last row, preserve exactly one capstone.
+  // WotLK has no filtering whatsoever.
+  function availableInEra(t,era=model.era,cls=model.class){
+    const maxRow=ERA[era].maxRow;
+    if(t[1]<maxRow)return true;
+    if(t[1]>maxRow)return false;
+    if(era==='wotlk')return true;
+    const trees=db.classes[cls]||[];
+    const tree=trees.find(tr=>tr[3].some(node=>node[0]===t[0]));
+    if(!tree)return false;
+    const capstone=OFF_CENTRE_CAPSTONES[era][tree[0]];
+    return capstone!=null?t[0]===capstone:t[2]===1;
   }
-  // Pre-Wrath trees used different prerequisite relationships. When the current
-  // 3.3.5 prerequisite was introduced later, it does not apply to the historical
-  // era view. Unknown DBC prerequisite IDs still require manual verification.
-  function relevantPrerequisiteId(t,era=model.era,lookup=records){
-    if(!t[6])return 0;
-    const prerequisite=lookup[t[6]];
-    return prerequisite&&!availableInEra(prerequisite,era)?0:t[6];
+  // The actual server's DBC prerequisites apply unchanged in every era.
+  function relevantPrerequisiteId(t){
+    return t[6]||0;
   }
   const levelAvailable=(cls=model.class,era=model.era)=>cls!=='deathknight'||era==='wotlk';
   const cleanHTML=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -60,7 +68,7 @@
       const id=Number(idStr),t=lookup[id];
       if(!t||!Number.isInteger(count)||count<0||count>t[3].length)return 'Invalid rank or unknown talent ID '+id+'.';
       if(!count)continue;
-      if(!availableInEra(t,era,lookup))return t[4]+' is not available in '+ERA[era].title+'. Please choose a build for the correct expansion.';
+      if(!availableInEra(t,era,cls))return t[4]+' is outside the allowed talent rows for '+ERA[era].title+'.';
       const tree=trees.find(tr=>tr[3].includes(t));
       if(!tree)return 'Talent has no tree: '+id;
       const below=tree[3].reduce((s,x)=>s+(x[1]<t[1]?(pts[x[0]]||0):0),0);
@@ -139,7 +147,7 @@
       els.class.appendChild(opt);
     }
     els.class.value=model.class;els.level.max=cap();els.level.value=model.level;els['level-display'].value=model.level;
-    els['era-explanation'].textContent=ERA[model.era].title+': rows 1–'+(ERA[model.era].maxRow+1)+'; later-expansion talents are hidden, while renamed earlier talents remain visible.';
+    els['era-explanation'].textContent=ERA[model.era].title+': the original 3.3.5 tree is intact through row '+(ERA[model.era].maxRow+1)+(model.era==='wotlk'?'. All talents are visible.':'; only the main capstone remains on the final row. Other final-row talents and all lower rows are removed.');
   }
   function makeTalentButton(t){
     const count=model.points[t[0]]||0,missing=!!(relevantPrerequisiteId(t)&&!talentById(t[6]));
@@ -192,7 +200,7 @@
       const output=d.createElement('output');output.textContent=count;output.setAttribute('aria-label',tree[1]+' points spent: '+count);header.append(left,output);
       const grid=d.createElement('div');grid.className='talent-grid';grid.setAttribute('aria-label',tree[1]+' talent tree');
       grid.style.setProperty('--visible-rows',String(ERA[model.era].maxRow+1));
-      // No later-expansion buttons (not even faded placeholders). Earlier-era dependencies still matter.
+      // Render complete earlier rows; on the last row render just the selected capstone.
       for(const t of tree[3])if(availableInEra(t))grid.appendChild(makeTalentButton(t));
       const footer=d.createElement('div');footer.className='tree-footer';footer.innerHTML='<span class="meta">'+count+' points</span> invested in '+cleanHTML(tree[1]);
       panel.append(header,grid,footer);frag.appendChild(panel);
@@ -276,16 +284,6 @@
     const content=await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
     const parsed=JSON.parse(content);
     if(parsed.version!==1||!parsed.classes||Object.keys(parsed.classes).length!==10)throw Error('Data format is not recognised.');
-    const historyResponse=await fetch('data/era-availability-v2.json?v=2');
-    if(!historyResponse.ok)throw Error('Era availability data could not be fetched ('+historyResponse.status+').');
-    const availability=await historyResponse.json();
-    const talentNodes=Object.values(parsed.classes).flatMap(trees=>trees.flatMap(tree=>tree[3]));
-    if(availability.version!==2||!availability.earliest||talentNodes.length!==830||
-      Object.keys(availability.earliest).length!==talentNodes.length||
-      talentNodes.some(t=>![0,1,2].includes(availability.earliest[t[0]]))){
-      throw Error('Expansion talent history does not match the server DBC snapshot.');
-    }
-    eraFirst=availability.earliest;
     return parsed;
   }
   async function start(){
@@ -298,6 +296,6 @@
     }catch(error){els.trees.innerHTML='<p class="tree-empty">Talent data could not be loaded. Please refresh later or report this problem to the Resource Hub administrator.</p>';notify(error.message);console.error('Naxxramas Talent Calculator:',error);}
   }
   // Expose pure logic to local automated tests only; safe readonly method collection.
-  if(typeof window!=='undefined')window.NaxxTalentTest={checkBuild,parseBuildCode,createCode,lockedReason,availableInEra,relevantPrerequisiteId,setModel:(x,dataset,availability)=>{db=dataset;if(availability)eraFirst=availability;model.era=x.era;model.level=x.level;assignClass(x.class);model.points=x.points||{};},state:()=>({...model,points:{...model.points}})};
+  if(typeof window!=='undefined')window.NaxxTalentTest={checkBuild,parseBuildCode,createCode,lockedReason,availableInEra,relevantPrerequisiteId,setModel:(x,dataset)=>{db=dataset;model.era=x.era;model.level=x.level;assignClass(x.class);model.points=x.points||{};},state:()=>({...model,points:{...model.points}})};
   start();
 })();

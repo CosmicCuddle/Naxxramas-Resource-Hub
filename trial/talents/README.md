@@ -1,80 +1,65 @@
-# Naxxramas Talent Calculator — Frostbound Citadel prototype
+# Naxxramas Talent Calculator — Frostbound Citadel trial
 
-URL after publication: `/Naxxramas-Resource-Hub/trial/talents/`
+Website preview: `/Naxxramas-Resource-Hub/trial/talents/`
 
-## Data provenance
+## Data source
 
-The included `data/server-talents-v1.gz.b64` was generated from the user's supplied **active** 3.3.5a `Talent.dbc`, `TalentTab.dbc`, and `Spell.dbc` dated 8 October 2026. It contains 830 talents across all 30 player talent trees (plus no hunter-pet trees), including modified Rend Flurry (talent 3000).
+`data/server-talents-v1.gz.b64` is from the user's modified live 3.3.5a
+`Talent.dbc`, `TalentTab.dbc` and `Spell.dbc` snapshot supplied on 8 October 2026.
+It contains 830 player talents, 30 player talent trees and custom Rend Flurry (ID 3000).
+The original server files are not edited and the static website makes no server requests.
 
-The file is a gzip-compressed, base64-encoded UTF-8 JSON snapshot. The Javascript downloads and decompresses it locally in the browser. The file can be regenerated with the separately supplied export script when the DBC changes.
+## Visibility — ONLY by row and position
 
-## Rules
+- **Vanilla:** level cap 60, 51 points. Show every single 3.3.5 talent in rows
+  **1–6**. Row **7** shows the single central talent/capstone only. Hide all
+  side talents on row 7 and all talents below row 7.
+- **TBC:** level cap 70, 61 points. Show every 3.3.5 talent in rows **1–8**.
+  Row **9** shows only the main talent/capstone. Hide other row-9 talents and
+  all lower rows.
+- **WotLK:** level cap 80, 71 points. Show all 11 rows, all positions, no hiding.
 
-- Vanilla: max level 60, rows 1–7, up to 51 points.
-- TBC: max level 70, rows 1–9, up to 61 points.
-- Wrath: max level 80, rows 1–11, up to 71 points.
-- Five points must be spent in earlier tiers per new row.
-- Talent prerequisites, required ranks, spell IDs and spell descriptions come from the uploaded DBC.
-- The two unresolved prerequisite IDs 1409 (Sanctified Retribution) and 1994 (Merciless Combat) are **not guessed**. These nodes remain unassignable until verified.
-- Death Knight appears in Wrath only for this calculator (default IP restriction, actual server config still to be confirmed).
-- The calculator does **not** modify or query character data. Every build is advisory until compared against actual realm behaviour.
+All available-row talents stay visible regardless of when introduced: e.g.,
+**Armored to the Teeth** appears in Vanilla, while TBC includes **Intensify Rage**
+and **Improved Whirlwind** (both are row 7). Both of those are side talents on
+Vanilla's *final* row and are therefore excluded in Vanilla.
 
-## Sharing
+### Off-centre final-row capstones in the user's current DBC
 
-A short versioned talent-code format `NT1:era:class:talentId36-rank.[...]` stores talent IDs rather than positional indexes. Share links include this code and the selected level. Builds can also be saved in browser localStorage. All imported codes are validated against the selected era, point budget and dependencies.
+We preserve the real end-of-tree abilities even when they are not in column 2:
+- Vanilla Shaman Enhancement (TalentTab 263): **Stormstrike** (Talent 901).
+- Vanilla Warlock Affliction (TalentTab 302): **Dark Pact** (Talent 1022).
+- TBC Paladin Holy (TalentTab 382): **Divine Illumination** (Talent 1747).
 
-## Missing assets / planned improvements
+All other final rows retain their middle-column talent (zero-based column 1).
+No history/earliest-expansion data is fetched or used. Older
+`era-availability-v1.json` and `era-availability-v2.json` were an abandoned
+prototype and should not be included in deployment; prior backup branches preserve
+their history.
 
-`SpellIcon.dbc` is not yet supplied, so this prototype uses letter emblems. Add icons only when mapped to the actual server spell icon records. We should also investigate missing prerequisite IDs against DBC and in-game testing.
+## Calculation rules
 
-## Safety and rollback
+- One talent point per level, from level 10; spending max 51/61/71 for each era.
+- Five points in earlier rows of the same tree per new row.
+- Maximum talent ranks and DBC talent prerequisites remain enforced. No silent
+  waiver of the server's actual DBC dependencies.
+- Existing unresolved Talent.dbc prerequisite IDs 1409 (Paladin) and 1994
+  (Death Knight) remain flagged; do not invent fixes without checking the source.
+- Death Knights are only selectable in the Wrath view, matching the IP default.
+- Existing `NT1` share-code and URL formats remain unchanged. Imports validate
+  against the row/position filter, point budget and prerequisites; valid earlier
+  share links continue to work.
 
-All files live under `/trial/talents/` and the existing `trial/view.html` is amended only to add a link to the calculator. The regular website and its `site-content.html` are untouched. To revert, restore the preview files and remove the `trial/talents` directory. The backup branch `backup/pre-server-talent-calculator-2026-10-08` preserves the pre-feature state.
-## Automatically hide later-expansion talent rows
+## User interface and future work
 
-The calculator displays only talent rows available in the chosen era: Vanilla 1–7,
-TBC 1–9, and WotLK 1–11. The grid height adjusts to avoid empty rows and hidden
-focusable elements. The existing validator still rejects out-of-era allocations,
-including when a build is imported from a link or code. These are progression-era
-row limits on the custom 3.3.5 trees, not historically reconstructed Vanilla/TBC trees.
+Excluded talents are **not created in the DOM**—no faded buttons and no
+hidden keyboard tab stops. The height of each grid shrinks to 7/9/11 rows.
 
-## Talent introduction by expansion (including talents in earlier rows)
+Talent icons currently use temporary letters; real icons need `SpellIcon.dbc`.
+Tooltip substitutions and remaining unresolved DBC prerequisites also need work.
 
-`data/era-availability-v1.json` identifies the earliest expansion in which each
-of the 830 talents existed (Vanilla/TBC/Wrath). The identification uses 1.12 and
-2.4.3 historical tree reference skeletons with the supplied custom server 3.3.5 DBC
-IDs, names, and TBC spell IDs. The server-custom Rend Flurry (3000) is explicitly
-available in all eras. These filters do not recreate pre-Wrath spell effects.
+## Backup and rollback
 
-Vanilla completely omits later TBC/Wrath talents (including lower rows). TBC omits
-later Wrath talents. Dependencies are closed transitively: if an earlier-era
-node depends on a removed talent in the current 3.3.5 DBC, the dependent node is
-also removed rather than leaving an unlearnable button. Valid 3.3.5 prerequisite
-and point-budget checks still apply. Share-code syntax remains `NT1`, but codes
-containing now-ineligible talent selections cannot be imported for an earlier era.
-
-Example: Fury Improved Whirlwind appears in TBC and Wrath, while Intensify Rage
-appears only in Wrath. 
-
-Historical references: https://github.com/lathcf/azerothcore-mod-era-talents/tree/main/era-data/_skeletons
-
-## 2026-10-08: Retain original-era talent equivalents
-
-The first per-talent history filter was too restrictive: it relied on exact names
-and hid earlier talents whenever the current 3.3.5 talent referenced a later-added
-prerequisite. Source data `era-availability-v2.json` restores 28 verified name/
-function equivalents from the Vanilla historical talent lists, covering all nine
-pre-Wrath classes. It also treats the talent's **own** era and row as the visibility
-rule, instead of recursively removing older talent nodes from the screen.
-
-Current DBC prerequisites are retained when they exist in the selected era. If a
-Wrath-era talent dependency did not exist during the selected earlier era,
-the calculator does not impose that later prerequisite for that earlier-era
-planning view. The WotLK view still uses all original DBC prerequisites.
-Unresolved DBC reference IDs remain flagged as before.
-
-This is still a server-specific 3.3.5 tree with era filtering. **Talents deleted
-entirely before Wrath cannot be recreated from the supplied 3.3.5 DBC**; a
-separate genuine 1.12/2.4.3 tree dataset and different validation rules would
-be needed for exact historical calculators. Custom 3.3.5 tooltip effects may
-also differ from their earlier historical equivalents.
+All feature files are in `/trial/talents/`; original website and the live
+server have not been modified. The backup branch
+`backup/pre-row-only-talent-filter-2026-10-08` preserves the prior implementation.
