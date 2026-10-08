@@ -3,53 +3,154 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Full Website Design Trial | Naxxramas Resource Hub</title>
+<title>Choose Your Naxxramas Website Redesign | Design Trials</title>
+<meta name="description" content="Compare four separate Warcraft-inspired visual directions for the Naxxramas Resource Hub.">
 <style>
-  *{box-sizing:border-box}
-  html,body{margin:0;min-height:100%;background:#090e16;color:#e8dfd1;font:14px/1.4 "Trebuchet MS",Arial,sans-serif}
-  .preview-shell{height:100dvh;display:flex;flex-direction:column;min-height:400px}
-  .preview-bar{flex:0 0 auto;display:flex;align-items:center;gap:14px;justify-content:space-between;
-    padding:10px clamp(12px,2vw,25px);border-bottom:1px solid #9e7d50;
-    background:linear-gradient(100deg,#1a2939,#0b131f 62%,#271b17);
-    box-shadow:0 5px 24px rgba(0,0,0,.5);position:relative;z-index:10;min-height:65px}
-  .preview-brand{display:flex;align-items:center;gap:12px;min-width:0}
-  .preview-crest{display:grid;place-items:center;width:39px;height:39px;flex:0 0 39px;
-    border:1px solid #d8b77a;border-radius:9px;background:radial-gradient(circle,#31475c,#111923);
-    color:#f7dba4;font:700 24px Georgia,serif}
-  .preview-title{font:700 16px Georgia,serif;color:#f6d99f;letter-spacing:.025em}
-  .preview-sub{color:#aebfca;font-size:11px;margin-top:2px}
-  .preview-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-  .preview-button{display:inline-flex;justify-content:center;align-items:center;gap:7px;
-    padding:9px 12px;border-radius:6px;text-decoration:none;border:1px solid #6c8091;
-    background:#1b2c3e;color:#e6ebee;cursor:pointer;font-size:12px;font-weight:700}
-  .preview-button:hover,.preview-button:focus-visible{background:#28425b;border-color:#b7d8e6;color:#fff}
-  .preview-button.back{border-color:#ad8550;color:#ffe4b0;background:#36271e}
-  .preview-button.back:hover{background:#4b3320}
-  .preview-frame{flex:1 1 auto;min-height:0;width:100%;border:0;background:#090e16}
-  @media(max-width:650px){.preview-bar{align-items:flex-start;gap:9px;padding:8px 10px}
-    .preview-title{font-size:13px}.preview-sub{font-size:10px}
-    .preview-actions{gap:5px}
-    .preview-button{padding:8px;font-size:11px}
-    .preview-crest{width:30px;height:30px;flex-basis:30px;font-size:18px}}
+*{box-sizing:border-box}
+:root{color-scheme:dark;font-family:"Trebuchet MS",Arial,sans-serif;background:#0b0d12;color:#e7e0d4}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse 50% 35% at 50% 0,rgba(169,115,65,.16),transparent 90%),linear-gradient(120deg,#0b0d13,#15100f 75%)}
+button,a{font:inherit}
+a:focus-visible{outline:2px solid #f2d59d;outline-offset:4px}
+.sitebar{display:flex;gap:15px;align-items:center;justify-content:space-between;padding:17px clamp(16px,4vw,68px);background:#13141b;border-bottom:1px solid #544832}
+.brand{font:700 17px Georgia,serif;color:#f8dba0}.brand small{display:block;font:10px Arial,sans-serif;letter-spacing:.13em;color:#afa89e;margin-top:4px}
+.back{color:#e9cf9e;border:1px solid #8a714d;border-radius:5px;padding:9px 13px;text-decoration:none;white-space:nowrap;font-size:12px}
+.back:hover{background:#322417}
+main{max-width:1470px;margin:auto;padding:clamp(27px,5vw,65px) clamp(15px,3vw,50px) 70px}
+.kicker{text-align:center;color:#cea46f;letter-spacing:.27em;font-size:11px;font-weight:700}
+h1{text-align:center;font:700 clamp(30px,4.2vw,54px)/1.15 Georgia,serif;color:#f6dba7;margin:12px 0;text-shadow:0 3px 14px #050506}
+.intro{text-align:center;color:#c7c5c1;font-size:15px;max-width:730px;line-height:1.65;margin:0 auto 27px}
+.note{text-align:center;max-width:830px;margin:0 auto 35px;padding:12px 17px;border-top:1px solid #675137;border-bottom:1px solid #675137;color:#ccbca4;font-size:12px;line-height:1.6}
+.gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.design-card{min-width:0;border:1px solid #5a4c3d;border-radius:10px;overflow:hidden;background:#18171a;box-shadow:0 12px 28px rgba(0,0,0,.36)}
+.design-card:hover{border-color:var(--design-accent);box-shadow:0 17px 36px rgba(0,0,0,.48)}
+.design-preview{position:relative;display:block;text-decoration:none;padding:21px 18px 0;background:radial-gradient(ellipse at 50% 8%,var(--design-side),var(--design-bg) 74%)}
+.mock-frame{display:flex;aspect-ratio:16/9;min-height:160px;max-height:330px;overflow:hidden;border:2px solid var(--design-gold);border-radius:8px 8px 0 0;box-shadow:0 12px 32px #0008;background:var(--design-bg)}
+.mock-sidebar{display:flex;flex-direction:column;gap:12px;padding:16px 10px;background:var(--design-side);width:23%;border-right:1px solid var(--design-accent)}
+.mock-badge{border:1px solid var(--design-gold);border-radius:6px;width:30px;height:30px;display:grid;place-items:center;color:var(--design-gold);font-size:16px}
+.mock-sidebar i{display:block;width:85%;height:6px;border-radius:4px;background:var(--design-gold);opacity:.32}
+.mock-sidebar .mock-on{width:95%;opacity:1;background:var(--design-accent);height:11px}
+.mock-content{width:77%;padding:16px}
+.mock-toolbar{height:15px;background:var(--design-panel);border:1px solid var(--design-accent);opacity:.75;border-radius:4px;margin-bottom:12px}
+.mock-hero{display:flex;gap:12px;align-items:center;background:var(--design-panel);border:1px solid var(--design-gold);padding:12px;margin-bottom:13px;border-radius:5px}
+.mock-crest{font:700 23px Georgia,serif;border:1px solid var(--design-gold);padding:7px;color:var(--design-gold)}
+.mock-heading{width:90px;max-width:60%;height:12px;background:var(--design-gold);margin-bottom:8px}
+.mock-copy{width:165px;max-width:90%;height:6px;background:var(--design-accent);opacity:.55}
+.mock-header{height:12px;width:48%;background:var(--design-gold);margin:10px 0;opacity:.9}
+.mock-cards{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.mock-cards>div{height:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--design-panel);border:1px solid var(--design-accent);border-radius:5px}
+.mock-cards span{width:50%;height:5px;background:var(--design-gold);opacity:.75;margin-bottom:10px}
+.mock-cards b{color:var(--design-gold);font-size:clamp(9px,1.8vw,17px);font-variant-numeric:tabular-nums}
+.mock-lines{display:flex;flex-direction:column;gap:7px;margin-top:13px}
+.mock-lines i{height:4px;width:80%;background:var(--design-accent);opacity:.4}
+.mock-lines i:nth-child(2){width:65%}.mock-lines i:nth-child(3){width:75%}
+.mock-caption{position:absolute;bottom:13px;right:29px;background:#090b10db;border:1px solid #8a714f;border-radius:5px;color:#ead6aa;font-size:10px;letter-spacing:.1em;padding:6px 9px;text-transform:uppercase}
+.design-details{padding:25px 25px 24px}
+.design-number{font:bold 10px Arial,sans-serif;letter-spacing:.22em;color:var(--design-accent)}
+.design-details h2{font:700 27px Georgia,serif;color:#f4e1bb;margin:8px 0 4px}
+.design-sub{font-size:12px;color:var(--design-accent);font-weight:700;letter-spacing:.06em}
+.design-details p{font-size:13px;line-height:1.7;color:#c5c4c6;min-height:64px}
+.design-open{display:inline-block;background:linear-gradient(120deg,var(--design-panel),var(--design-bg));border:1px solid var(--design-gold);color:#fff0d8;text-decoration:none;padding:10px 15px;border-radius:5px;font-weight:700;font-size:12px}
+.design-open:hover{filter:brightness(1.25)}
+.design-emerald .mock-frame{border-radius:16px 16px 0 0}
+.design-emerald .mock-cards>div,.design-emerald .mock-hero{border-radius:11px}
+.design-arcane .mock-frame{border-radius:0}.design-arcane .mock-cards>div{border-radius:0}
+.design-obsidian .mock-frame{border-left-width:5px}
+.footer-note{text-align:center;color:#b5a791;font-size:12px;margin:38px auto 0;max-width:760px;line-height:1.7}
+@media(max-width:890px){.gallery{grid-template-columns:1fr;max-width:660px;margin:auto}}
+@media(max-width:480px){.sitebar{padding:12px}.brand{font-size:14px}.back{font-size:11px;padding:8px}.mock-content{padding:10px}.mock-sidebar{padding:10px 7px}.mock-cards>div{height:50px}.mock-frame{min-height:145px}.mock-hero{padding:7px}.design-details{padding:20px}.design-details h2{font-size:24px}.mock-caption{display:none}}
 </style>
 </head>
 <body>
-<main class="preview-shell">
-  <header class="preview-bar">
-    <div class="preview-brand">
-      <div class="preview-crest" aria-hidden="true">N</div>
-      <div>
-        <div class="preview-title">Naxxramas · Website Redesign Trial</div>
-        <div class="preview-sub" id="trial-status" role="status">Loading full-site preview…</div>
+<header class="sitebar"><div class="brand">NAXXRAMAS <small>RESOURCE HUB · DESIGN WORKSHOP</small></div><a class="back" href="../">Return to the current website</a></header>
+<main>
+  <div class="kicker">FOUR VISIONS FOR AZEROTH</div>
+  <h1>Choose a new look for your Resource Hub</h1>
+  <p class="intro">Explore four different Warcraft-inspired styles. Every choice opens an interactive trial using the same server resources, guides and information.</p>
+  <div class="note">These are separate design experiments. The existing website is unchanged. Choose any design and use the selector at the top to change styles without reopening the whole website.</div>
+  <div class="gallery"><article class="design-card design-frostbound" style="--design-bg:#0d1926;--design-panel:#1c354a;--design-accent:#83c4ea;--design-gold:#edc88c;--design-side:#42647d">
+  <a class="design-preview" href="view.html?style=frostbound" aria-label="View the Frostbound Citadel website trial">
+    <div class="mock-frame" aria-hidden="true">
+      <div class="mock-sidebar"><div class="mock-badge">❄</div><i></i><i></i><i class="mock-on"></i><i></i><i></i><i></i></div>
+      <div class="mock-content">
+        <div class="mock-toolbar"></div>
+        <div class="mock-hero"><div class="mock-crest">❄</div><div><div class="mock-heading"></div><div class="mock-copy"></div></div></div>
+        <div class="mock-header"></div>
+        <div class="mock-cards"><div><span></span><b>12 : 08 : 44</b></div><div><span></span><b>06 : 19 : 25</b></div></div>
+        <div class="mock-lines"><i></i><i></i><i></i></div>
       </div>
     </div>
-    <nav class="preview-actions" aria-label="Trial controls">
-      <button class="preview-button" id="refresh-preview" type="button">Refresh preview</button>
-      <a class="preview-button back" href="../" target="_blank" rel="noopener">Open current website</a>
-    </nav>
-  </header>
-  <iframe id="resource-site" class="preview-frame" title="Naxxramas Resource Hub — redesign preview" src="../site-content.html" loading="eager"></iframe>
+    <span class="mock-caption">Visual direction 01</span>
+  </a>
+  <div class="design-details">
+    <div class="design-number">DESIGN 01</div>
+    <h2>Frostbound Citadel</h2><div class="design-sub">Cold stone · antique gold</div>
+    <p>A disciplined Northrend look, with deep navy stone, frost-blue navigation and rich gold headings.</p>
+    <a class="design-open" href="view.html?style=frostbound">Explore this design <span aria-hidden="true">→</span></a>
+  </div>
+</article>
+<article class="design-card design-obsidian" style="--design-bg:#18100f;--design-panel:#30201b;--design-accent:#e49b59;--design-gold:#f5c68d;--design-side:#683627">
+  <a class="design-preview" href="view.html?style=obsidian" aria-label="View the Obsidian Forge website trial">
+    <div class="mock-frame" aria-hidden="true">
+      <div class="mock-sidebar"><div class="mock-badge">✦</div><i></i><i></i><i class="mock-on"></i><i></i><i></i><i></i></div>
+      <div class="mock-content">
+        <div class="mock-toolbar"></div>
+        <div class="mock-hero"><div class="mock-crest">✦</div><div><div class="mock-heading"></div><div class="mock-copy"></div></div></div>
+        <div class="mock-header"></div>
+        <div class="mock-cards"><div><span></span><b>12 : 08 : 44</b></div><div><span></span><b>06 : 19 : 25</b></div></div>
+        <div class="mock-lines"><i></i><i></i><i></i></div>
+      </div>
+    </div>
+    <span class="mock-caption">Visual direction 02</span>
+  </a>
+  <div class="design-details">
+    <div class="design-number">DESIGN 02</div>
+    <h2>Obsidian Forge</h2><div class="design-sub">Black iron · molten copper</div>
+    <p>A darker fortress aesthetic: forged metal, volcanic embers, crimson highlights and heavier panels.</p>
+    <a class="design-open" href="view.html?style=obsidian">Explore this design <span aria-hidden="true">→</span></a>
+  </div>
+</article>
+<article class="design-card design-emerald" style="--design-bg:#d7c8a9;--design-panel:#ede2c9;--design-accent:#2f674f;--design-gold:#b17f42;--design-side:#657b5b">
+  <a class="design-preview" href="view.html?style=emerald" aria-label="View the Emerald Sanctuary website trial">
+    <div class="mock-frame" aria-hidden="true">
+      <div class="mock-sidebar"><div class="mock-badge">✿</div><i></i><i></i><i class="mock-on"></i><i></i><i></i><i></i></div>
+      <div class="mock-content">
+        <div class="mock-toolbar"></div>
+        <div class="mock-hero"><div class="mock-crest">✿</div><div><div class="mock-heading"></div><div class="mock-copy"></div></div></div>
+        <div class="mock-header"></div>
+        <div class="mock-cards"><div><span></span><b>12 : 08 : 44</b></div><div><span></span><b>06 : 19 : 25</b></div></div>
+        <div class="mock-lines"><i></i><i></i><i></i></div>
+      </div>
+    </div>
+    <span class="mock-caption">Visual direction 03</span>
+  </a>
+  <div class="design-details">
+    <div class="design-number">DESIGN 03</div>
+    <h2>Emerald Sanctuary</h2><div class="design-sub">Forest halls · parchment</div>
+    <p>A more welcoming elven-library approach with sage greens, ivory parchment, carved wood and open space.</p>
+    <a class="design-open" href="view.html?style=emerald">Explore this design <span aria-hidden="true">→</span></a>
+  </div>
+</article>
+<article class="design-card design-arcane" style="--design-bg:#140f2b;--design-panel:#261d49;--design-accent:#ae92ff;--design-gold:#ddd0ff;--design-side:#3c316f">
+  <a class="design-preview" href="view.html?style=arcane" aria-label="View the Arcane Observatory website trial">
+    <div class="mock-frame" aria-hidden="true">
+      <div class="mock-sidebar"><div class="mock-badge">✧</div><i></i><i></i><i class="mock-on"></i><i></i><i></i><i></i></div>
+      <div class="mock-content">
+        <div class="mock-toolbar"></div>
+        <div class="mock-hero"><div class="mock-crest">✧</div><div><div class="mock-heading"></div><div class="mock-copy"></div></div></div>
+        <div class="mock-header"></div>
+        <div class="mock-cards"><div><span></span><b>12 : 08 : 44</b></div><div><span></span><b>06 : 19 : 25</b></div></div>
+        <div class="mock-lines"><i></i><i></i><i></i></div>
+      </div>
+    </div>
+    <span class="mock-caption">Visual direction 04</span>
+  </a>
+  <div class="design-details">
+    <div class="design-number">DESIGN 04</div>
+    <h2>Arcane Observatory</h2><div class="design-sub">Midnight violet · starlight</div>
+    <p>A magical archive with violet glass, celestial gradients, sharp lines and luminous spell-blue accents.</p>
+    <a class="design-open" href="view.html?style=arcane">Explore this design <span aria-hidden="true">→</span></a>
+  </div>
+</article></div>
+  <p class="footer-note">Each miniature is a stylised design illustration, not a screenshot. Open a design to explore the real website pages and test the navigation.</p>
 </main>
-<script src="preview.js?v=1"></script>
-</body>
-</html>
+</body></html>

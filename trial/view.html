@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Naxxramas Resource Hub | Interactive Design Preview</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#0b1019;color:#e8dfd1;font:13px/1.5 "Trebuchet MS",Arial,sans-serif}
+.preview-shell{height:100dvh;display:flex;flex-direction:column;min-height:360px}
+.preview-bar{position:relative;z-index:10;flex:0 0 auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;padding:9px clamp(11px,2vw,25px);border-bottom:1px solid #aa8754;
+  background:linear-gradient(100deg,#1c293b,#0b121e 60%,#271a16);box-shadow:0 5px 20px #0008}
+.preview-brand{display:flex;align-items:center;gap:11px;min-width:0}
+.preview-crest{width:41px;height:41px;flex:0 0 41px;display:grid;place-items:center;background:radial-gradient(circle,#334b65,#131925);
+  border:1px solid #e0b97d;color:#f9e0b0;border-radius:7px;font:700 25px Georgia,serif}
+.preview-title{font:700 clamp(13px,1.55vw,17px) Georgia,serif;color:#ffe2ad}
+.preview-sub{font:11px/1.4 Arial,sans-serif;color:#bbc7cc;margin-top:3px}
+.preview-actions{display:flex;align-items:center;flex-wrap:wrap;gap:7px}
+.preview-button,.preview-picker{font:bold 12px "Trebuchet MS",Arial,sans-serif;border:1px solid #697f95;background:#1c2b3c;color:#e5edf0;border-radius:5px;padding:9px 11px;text-decoration:none;cursor:pointer}
+.preview-button:hover,.preview-picker:hover{border-color:#dfb67d;color:#ffe2ad;background:#34445a}
+.preview-button.back{border-color:#ad8550;background:#35261e;color:#f4ddb4}
+.preview-button.back:hover{background:#594029}
+.preview-picker{min-width:181px;max-width:100%}
+.preview-frame{width:100%;flex:1 1 auto;min-height:0;border:0;background:#090e16}
+.preview-label{color:#cfc1aa;font-size:11px}
+@media(max-width:650px){.preview-bar{padding:8px;gap:6px}.preview-brand{flex:1 0 100%}.preview-crest{width:30px;height:30px;flex-basis:30px;font-size:20px}
+.preview-actions{width:100%;justify-content:flex-start}.preview-picker{min-width:138px;font-size:11px;flex:1}.preview-button{font-size:11px;padding:8px 9px}.preview-label{display:none}}
+</style>
+</head>
+<body>
+<main class="preview-shell">
+  <header class="preview-bar">
+    <div class="preview-brand">
+      <div class="preview-crest" aria-hidden="true">N</div>
+      <div>
+        <div class="preview-title" id="trial-title">Naxxramas — Design Preview</div>
+        <div class="preview-sub" id="trial-status" role="status">Loading your design…</div>
+      </div>
+    </div>
+    <nav class="preview-actions" aria-label="Preview navigation">
+      <label class="preview-label" for="theme-picker">Choose style</label>
+      <select class="preview-picker" id="theme-picker" aria-label="Choose website redesign">
+        <option value="frostbound">Frostbound Citadel</option>
+        <option value="obsidian">Obsidian Forge</option>
+        <option value="emerald">Emerald Sanctuary</option>
+        <option value="arcane">Arcane Observatory</option>
+      </select>
+      <button class="preview-button" id="refresh-preview" type="button">Refresh</button>
+      <a class="preview-button" href="index.html">All four designs</a>
+      <a class="preview-button back" href="../" target="_blank" rel="noopener">Current website</a>
+    </nav>
+  </header>
+  <iframe id="resource-site" class="preview-frame" title="Naxxramas Resource Hub — interactive redesign" src="../site-content.html" loading="eager"></iframe>
+</main>
+<script src="preview.js?v=2"></script>
+</body></html>
