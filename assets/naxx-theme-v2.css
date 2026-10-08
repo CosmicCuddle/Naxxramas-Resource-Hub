@@ -1,0 +1,125 @@
+/* Naxxramas Resource Hub — V2 homepage realm events. Safe overlay, no original CSS replaced. */
+
+/* Fix screenshot issue: the event board MUST sit below Home, never beside its text. */
+.naxx-v2-home-flow {flex-wrap:wrap !important;}
+.naxx-v2-home-flow > .naxx-v2-home-intro,
+.naxx-v2-home-flow > #naxx-countdowns,
+#naxx-countdowns {
+  grid-column:1 / -1 !important; grid-row:auto !important;
+  flex:0 0 100% !important;justify-self:stretch !important;
+  width:100% !important;max-width:none !important;min-width:0 !important;
+}
+.naxx-v2-home-flow > #naxx-countdowns {order:100 !important;}
+.naxx-v2-home-flow > .naxx-v2-home-intro {order:0 !important;}
+
+/* Forged-bronze frame, obsidian backdrop, soft torchlit highlights. */
+#naxx-countdowns {
+  position:relative;isolation:isolate;
+  margin:27px 0 36px !important;
+  padding:29px clamp(16px,2.8vw,40px) 26px !important;
+  background:
+    radial-gradient(ellipse 65% 80% at 50% -28%,rgba(188,125,44,.24),transparent 73%),
+    radial-gradient(ellipse at 0 100%,rgba(89,60,40,.17),transparent 42%),
+    radial-gradient(ellipse at 100% 100%,rgba(76,50,37,.17),transparent 42%),
+    repeating-linear-gradient(110deg,rgba(255,218,165,.014) 0 1px,transparent 1px 8px),
+    linear-gradient(145deg,#1d1813,#0a0b10 53%,#1e1813) !important;
+  border:1px solid #a47a46 !important;border-radius:11px !important;
+  box-shadow:inset 0 0 0 3px #1b1512,inset 0 0 0 4px rgba(235,184,107,.14),
+    inset 0 0 65px rgba(0,0,0,.53),0 14px 34px rgba(0,0,0,.42),
+    0 0 22px rgba(167,101,29,.08) !important;
+}
+#naxx-countdowns::before,#naxx-countdowns::after {
+  width:34px;height:34px;z-index:1;border-color:#d4a65e !important;
+  filter:drop-shadow(0 0 5px rgba(230,163,63,.3));
+}
+#naxx-countdowns::before {top:8px;left:8px;border-width:3px 0 0 3px;}
+#naxx-countdowns::after {bottom:8px;right:8px;border-width:0 3px 3px 0;}
+#naxx-countdowns .nc-kicker {font-size:10px;letter-spacing:.3em;color:#bca27c;margin-bottom:8px;}
+#naxx-countdowns .nc-kicker::before,#naxx-countdowns .nc-kicker::after {
+  content:"◆";color:#977047;font-size:8px;padding:0 11px;
+}
+#naxx-countdowns .nc-title {
+  margin:0 !important;color:#f6dfad !important;
+  font:700 clamp(24px,2.65vw,36px)/1.2 Georgia,"Times New Roman",serif !important;
+  letter-spacing:.035em;text-shadow:0 2px 1px #080606,0 0 22px rgba(211,137,37,.23);
+}
+#naxx-countdowns .nc-subtitle {margin:9px auto 0;text-align:center;color:#c7b9a1;
+  font:13px/1.55 Georgia,serif;letter-spacing:.03em;}
+#naxx-countdowns .nc-heading-rule {height:1px;width:65%;max-width:560px;margin:19px auto 26px;
+  background:linear-gradient(90deg,transparent,#6b4926 12%,#f1c27e 50%,#6b4926 88%,transparent);
+  box-shadow:0 0 10px rgba(220,151,48,.2);}
+
+/* Four truly readable countdowns across the Home content width. */
+#naxx-countdowns .nc-grid {grid-template-columns:repeat(4,minmax(0,1fr)) !important;gap:16px !important;}
+#naxx-countdowns .nc-card {
+  display:flex;flex-direction:column;min-width:0;
+  min-height:252px !important;padding:22px 17px 17px !important;
+  border:1px solid var(--nc-accent) !important;border-radius:7px !important;
+  background:radial-gradient(ellipse at 50% -12%,var(--nc-glow),transparent 73%),
+   repeating-linear-gradient(140deg,rgba(235,199,134,.012) 0 1px,transparent 1px 7px),
+   linear-gradient(165deg,#252018 0%,#121216 49%,#090a0d 100%) !important;
+  box-shadow:inset 0 0 0 2px #151217,inset 0 0 0 3px rgba(215,163,94,.1),
+    0 8px 20px rgba(0,0,0,.27) !important;
+  transition:transform .23s ease,box-shadow .23s ease;
+}
+#naxx-countdowns .nc-card::before {top:0;left:18px;right:18px;height:3px;opacity:.84;
+  background:linear-gradient(90deg,transparent,var(--nc-accent),transparent);}
+#naxx-countdowns .nc-card::after {content:"";position:absolute;pointer-events:none;
+  bottom:10px;left:27%;right:27%;height:1px;background:var(--nc-accent);opacity:.36;}
+#naxx-countdowns .nc-card:hover {transform:translateY(-3px);
+  box-shadow:inset 0 0 0 2px #151217,inset 0 0 0 3px rgba(215,163,94,.2),
+    0 12px 26px rgba(0,0,0,.37),0 0 18px var(--nc-glow) !important;}
+#naxx-countdowns .nc-card-head {gap:13px;align-items:center;min-height:56px;}
+#naxx-countdowns .nc-seal {position:relative;flex-basis:48px;width:48px;height:48px;font-size:21px;
+  box-shadow:0 0 0 4px rgba(0,0,0,.35),inset 0 0 0 3px rgba(0,0,0,.45),0 0 14px var(--nc-glow);
+  background:radial-gradient(circle at 32% 25%,rgba(255,255,255,.12),transparent 38%),
+    radial-gradient(circle,#3b3027,#121116 74%);}
+#naxx-countdowns .nc-seal::after {content:"";position:absolute;inset:-6px;border:1px dashed var(--nc-accent);
+  border-radius:50%;opacity:.28;pointer-events:none;}
+#naxx-countdowns .nc-card-label {font-size:10px;line-height:1.4;letter-spacing:.12em;}
+#naxx-countdowns .nc-card-title {font-size:clamp(17px,1.4vw,21px);line-height:1.17;
+  margin-top:5px;color:#f6e9d1;text-shadow:0 1px 2px #000;}
+#naxx-countdowns .nc-clock {gap:7px;margin-top:26px;}
+#naxx-countdowns .nc-clock-number {
+  padding:12px 1px 11px;border:1px solid #796043;border-radius:5px;
+  background:linear-gradient(180deg,#2c2721 0%,#17161a 49%,#0b0d12 51%,#19151a 100%);
+  box-shadow:inset 0 2px 4px rgba(0,0,0,.4),0 1px 0 rgba(228,171,89,.08);
+  font-size:clamp(20px,2vw,32px);color:#ffe2a7;
+  text-shadow:0 0 12px rgba(231,169,83,.26);
+}
+#naxx-countdowns .nc-clock-label {font-size:9px;letter-spacing:.10em;color:#cbba9a;margin-top:8px;}
+#naxx-countdowns .nc-pending {flex:1;min-height:100px;margin-top:18px;font-size:12px;line-height:1.6;}
+#naxx-countdowns .nc-card .nc-note {margin:auto 0 17px;padding-top:16px;
+  font-size:12px;line-height:1.7;color:#cabba3;text-align:center;}
+#naxx-countdowns .nc-mini-grid {margin-top:16px !important;gap:16px !important;}
+#naxx-countdowns .nc-mini {padding:18px 22px 20px !important;border:1px solid var(--nc-accent) !important;
+  border-radius:7px !important;box-shadow:inset 0 0 0 2px #141117,0 9px 21px rgba(0,0,0,.24);}
+#naxx-countdowns .nc-mini-heading h3 {font-size:20px;}
+#naxx-countdowns .nc-mini-current {font-size:14px;margin-top:15px;}
+#naxx-countdowns .nc-mini-location {color:#e0d0b4;line-height:1.65;}
+#naxx-countdowns .nc-mini .nc-clock {max-width:480px;margin-top:16px;gap:10px;}
+#naxx-countdowns .nc-mini .nc-clock-number {font-size:clamp(21px,2vw,29px);padding:10px 2px;}
+#naxx-countdowns .nc-footer {margin-top:22px;padding-top:14px;border-top:1px solid rgba(182,135,76,.3);
+  line-height:1.55;color:#ab9980;}
+/* Responsive design, including the Resource Hub's fixed left sidebar. */
+@media (max-width:1300px) {
+  #naxx-countdowns .nc-grid {grid-template-columns:repeat(2,minmax(0,1fr)) !important;}
+  #naxx-countdowns .nc-card {min-height:235px !important;}
+  #naxx-countdowns .nc-clock-number {font-size:clamp(23px,3vw,34px);}
+}
+@media (max-width:720px) {
+  #naxx-countdowns {padding:23px 14px 18px !important;}
+  #naxx-countdowns .nc-mini-grid {grid-template-columns:1fr !important;}
+  #naxx-countdowns .nc-subtitle {font-size:12px;}
+}
+@media (max-width:540px) {
+  #naxx-countdowns .nc-grid {grid-template-columns:1fr !important;}
+  #naxx-countdowns .nc-card {min-height:208px !important;}
+  #naxx-countdowns .nc-card-title {font-size:20px;}
+  #naxx-countdowns .nc-clock-number {font-size:clamp(24px,7vw,34px);}
+  #naxx-countdowns .nc-mini {padding:16px !important;}
+}
+@media (prefers-reduced-motion:reduce) {
+  #naxx-countdowns .nc-card {transition:none;}
+  #naxx-countdowns .nc-card:hover {transform:none;}
+}
