@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Full Website Design Trial | Naxxramas Resource Hub</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%;background:#090e16;color:#e8dfd1;font:14px/1.4 "Trebuchet MS",Arial,sans-serif}
+  .preview-shell{height:100dvh;display:flex;flex-direction:column;min-height:400px}
+  .preview-bar{flex:0 0 auto;display:flex;align-items:center;gap:14px;justify-content:space-between;
+    padding:10px clamp(12px,2vw,25px);border-bottom:1px solid #9e7d50;
+    background:linear-gradient(100deg,#1a2939,#0b131f 62%,#271b17);
+    box-shadow:0 5px 24px rgba(0,0,0,.5);position:relative;z-index:10;min-height:65px}
+  .preview-brand{display:flex;align-items:center;gap:12px;min-width:0}
+  .preview-crest{display:grid;place-items:center;width:39px;height:39px;flex:0 0 39px;
+    border:1px solid #d8b77a;border-radius:9px;background:radial-gradient(circle,#31475c,#111923);
+    color:#f7dba4;font:700 24px Georgia,serif}
+  .preview-title{font:700 16px Georgia,serif;color:#f6d99f;letter-spacing:.025em}
+  .preview-sub{color:#aebfca;font-size:11px;margin-top:2px}
+  .preview-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+  .preview-button{display:inline-flex;justify-content:center;align-items:center;gap:7px;
+    padding:9px 12px;border-radius:6px;text-decoration:none;border:1px solid #6c8091;
+    background:#1b2c3e;color:#e6ebee;cursor:pointer;font-size:12px;font-weight:700}
+  .preview-button:hover,.preview-button:focus-visible{background:#28425b;border-color:#b7d8e6;color:#fff}
+  .preview-button.back{border-color:#ad8550;color:#ffe4b0;background:#36271e}
+  .preview-button.back:hover{background:#4b3320}
+  .preview-frame{flex:1 1 auto;min-height:0;width:100%;border:0;background:#090e16}
+  @media(max-width:650px){.preview-bar{align-items:flex-start;gap:9px;padding:8px 10px}
+    .preview-title{font-size:13px}.preview-sub{font-size:10px}
+    .preview-actions{gap:5px}
+    .preview-button{padding:8px;font-size:11px}
+    .preview-crest{width:30px;height:30px;flex-basis:30px;font-size:18px}}
+</style>
+</head>
+<body>
+<main class="preview-shell">
+  <header class="preview-bar">
+    <div class="preview-brand">
+      <div class="preview-crest" aria-hidden="true">N</div>
+      <div>
+        <div class="preview-title">Naxxramas · Website Redesign Trial</div>
+        <div class="preview-sub" id="trial-status" role="status">Loading full-site preview…</div>
+      </div>
+    </div>
+    <nav class="preview-actions" aria-label="Trial controls">
+      <button class="preview-button" id="refresh-preview" type="button">Refresh preview</button>
+      <a class="preview-button back" href="../" target="_blank" rel="noopener">Open current website</a>
+    </nav>
+  </header>
+  <iframe id="resource-site" class="preview-frame" title="Naxxramas Resource Hub — redesign preview" src="../site-content.html" loading="eager"></iframe>
+</main>
+<script src="preview.js?v=1"></script>
+</body>
+</html>
