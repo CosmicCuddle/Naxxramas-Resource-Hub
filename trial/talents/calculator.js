@@ -4,11 +4,12 @@
 (function(){
   'use strict';
   const ERA={vanilla:{title:'Vanilla',level:60,maxRow:6},tbc:{title:'The Burning Crusade',level:70,maxRow:8},wotlk:{title:'Wrath of the Lich King',level:80,maxRow:10}};
+  const ERA_ORDER={vanilla:0,tbc:1,wotlk:2};
   const CLASSES=[['warrior','Warrior'],['paladin','Paladin'],['hunter','Hunter'],['rogue','Rogue'],['priest','Priest'],['deathknight','Death Knight'],['shaman','Shaman'],['mage','Mage'],['warlock','Warlock'],['druid','Druid']];
   const PALETTE=['#e7c17e','#eabec3','#a8cc85','#eed29a','#e0e3e8','#da8277','#6bbadd','#a0dafa','#bb9dcf','#e7a970'];
   const BASE='NT1';const STORAGE='naxx.talent.saves.v1';const d=document;
   const els=Object.fromEntries(['era','class','level','level-display','remaining','spent-summary','trees','notice','era-explanation','tooltip','dialog-overlay','dialog-title','dialog-content','dialog-close','copy-link','copy-code','save-build','load-build','import-code','reset'].map(id=>[id,d.getElementById(id)]));
-  let db=null,records={}, classData=[], activeTooltip=null;
+  let db=null,records={}, classData=[], activeTooltip=null, eraFirst={};
   const model={era:'vanilla',class:'warrior',level:60,points:{}};
   const cap=()=>ERA[model.era].level;
   const budget=()=>Math.max(0,model.level-9);
@@ -16,6 +17,18 @@
   const pointsInTree=(tree,pts=model.points)=>tree[3].reduce((s,t)=>s+(pts[t[0]]||0),0);
   const getTreeOf=(t)=>classData.find(tr=>tr[3].some(v=>v[0]===t[0]));
   const talentById=(id)=>records[Number(id)]||null;
+  // Historical availability and current DBC dependency chains both affect visibility.
+  function availableInEra(t,era=model.era,lookup=records,visited=new Set()){
+    if(t[1]>ERA[era].maxRow||eraFirst[t[0]]>ERA_ORDER[era])return false;
+    if(!t[6])return true;
+    if(visited.has(t[0]))return false;
+    const required=lookup[t[6]];
+    if(!required)return true; // Existing unresolved DBC prerequisites remain visible with a warning.
+    visited.add(t[0]);
+    const allowed=availableInEra(required,era,lookup,visited);
+    visited.delete(t[0]);
+    return allowed;
+  }
   const levelAvailable=(cls=model.class,era=model.era)=>cls!=='deathknight'||era==='wotlk';
   const cleanHTML=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   function allTalents(){return classData.flatMap(t=>t[3]);}
@@ -26,7 +39,7 @@
   }
   function lockedReason(t,pts=model.points){
     const era=ERA[model.era],tree=getTreeOf(t);if(!tree)return 'Talent does not exist in this class.';
-    if(t[1]>era.maxRow)return 'Available in '+(t[1]>8?'Wrath of the Lich King':'The Burning Crusade')+' or later (row '+(t[1]+1)+').';
+    if(!availableInEra(t))return 'This talent or a prerequisite is not available in '+era.title+'.';
     const below=tree[3].reduce((count,item)=>count+(item[1]<t[1]?(pts[item[0]]||0):0),0);
     if(below<t[1]*5)return 'Spend '+(t[1]*5)+' points in earlier rows of '+tree[1]+' (currently '+below+').';
     if(t[6]){
@@ -45,7 +58,7 @@
       const id=Number(idStr),t=lookup[id];
       if(!t||!Number.isInteger(count)||count<0||count>t[3].length)return 'Invalid rank or unknown talent ID '+id+'.';
       if(!count)continue;
-      if(t[1]>ERA[era].maxRow)return t[4]+' is locked in '+ERA[era].title+'.';
+      if(!availableInEra(t,era,lookup))return t[4]+' is not available in '+ERA[era].title+'. Please choose a build for the correct expansion.';
       const tree=trees.find(tr=>tr[3].includes(t));
       if(!tree)return 'Talent has no tree: '+id;
       const below=tree[3].reduce((s,x)=>s+(x[1]<t[1]?(pts[x[0]]||0):0),0);
@@ -123,7 +136,7 @@
       els.class.appendChild(opt);
     }
     els.class.value=model.class;els.level.max=cap();els.level.value=model.level;els['level-display'].value=model.level;
-    els['era-explanation'].textContent=ERA[model.era].title+': rows 1–'+(ERA[model.era].maxRow+1)+' are shown. Later-expansion rows are hidden automatically. Hover or focus a talent for its requirements.';
+    els['era-explanation'].textContent=ERA[model.era].title+': only historically available talents are shown in rows 1–'+(ERA[model.era].maxRow+1)+'. Talents introduced later are removed completely.';
   }
   function makeTalentButton(t){
     const count=model.points[t[0]]||0,missing=!!(t[6]&&!talentById(t[6]));
@@ -176,8 +189,8 @@
       const output=d.createElement('output');output.textContent=count;output.setAttribute('aria-label',tree[1]+' points spent: '+count);header.append(left,output);
       const grid=d.createElement('div');grid.className='talent-grid';grid.setAttribute('aria-label',tree[1]+' talent tree');
       grid.style.setProperty('--visible-rows',String(ERA[model.era].maxRow+1));
-      // Exclude later-expansion talents entirely: no invisible buttons, keyboard focus or blank rows.
-      for(const t of tree[3])if(t[1]<=ERA[model.era].maxRow)grid.appendChild(makeTalentButton(t));
+      // No later-expansion buttons (not even faded placeholders). Earlier-era dependencies still matter.
+      for(const t of tree[3])if(availableInEra(t))grid.appendChild(makeTalentButton(t));
       const footer=d.createElement('div');footer.className='tree-footer';footer.innerHTML='<span class="meta">'+count+' points</span> invested in '+cleanHTML(tree[1]);
       panel.append(header,grid,footer);frag.appendChild(panel);
     });
@@ -260,6 +273,16 @@
     const content=await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
     const parsed=JSON.parse(content);
     if(parsed.version!==1||!parsed.classes||Object.keys(parsed.classes).length!==10)throw Error('Data format is not recognised.');
+    const historyResponse=await fetch('data/era-availability-v1.json?v=1');
+    if(!historyResponse.ok)throw Error('Era availability data could not be fetched ('+historyResponse.status+').');
+    const availability=await historyResponse.json();
+    const talentNodes=Object.values(parsed.classes).flatMap(trees=>trees.flatMap(tree=>tree[3]));
+    if(availability.version!==1||!availability.earliest||talentNodes.length!==830||
+      Object.keys(availability.earliest).length!==talentNodes.length||
+      talentNodes.some(t=>![0,1,2].includes(availability.earliest[t[0]]))){
+      throw Error('Expansion talent history does not match the server DBC snapshot.');
+    }
+    eraFirst=availability.earliest;
     return parsed;
   }
   async function start(){
@@ -272,6 +295,6 @@
     }catch(error){els.trees.innerHTML='<p class="tree-empty">Talent data could not be loaded. Please refresh later or report this problem to the Resource Hub administrator.</p>';notify(error.message);console.error('Naxxramas Talent Calculator:',error);}
   }
   // Expose pure logic to local automated tests only; safe readonly method collection.
-  if(typeof window!=='undefined')window.NaxxTalentTest={checkBuild,parseBuildCode,createCode,lockedReason,setModel:(x,dataset)=>{db=dataset;model.era=x.era;model.level=x.level;assignClass(x.class);model.points=x.points||{};},state:()=>({...model,points:{...model.points}})};
+  if(typeof window!=='undefined')window.NaxxTalentTest={checkBuild,parseBuildCode,createCode,lockedReason,availableInEra,setModel:(x,dataset,availability)=>{db=dataset;if(availability)eraFirst=availability;model.era=x.era;model.level=x.level;assignClass(x.class);model.points=x.points||{};},state:()=>({...model,points:{...model.points}})};
   start();
 })();
