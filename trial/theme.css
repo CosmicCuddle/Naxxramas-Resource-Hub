@@ -246,3 +246,18 @@ html.naxx-trial-ui #naxx-countdowns .nc-mini-grid {gap:14px!important;}
 @media(prefers-reduced-motion:reduce) {
   html.naxx-trial-ui :is(a,button,.nc-card) {transition:none!important;animation:none!important;}
 }
+
+
+/* Frostbound trial: make the Naxxramas wordmark a genuine Home control.
+   No background or border, so the previously fixed duplicate frame stays fixed. */
+html.naxx-trial-ui .naxx-trial-home-brand {
+  cursor:pointer!important;
+}
+html.naxx-trial-ui .naxx-trial-home-brand:hover {
+  filter:brightness(1.16);
+}
+html.naxx-trial-ui .naxx-trial-home-brand:focus-visible {
+  outline:2px solid #9bdaf4!important;
+  outline-offset:4px!important;
+  border-radius:5px;
+}
