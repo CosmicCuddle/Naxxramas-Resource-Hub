@@ -4,8 +4,8 @@
   "use strict";
 
   // EVENT SETTINGS
-  // Honor reset: Wednesday, 7 October 2026 at 06:00 UK time; repeats every 14 days.
-  // Raid and invasion unlocks: add an ISO 8601 date with timezone, e.g. "2026-12-01T18:00:00+00:00".
+  // Honor reset: Wednesday, 7 October 2026 at 06:00 SERVER time; repeats every 14 days.
+  // Raid and invasion unlocks: add an ISO 8601 date with explicit offset, e.g. "2026-12-01T18:00:00+02:00".
   // Keep "at: null" until a date is confirmed. No date is fabricated.
   var schedule = {
     honor: { anchorYear: 2026, anchorMonth: 10, anchorDay: 7, hour: 6, minute: 0, everyDays: 14 },
@@ -21,7 +21,12 @@
     elementalInvasion: { at: null }
   };
 
-  var ZONE = "Europe/London";
+  // Configured SERVER time zone — never infer this from the visitor’s browser.
+  // The 7 October 2026 SQL record (06:00 local = 04:00 UTC) indicates UTC+02:00.
+  // If your server observes daylight saving, replace this with its actual IANA
+  // zone (e.g. "Europe/Berlin") to match its seasonal clock changes.
+  // Note: IANA "Etc/GMT-2" deliberately means UTC+02:00 (reversed POSIX sign).
+  var ZONE = "Etc/GMT-2";
   var partsFormatter = new Intl.DateTimeFormat("en-GB", {
     timeZone: ZONE, year: "numeric", month: "2-digit", day: "2-digit",
     hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23"
@@ -31,7 +36,7 @@
     year: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23"
   });
 
-  function ukParts(date) {
+  function serverParts(date) {
     var p = {};
     partsFormatter.formatToParts(date).forEach(function (item) {
       if (item.type !== "literal") p[item.type] = Number(item.value);
@@ -39,12 +44,12 @@
     return p;
   }
 
-  // Convert a UK wall-clock hour to a timestamp; DST changes do not shift the 06:00 reset.
-  function ukTimestamp(year, month, day, hour, minute) {
+  // Convert a SERVER wall-clock hour to a timestamp; browser timezone is irrelevant.
+  function serverTimestamp(year, month, day, hour, minute) {
     var wanted = Date.UTC(year, month - 1, day, hour, minute, 0);
     var guess = wanted;
     for (var i = 0; i < 3; i++) {
-      var seen = ukParts(new Date(guess));
+      var seen = serverParts(new Date(guess));
       var actualWall = Date.UTC(seen.year, seen.month - 1, seen.day, seen.hour, seen.minute, seen.second);
       guess += wanted - actualWall;
     }
@@ -52,7 +57,7 @@
   }
 
   function nextHonor(now) {
-    var h = schedule.honor, p = ukParts(now);
+    var h = schedule.honor, p = serverParts(now);
     var epoch = Date.UTC(h.anchorYear, h.anchorMonth - 1, h.anchorDay);
     var today = Date.UTC(p.year, p.month - 1, p.day);
     var span = h.everyDays * 86400000;
@@ -60,7 +65,7 @@
     var target;
     do {
       var day = new Date(epoch + steps * span);
-      target = ukTimestamp(day.getUTCFullYear(), day.getUTCMonth() + 1,
+      target = serverTimestamp(day.getUTCFullYear(), day.getUTCMonth() + 1,
         day.getUTCDate(), h.hour, h.minute);
       steps += 1;
     } while (target <= now.getTime());
@@ -109,7 +114,7 @@
       '<h2 class="nc-title" id="naxx-countdowns-title">Azerothian Event Countdowns</h2>' +
       '<div class="nc-heading-rule" aria-hidden="true"></div>' +
       '<div class="nc-grid"></div>' +
-      '<p class="nc-footer">All scheduled times are shown in UK server time (Europe/London).</p>';
+      '<p class="nc-footer">All dates and countdowns use configured server time (currently UTC+02:00).</p>';
     var grid = section.querySelector(".nc-grid");
     grid.appendChild(makeCard("honor", "H", "Fortnightly Cycle", "Honor Reset"));
     grid.appendChild(makeCard("raid", "R", "Vanilla Progression", "Next Raid Unlock"));
@@ -142,7 +147,7 @@
     Object.keys(units).forEach(function (key) {
       card.querySelector('[data-part="' + key + '"]').textContent = pad(units[key]);
     });
-    noteNode.textContent = note + " — " + labelFormatter.format(date) + " UK";
+    noteNode.textContent = note + " — " + labelFormatter.format(date) + " server time";
   }
 
   function update(section) {
