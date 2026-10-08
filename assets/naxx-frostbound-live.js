@@ -15,56 +15,104 @@
   function visible(el) {
     return !!(el&&el.getClientRects&&el.getClientRects().length);
   }
-  function homeControl(){
-    var selectors=[
-      "aside a","aside button","aside [role='button']",
-      "[class*='sidebar' i] a","[class*='sidebar' i] button",
-      "[class*='sidebar' i] [role='button']",
-      "nav a","nav button","[role='navigation'] a"
-    ];
-    var matches=document.querySelectorAll(selectors.join(","));
-    for(var i=0;i<matches.length;i++){
-      var item=matches[i];
-      if(!visible(item)||item.closest(".naxx-frostbound-talent-link"))continue;
-      if(label(item)==="Home")return item;
+  function tidy(value){
+    return String(value||"").replace(/\s+/g," ").trim();
+  }
+  // The source site's sidebar already has all the correct icon, padding,
+  // chevron, typography and hover styles. Reuse the actual Talent Sets row.
+  function findTalentSets(){
+    if(!document.body||!document.createTreeWalker)return null;
+    var walker=document.createTreeWalker(document.body,4),node,seen=0;
+    while((node=walker.nextNode())&&seen++<25000){
+      if(tidy(node.nodeValue)!=="Talent Sets")continue;
+      var el=node.parentElement;
+      for(var depth=0;el&&depth<8;depth++,el=el.parentElement){
+        if(el.matches("button,a,[role='button'],[role='link']")&&visible(el))return el;
+      }
+    }
+    // Secondary lookup for navigation controls whose label includes arrow text.
+    var controls=document.querySelectorAll("aside button,aside a,nav button,nav a,[class*='sidebar' i] button,[class*='sidebar' i] a");
+    for(var i=0;i<controls.length&&i<1500;i++){
+      if(tidy(controls[i].textContent).replace(/[›»>]+$/,"").trim()==="Talent Sets"&&visible(controls[i]))
+        return controls[i];
     }
     return null;
   }
-  function makeLink(){
-    var a=document.createElement("a");
-    a.id=LINK_ID;
-    a.className="naxx-frostbound-talent-link";
-    a.href=talentsURL;
-    a.textContent="Talent Calculator";
-    a.setAttribute("aria-label","Open Naxxramas Talent Calculator");
-    return a;
+  function stripOldNavigationBehavior(root){
+    var all=[root].concat(Array.prototype.slice.call(root.querySelectorAll("*")));
+    all.forEach(function(node){
+      if(!node.attributes)return;
+      Array.from(node.attributes).forEach(function(attr){
+        if(/^on/i.test(attr.name)||/^(id|href|aria-current|aria-selected|aria-controls|aria-expanded|data-page|data-route|data-view|data-section|data-tab|data-target|data-active|data-testid)$/i.test(attr.name))
+          node.removeAttribute(attr.name);
+      });
+    });
+  }
+  function createNativeMenuEntry(example){
+    var copy=example.cloneNode(true);
+    stripOldNavigationBehavior(copy);
+    copy.id=LINK_ID;
+    copy.classList.add("naxx-frostbound-talent-link");
+    copy.setAttribute("aria-label","Talent Calculator");
+    copy.setAttribute("title","Open the Talent Calculator");
+    var nodes=document.createTreeWalker(copy,4),node,renamed=false;
+    while((node=nodes.nextNode())){
+      if(node.nodeValue&&node.nodeValue.indexOf("Talent Sets")!==-1){
+        node.nodeValue=node.nodeValue.replace("Talent Sets","Talent Calculator");
+        renamed=true;
+      }
+    }
+    if(!renamed)return null;
+    if(copy.tagName==="A"){
+      copy.href=talentsURL;
+    }else{
+      if(copy.tagName==="BUTTON")copy.type="button";
+      else{copy.setAttribute("role","link");copy.tabIndex=0;}
+    }
+    copy.addEventListener("click",function(event){
+      // React's original Talent Sets handler isn't cloned. Stop any delegated
+      // sidebar navigation and open the correct permanent URL.
+      if(event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;
+      event.preventDefault();event.stopPropagation();
+      window.location.assign(talentsURL);
+    });
+    if(copy.tagName!=="A"&&copy.tagName!=="BUTTON"){
+      copy.addEventListener("keydown",function(event){
+        if(event.key==="Enter"||event.key===" "){
+          event.preventDefault();event.stopPropagation();window.location.assign(talentsURL);
+        }
+      });
+    }
+    return copy;
   }
   function mountLink(){
-    var previous=document.getElementById(LINK_ID);
-    // Avoid rescanning the enormous Resource Hub DOM every four seconds when
-    // the Talent Calculator is already present in the real site navigation.
-    if(previous&&previous.isConnected&&!previous.classList.contains("naxx-frostbound-talent-floating"))return;
-    var home=homeControl();
-    if(!home){
-      if(!previous&&document.body){
-        var floating=makeLink();
-        floating.classList.add("naxx-frostbound-talent-floating");
-        document.body.appendChild(floating);
-      }
-      return;
-    }
-    if(previous&&!previous.classList.contains("naxx-frostbound-talent-floating")&&previous.isConnected)return;
-    if(previous)previous.remove();
-    var anchor=makeLink();
-    var li=home.closest("li");
-    if(li&&li.parentElement){
-      var node=document.createElement("li");
-      node.className="naxx-frostbound-talent-li";
-      node.appendChild(anchor);
-      li.insertAdjacentElement("afterend",node);
+    var old=document.getElementById(LINK_ID);
+    if(old&&old.isConnected)return;
+    var sets=findTalentSets();
+    if(!sets)return; // No intrusive floating button; the sidebar is the only location.
+    var item=createNativeMenuEntry(sets);
+    if(!item)return;
+    var li=sets.closest("li,[role='listitem']");
+    if(li&&li.parentNode){
+      var wrapper=li.cloneNode(false);
+      stripOldNavigationBehavior(wrapper);
+      wrapper.removeAttribute("aria-label");
+      wrapper.classList.remove("active","selected","is-active");
+      wrapper.appendChild(item);
+      li.insertAdjacentElement("afterend",wrapper);
     }else{
-      home.insertAdjacentElement("afterend",anchor);
+      sets.insertAdjacentElement("afterend",item);
     }
+  }
+  function homeControl(){
+    var selectors=["aside a","aside button","aside [role='button']",
+      "[class*='sidebar' i] a","[class*='sidebar' i] button",
+      "nav a","nav button","[role='navigation'] a"];
+    var items=document.querySelectorAll(selectors.join(","));
+    for(var i=0;i<items.length;i++){
+      if(visible(items[i])&&label(items[i])==="Home")return items[i];
+    }
+    return null;
   }
   function brand(){
     if(!document.body||!document.createTreeWalker)return null;
