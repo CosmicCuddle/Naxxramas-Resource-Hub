@@ -11,6 +11,11 @@
   const CLASSES=[['warrior','Warrior'],['paladin','Paladin'],['hunter','Hunter'],['rogue','Rogue'],['priest','Priest'],['deathknight','Death Knight'],['shaman','Shaman'],['mage','Mage'],['warlock','Warlock'],['druid','Druid']];
   const PALETTE=['#e7c17e','#eabec3','#a8cc85','#eed29a','#e0e3e8','#da8277','#6bbadd','#a0dafa','#bb9dcf','#e7a970'];
   const BASE='NT1';const STORAGE='naxx.talent.saves.v1';const d=document;
+  // Original pre-Cataclysm spec backgrounds from a WotLK talent calculator.
+  // The filenames equal the user's exact TalentTab.dbc IDs for all 30 trees.
+  // Pin the asset-source commit so art cannot silently change in the future.
+  const SPEC_ART_SOURCE='https://raw.githubusercontent.com/Maytch/WotlkTalentTreeCalculator/263965c87c2858bd83e93918198f1fd60cb0ec50/Images/Backgrounds/';
+  const VALID_SPEC_ART_IDS=new Set([41,61,81,161,163,164,181,182,183,201,202,203,261,262,263,281,282,283,301,302,303,361,362,363,381,382,383,398,399,400]);
   const els=Object.fromEntries(['era','class','level','level-display','remaining','spent-summary','trees','notice','era-explanation','tooltip','dialog-overlay','dialog-title','dialog-content','dialog-close','copy-link','copy-code','save-build','load-build','import-code','reset'].map(id=>[id,d.getElementById(id)]));
   let db=null,records={}, classData=[], activeTooltip=null,visuals={icons:{},tooltips:{}};
   const model={era:'vanilla',class:'warrior',level:60,points:{}};
@@ -244,22 +249,28 @@
       const count=pointsInTree(tree);const header=d.createElement('div');header.className='tree-header';
       const left=d.createElement('div');const small=d.createElement('small');small.textContent='TALENT TREE '+(index+1);const h=d.createElement('h2');h.textContent=tree[1];left.append(small,h);
       const output=d.createElement('output');output.textContent=count;output.setAttribute('aria-label',tree[1]+' points spent: '+count);header.append(left,output);
-      // Add a translucent original specialization backdrop when available,
-      // with a large, faint capstone icon as a self-contained fallback texture.
+      // Keep a small signature icon in the tree header; the large tree artwork
+      // is loaded as an actual per-spec image behind the grid, not a watermark.
       const signature=tree[3].slice().sort((a,b)=>b[1]-a[1])[0];
       const signatureIcon=signature&&iconUrl(signature[8]);
       if(signatureIcon){
-        panel.style.setProperty('--spec-mark', 'url("'+signatureIcon+'")');
         const emblem=iconImage(signature[8],'spec-icon');
         if(emblem)left.appendChild(emblem);
       }
-      const classLabel=model.class==='deathknight'?'death knight':model.class;
-      const wikiFile=(tree[1]+' '+classLabel+' talents background.png').replace(/ /g,'_');
-      // Wiki's original pre-Cataclysm talent UI art (a faint overlay).
-      const wikiUrl='https://warcraft.wiki.gg/wiki/Special:Redirect/file/'+encodeURIComponent(wikiFile);
-      panel.style.setProperty('--spec-backdrop','url("'+wikiUrl+'")');
       const grid=d.createElement('div');grid.className='talent-grid';grid.setAttribute('aria-label',tree[1]+' talent tree');
       grid.style.setProperty('--visible-rows',String(ERA[model.era].maxRow+1));
+      if(VALID_SPEC_ART_IDS.has(tree[0])){
+        const artwork=d.createElement('img');
+        artwork.className='spec-original-art';
+        artwork.src=SPEC_ART_SOURCE+tree[0]+'.jpg';
+        artwork.alt='';artwork.setAttribute('aria-hidden','true');
+        artwork.loading='lazy';artwork.decoding='async';
+        artwork.addEventListener('error',()=>{artwork.remove();grid.classList.add('spec-art-failed');});
+        grid.appendChild(artwork);
+      }
+      const artShade=d.createElement('div');
+      artShade.className='spec-art-shade';artShade.setAttribute('aria-hidden','true');
+      grid.appendChild(artShade);
       // Render complete earlier rows; on the last row render just the selected capstone.
       for(const t of tree[3])if(availableInEra(t))grid.appendChild(makeTalentButton(t));
       const footer=d.createElement('div');footer.className='tree-footer';footer.innerHTML='<span class="meta">'+count+' points</span> invested in '+cleanHTML(tree[1]);
