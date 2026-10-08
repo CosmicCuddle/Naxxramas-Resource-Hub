@@ -74,3 +74,9 @@ server have not been modified. The backup branch
 - Original row-only visibility (Vanilla 7, TBC 9, WotLK 11, final capstone), point requirements, prerequisites, and `NT1` share links unchanged.
 
 Image art and icon file names belong to the WoW asset ecosystem; assets are referenced externally rather than copied into the project's repository. If a CDN or Wiki image fails, the page retains its baseline Frostbound texture and uses the first letter for talent icons.
+
+## More compact layout (2026-10-08)
+
+The trial now defaults to a denser layout without relying on CSS `zoom` or `transform:scale`, so text and talent icons stay sharp. Desktop panels and headings are smaller, the top-of-page introduction and controls take less space, and row heights shrink from 71px to 57px on large screens, 61px on medium screens, and 65px on small screens. Talent icon buttons stay 51px desktop, 55px tablet and 58px mobile for practical interaction. No HTML/JavaScript talent allocation logic changed.
+
+Keep the full website and Frostbound trials separate until the user confirms the new size and explicitly approves migration and removal of any trial pages. Existing backups remain available.
