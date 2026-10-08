@@ -63,3 +63,14 @@ Tooltip substitutions and remaining unresolved DBC prerequisites also need work.
 All feature files are in `/trial/talents/`; original website and the live
 server have not been modified. The backup branch
 `backup/pre-row-only-talent-filter-2026-10-08` preserves the prior implementation.
+
+## Visuals and tooltip improvements
+
+- Talent icons are read from the user-supplied `SpellIcon.dbc` and served through the public WoW icon CDN. The icon map contains 648 distinct icon IDs, covering all 830 player talents. Text initials are retained as automatic fallback when an image is not available.
+- Every talent spec displays a subtle, individually themed background using the original pre-Cataclysm art file link (Warcraft Wiki) and an independent large signature-talent icon watermark fallback. Tree names, placements and original talent IDs remain untouched.
+- A separate compressed `data/talent-visuals-v1.gz.b64` (~74KB) stores icons and 2,243 **rank-specific** processed tooltips exported from this server's custom `Spell.dbc`.
+- The current and next rank are displayed separately. At zero talent points, only the next rank is shown so an unlearned effect isn't misrepresented.
+- Numeric values `$s1`, `$s2`, `$h` and supported deterministic spell formulas are filled in from DBC. A handful of unresolvable duration/stat-dependent tokens are marked explicitly rather than inventing values; `SpellDuration.dbc` and other client data would be necessary for full resolution.
+- Original row-only visibility (Vanilla 7, TBC 9, WotLK 11, final capstone), point requirements, prerequisites, and `NT1` share links unchanged.
+
+Image art and icon file names belong to the WoW asset ecosystem; assets are referenced externally rather than copied into the project's repository. If a CDN or Wiki image fails, the page retains its baseline Frostbound texture and uses the first letter for talent icons.

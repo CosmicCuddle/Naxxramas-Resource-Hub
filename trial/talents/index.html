@@ -6,8 +6,8 @@
 <meta name="theme-color" content="#111c2b">
 <meta name="description" content="Naxxramas server-specific Wrath 3.3.5 talent calculator with Vanilla, TBC and WotLK row limits and shareable builds.">
 <title>Talent Calculator | Naxxramas Resource Hub</title>
-<link rel="stylesheet" href="calculator.css?v=2">
-<script src="calculator.js?v=5" defer></script>
+<link rel="stylesheet" href="calculator.css?v=3">
+<script src="calculator.js?v=6" defer></script>
 </head>
 <body>
 <a class="skip-link" href="#talent-content">Skip to talent calculator</a>
@@ -55,7 +55,7 @@
    <p><strong>Talent requirements:</strong> arrows, prerequisite ranks and the 3.3.5 spell/talent IDs are taken from your supplied DBC files. Missing references are flagged rather than guessed.</p>
    <p><strong>Sharing:</strong> builds save their talent IDs and ranks in the link, so recipients can open them without creating an account. Local saved builds stay in this browser.</p>
   </div>
-  <p class="known-limit"><strong>Preview limitation:</strong> until we add your <code>SpellIcon.dbc</code>, talents use text emblems instead of the in-game spell icons. Spell tooltips retain client placeholders such as <code>$s1</code> where the game normally substitutes calculated values.</p>
+  <p class="known-limit"><strong>About the data:</strong> Talent icons are mapped from your server's <code>SpellIcon.dbc</code>, with specialization artwork behind each talent tree. Most tooltip effect values are resolved from your current <code>Spell.dbc</code>. Durations and some special formula values still require additional client data, so these are labelled instead of guessed.</p>
  </section>
 </main>
 <div class="overlay" id="dialog-overlay" hidden>

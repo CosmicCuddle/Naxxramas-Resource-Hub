@@ -12,7 +12,7 @@
   const PALETTE=['#e7c17e','#eabec3','#a8cc85','#eed29a','#e0e3e8','#da8277','#6bbadd','#a0dafa','#bb9dcf','#e7a970'];
   const BASE='NT1';const STORAGE='naxx.talent.saves.v1';const d=document;
   const els=Object.fromEntries(['era','class','level','level-display','remaining','spent-summary','trees','notice','era-explanation','tooltip','dialog-overlay','dialog-title','dialog-content','dialog-close','copy-link','copy-code','save-build','load-build','import-code','reset'].map(id=>[id,d.getElementById(id)]));
-  let db=null,records={}, classData=[], activeTooltip=null;
+  let db=null,records={}, classData=[], activeTooltip=null,visuals={icons:{},tooltips:{}};
   const model={era:'vanilla',class:'warrior',level:60,points:{}};
   const cap=()=>ERA[model.era].level;
   const budget=()=>Math.max(0,model.level-9);
@@ -20,6 +20,23 @@
   const pointsInTree=(tree,pts=model.points)=>tree[3].reduce((s,t)=>s+(pts[t[0]]||0),0);
   const getTreeOf=(t)=>classData.find(tr=>tr[3].some(v=>v[0]===t[0]));
   const talentById=(id)=>records[Number(id)]||null;
+  // The server's SpellIcon.dbc supplies a real icon texture name for each icon ID.
+  // Use the public WoW icon CDN without modifying or guessing individual icon IDs.
+  function iconUrl(iconId){
+    const name=visuals.icons[String(iconId)];
+    return typeof name==='string'&&/^[a-z0-9_-]+$/.test(name)
+      ?'https://wow.zamimg.com/images/wow/icons/large/'+name+'.jpg'
+      :null;
+  }
+  function iconImage(iconId,cls){
+    const url=iconUrl(iconId);
+    if(!url)return null;
+    const img=d.createElement('img');
+    img.src=url;img.alt='';img.setAttribute('aria-hidden','true');
+    img.className=cls;img.loading='lazy';img.decoding='async';
+    img.addEventListener('error',()=>img.remove());
+    return img;
+  }
   // Pure position-based filter: all talents ABOVE the last allowed row remain
   // regardless of release era. On the last row, preserve exactly one capstone.
   // WotLK has no filtering whatsoever.
@@ -157,6 +174,8 @@
     b.setAttribute('aria-label',t[4]+', '+count+' of '+t[3].length+' ranks'+(reason?'. '+reason:''));
     b.innerHTML='<span class="initial" aria-hidden="true">'+cleanHTML(t[4].slice(0,1).toUpperCase())+'</span>'+
       '<span class="rank" aria-hidden="true">'+count+'/'+t[3].length+'</span>'+(missing?'<span class="lock-mark" aria-hidden="true">!</span>':'');
+    const picture=iconImage(t[8],'talent-icon');
+    if(picture)b.insertBefore(picture,b.firstChild);
     b.addEventListener('click',()=>adjust(t[0],1));
     b.addEventListener('contextmenu',e=>{e.preventDefault();adjust(t[0],-1);});
     b.addEventListener('keydown',e=>{if(e.key==='Backspace'||e.key==='Delete'||e.key==='-'){e.preventDefault();adjust(t[0],-1);}});
@@ -167,16 +186,43 @@
     b.addEventListener('blur',hideTooltip);
     return b;
   }
+  // Show the selected rank and the next rank separately. Rank 0 has no
+  // current effect, so never show rank-1 text as though it is already learned.
   function showTooltip(t,event){
-    const tooltip=els.tooltip,count=model.points[t[0]]||0;
-    const rankIndex=Math.min(count,t[3].length-1);
-    const desc=t[9][rankIndex]||t[5]||'No description in the supplied Spell.dbc.';
+    const tooltip=els.tooltip,count=model.points[t[0]]||0,max=t[3].length;
     tooltip.textContent='';
-    const title=d.createElement('strong');title.textContent=t[4];tooltip.appendChild(title);
-    const meta=d.createElement('div');meta.className='meta';meta.textContent='Rank '+count+'/'+t[3].length+' · Row '+(t[1]+1)+' · Spell '+t[3][rankIndex];tooltip.appendChild(meta);
-    const p=d.createElement('p');p.textContent=desc;tooltip.appendChild(p);
-    const r=lockedReason(t);if(r){const requirement=d.createElement('div');requirement.className=t[6]&&!talentById(t[6])?'warn':'req';requirement.textContent=r;tooltip.appendChild(requirement);}
-    const extra=d.createElement('em');extra.textContent='Click to add · Right-click or press − to remove';tooltip.appendChild(extra);
+    const heading=d.createElement('div');heading.className='tooltip-heading';
+    const picture=iconImage(t[8],'tooltip-icon');if(picture)heading.appendChild(picture);
+    const labels=d.createElement('div');
+    const title=d.createElement('strong');title.textContent=t[4];labels.appendChild(title);
+    const meta=d.createElement('div');meta.className='meta';
+    meta.textContent='Rank '+count+'/'+max+' · '+getTreeOf(t)[1];
+    labels.appendChild(meta);heading.appendChild(labels);tooltip.appendChild(heading);
+    function addRank(rank,label){
+      const section=d.createElement('div');section.className='rank-section';
+      const sub=d.createElement('div');sub.className='rank-label';sub.textContent=label+' — Rank '+rank;
+      const p=d.createElement('p');const id=t[3][rank-1];
+      const desc=visuals.tooltips[String(id)];
+      p.textContent=desc?desc[0]:(t[9][rank-1]||t[5]||'No description in this Spell.dbc.');
+      section.append(sub,p);
+      if(desc&&desc[1]){
+        const note=d.createElement('div');note.className='tooltip-caveat';
+        note.textContent='Some effect values are calculated by the WoW client and cannot yet be resolved from the supplied DBC files.';
+        section.appendChild(note);
+      }
+      tooltip.appendChild(section);
+    }
+    if(count>0)addRank(count,'Current');
+    if(count<max)addRank(count+1,'Next');
+    const reason=lockedReason(t);
+    if(reason){
+      const requirement=d.createElement('div');
+      requirement.className=t[6]&&!talentById(t[6])?'warn':'req';
+      requirement.textContent=reason;tooltip.appendChild(requirement);
+    }
+    const extra=d.createElement('em');
+    extra.textContent='Click to add a point · Right-click or press − to remove';
+    tooltip.appendChild(extra);
     tooltip.hidden=false;activeTooltip=t;moveTooltip(event);
   }
   function moveTooltip(event){
@@ -198,6 +244,20 @@
       const count=pointsInTree(tree);const header=d.createElement('div');header.className='tree-header';
       const left=d.createElement('div');const small=d.createElement('small');small.textContent='TALENT TREE '+(index+1);const h=d.createElement('h2');h.textContent=tree[1];left.append(small,h);
       const output=d.createElement('output');output.textContent=count;output.setAttribute('aria-label',tree[1]+' points spent: '+count);header.append(left,output);
+      // Add a translucent original specialization backdrop when available,
+      // with a large, faint capstone icon as a self-contained fallback texture.
+      const signature=tree[3].slice().sort((a,b)=>b[1]-a[1])[0];
+      const signatureIcon=signature&&iconUrl(signature[8]);
+      if(signatureIcon){
+        panel.style.setProperty('--spec-mark', 'url("'+signatureIcon+'")');
+        const emblem=iconImage(signature[8],'spec-icon');
+        if(emblem)left.appendChild(emblem);
+      }
+      const classLabel=model.class==='deathknight'?'death knight':model.class;
+      const wikiFile=(tree[1]+' '+classLabel+' talents background.png').replace(/ /g,'_');
+      // Wiki's original pre-Cataclysm talent UI art (a faint overlay).
+      const wikiUrl='https://warcraft.wiki.gg/wiki/Special:Redirect/file/'+encodeURIComponent(wikiFile);
+      panel.style.setProperty('--spec-backdrop','url("'+wikiUrl+'")');
       const grid=d.createElement('div');grid.className='talent-grid';grid.setAttribute('aria-label',tree[1]+' talent tree');
       grid.style.setProperty('--visible-rows',String(ERA[model.era].maxRow+1));
       // Render complete earlier rows; on the last row render just the selected capstone.
@@ -284,6 +344,17 @@
     const content=await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
     const parsed=JSON.parse(content);
     if(parsed.version!==1||!parsed.classes||Object.keys(parsed.classes).length!==10)throw Error('Data format is not recognised.');
+    // A second compact data snapshot contains SpellIcon.dbc names and
+    // rank-by-rank descriptions resolved from the server's actual Spell.dbc.
+    const visResponse=await fetch('data/talent-visuals-v1.gz.b64?v=1');
+    if(!visResponse.ok)throw Error('Talent visual data could not be loaded ('+visResponse.status+').');
+    const encoded=(await visResponse.text()).trim();
+    const packed=Uint8Array.from(atob(encoded),c=>c.charCodeAt(0));
+    const decoded=await new Response(new Blob([packed]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+    const vis=JSON.parse(decoded);
+    if(vis.version!==1||!vis.icons||!vis.tooltips||Object.keys(vis.icons).length<600||
+      Object.keys(vis.tooltips).length<2200)throw Error('Talent visual data does not match the supplied DBC snapshot.');
+    visuals=vis;
     return parsed;
   }
   async function start(){
@@ -296,6 +367,6 @@
     }catch(error){els.trees.innerHTML='<p class="tree-empty">Talent data could not be loaded. Please refresh later or report this problem to the Resource Hub administrator.</p>';notify(error.message);console.error('Naxxramas Talent Calculator:',error);}
   }
   // Expose pure logic to local automated tests only; safe readonly method collection.
-  if(typeof window!=='undefined')window.NaxxTalentTest={checkBuild,parseBuildCode,createCode,lockedReason,availableInEra,relevantPrerequisiteId,setModel:(x,dataset)=>{db=dataset;model.era=x.era;model.level=x.level;assignClass(x.class);model.points=x.points||{};},state:()=>({...model,points:{...model.points}})};
+  if(typeof window!=='undefined')window.NaxxTalentTest={checkBuild,parseBuildCode,createCode,lockedReason,availableInEra,relevantPrerequisiteId,iconUrl,setVisuals:x=>{visuals=x;},setModel:(x,dataset)=>{db=dataset;model.era=x.era;model.level=x.level;assignClass(x.class);model.points=x.points||{};},state:()=>({...model,points:{...model.points}})};
   start();
 })();
