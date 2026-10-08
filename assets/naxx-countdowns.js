@@ -244,6 +244,7 @@
     section.setAttribute("aria-labelledby", "naxx-countdowns-title");
     section.innerHTML = '<span class="nc-kicker">Naxxramas Resource Hub</span>' +
       '<h2 class="nc-title" id="naxx-countdowns-title">Azerothian Event Countdowns</h2>' +
+      '<p class="nc-subtitle">Watch the realm. Prepare for what comes next.</p>' +
       '<div class="nc-heading-rule" aria-hidden="true"></div>' +
       '<div class="nc-grid"></div>' +
       '<div class="nc-mini-grid" aria-label="Recurring realm events"></div>' +
@@ -383,6 +384,10 @@
       if (section.isConnected) section.remove();
       return;
     }
+    // Force the Home introduction and event panel to occupy their own rows.
+    // Previously, the site's parent grid placed these two items side by side.
+    anchor.classList.add("naxx-v2-home-intro");
+    if (anchor.parentElement) anchor.parentElement.classList.add("naxx-v2-home-flow");
     if (anchor.nextElementSibling !== section) {
       anchor.insertAdjacentElement("afterend", section);
     }
