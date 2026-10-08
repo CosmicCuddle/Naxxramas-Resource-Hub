@@ -1,0 +1,85 @@
+
+/* Naxxramas Resource Hub — Warcraft-inspired event countdowns. Scoped styles only. */
+#naxx-countdowns, #naxx-countdowns * { box-sizing: border-box; }
+#naxx-countdowns [hidden] { display:none !important; }
+#naxx-countdowns {
+  --nc-gold:#e7c17b; --nc-gold-dim:#9b7546; --nc-text:#e8decc; --nc-muted:#b2a28e;
+  position:relative; isolation:isolate; width:min(100%,1240px); margin:30px auto 34px;
+  padding:21px clamp(14px,2.4vw,28px) 26px; color:var(--nc-text);
+  background:radial-gradient(ellipse at 50% -15%,rgba(143,96,37,.20),transparent 53%),
+    linear-gradient(155deg,#191815 0%,#0b0b0e 54%,#1b1714 100%);
+  border:1px solid #85633b; border-radius:9px;
+  box-shadow:inset 0 0 0 1px #392c1e,inset 0 0 34px rgba(0,0,0,.7),
+    0 12px 32px rgba(0,0,0,.38),0 0 15px rgba(141,91,30,.12);
+  font-family:Georgia,'Times New Roman',serif; text-align:left;
+}
+#naxx-countdowns::before,#naxx-countdowns::after {
+  content:"";position:absolute;pointer-events:none;width:24px;height:24px;
+  border-color:#c69a56;border-style:solid;filter:drop-shadow(0 0 3px rgba(224,153,61,.36));
+}
+#naxx-countdowns::before {top:5px;left:5px;border-width:2px 0 0 2px;border-top-left-radius:4px;}
+#naxx-countdowns::after {right:5px;bottom:5px;border-width:0 2px 2px 0;border-bottom-right-radius:4px;}
+#naxx-countdowns .nc-kicker {display:block;margin:0 auto 5px;text-align:center;
+  color:#b99861;font:700 11px/1.4 Arial,sans-serif;letter-spacing:.24em;text-transform:uppercase;}
+#naxx-countdowns .nc-title {margin:0;text-align:center;font-size:clamp(21px,2.4vw,29px);
+  color:#f8dfa4;font-weight:700;letter-spacing:.035em;
+  text-shadow:0 2px #080605,0 0 12px rgba(215,146,39,.25);}
+#naxx-countdowns .nc-heading-rule {height:1px;max-width:420px;margin:13px auto 19px;
+  background:linear-gradient(90deg,transparent,#986d3c 24%,#e0b56d 50%,#986d3c 76%,transparent);}
+#naxx-countdowns .nc-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;}
+#naxx-countdowns .nc-card {
+  position:relative;min-width:0;min-height:218px;padding:18px 16px 17px;overflow:hidden;
+  background:radial-gradient(circle at 12% 4%,var(--nc-glow),transparent 55%),
+    linear-gradient(180deg,#23201b 0%,#101013 82%);
+  border:1px solid #69543d;border-radius:6px;
+  box-shadow:inset 0 0 0 1px rgba(229,179,98,.06),inset 0 -22px 34px rgba(0,0,0,.28);
+}
+#naxx-countdowns .nc-card--honor {--nc-glow:rgba(196,132,43,.13);--nc-accent:#edbd6a;}
+#naxx-countdowns .nc-card--raid {--nc-glow:rgba(70,133,184,.16);--nc-accent:#9ccff1;}
+#naxx-countdowns .nc-card--invasion {--nc-glow:rgba(178,68,39,.16);--nc-accent:#ee9c74;}
+#naxx-countdowns .nc-card::before {
+  content:"";position:absolute;left:0;right:0;top:0;height:3px;
+  background:linear-gradient(90deg,transparent,var(--nc-accent),transparent);opacity:.7;
+}
+#naxx-countdowns .nc-card-head {display:flex;align-items:center;gap:11px;min-height:48px;}
+#naxx-countdowns .nc-seal {
+  display:grid;place-items:center;flex:0 0 43px;width:43px;height:43px;border-radius:50%;
+  border:1px solid var(--nc-accent);background:radial-gradient(circle,#373029 0%,#141316 75%);
+  box-shadow:0 0 0 3px rgba(0,0,0,.36),0 0 16px var(--nc-glow);
+  color:var(--nc-accent);font:700 19px/1 Georgia,serif;text-shadow:0 0 9px var(--nc-accent);
+}
+#naxx-countdowns .nc-card-label {font:700 10px/1.45 Arial,sans-serif;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--nc-accent);}
+#naxx-countdowns .nc-card-title {margin:3px 0 0;font:700 18px/1.2 Georgia,serif;color:#f0e2c8;}
+#naxx-countdowns .nc-clock {
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:22px;
+}
+#naxx-countdowns .nc-clock-unit {text-align:center;min-width:0;}
+#naxx-countdowns .nc-clock-number {
+  display:block;padding:10px 1px 8px;border:1px solid #665037;border-radius:4px;
+  background:linear-gradient(180deg,#171820,#09090b);
+  color:#ffe0a2;font:700 clamp(20px,2.2vw,29px)/1 Arial,sans-serif;
+  font-variant-numeric:tabular-nums;letter-spacing:-.035em;
+  text-shadow:0 0 8px rgba(214,142,39,.2);
+}
+#naxx-countdowns .nc-clock-label {display:block;margin-top:7px;
+  color:#bfae94;font:700 9px/1.2 Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;}
+#naxx-countdowns .nc-pending {display:grid;place-items:center;min-height:91px;margin-top:14px;
+  color:var(--nc-accent);font:700 13px/1.5 Arial,sans-serif;letter-spacing:.12em;
+  text-align:center;text-transform:uppercase;text-shadow:0 0 13px var(--nc-glow);}
+#naxx-countdowns .nc-note {margin:16px 0 0;color:#beae96;font:12px/1.6 Arial,sans-serif;
+  text-align:center;overflow-wrap:anywhere;}
+#naxx-countdowns .nc-footer {margin:17px 0 0;text-align:center;
+  color:#a39177;font:11px/1.5 Arial,sans-serif;}
+@media(max-width:900px) {
+  #naxx-countdowns .nc-grid {grid-template-columns:1fr 1fr;}
+  #naxx-countdowns .nc-card--invasion {grid-column:1/-1;}
+}
+@media(max-width:550px) {
+  #naxx-countdowns {margin:18px auto 24px;padding:20px 12px;}
+  #naxx-countdowns .nc-grid {grid-template-columns:1fr;gap:11px;}
+  #naxx-countdowns .nc-card--invasion {grid-column:auto;}
+  #naxx-countdowns .nc-card {min-height:190px;padding:16px 13px;}
+  #naxx-countdowns .nc-clock-number {font-size:26px;}
+}
+@media(prefers-reduced-motion:reduce) { #naxx-countdowns * {animation:none !important;transition:none !important;} }
