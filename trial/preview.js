@@ -33,7 +33,7 @@
     if (!doc || !doc.documentElement || !doc.head) return;
     doc.documentElement.classList.add("naxx-trial-ui");
     doc.documentElement.setAttribute("data-naxx-style",chosen);
-    injectCss(doc,"naxx-trial-theme-link","trial/theme.css?v=3");
+    injectCss(doc,"naxx-trial-theme-link","trial/theme.css?v=4");
     var variant=findById(doc,"naxx-trial-variant-link");
     if (THEMES[chosen].css) {
       injectCss(doc,"naxx-trial-variant-link",THEMES[chosen].css+"?v=2");

@@ -109,11 +109,28 @@ html.naxx-trial-ui :is(.card,.panel,.resource-card,.content-card,.info-card,.gui
 html.naxx-trial-ui :is(.card,.panel,.resource-card,.content-card,.info-card,.guide-card,.module-card,.download-card):hover {
   border-color:#698ba3!important;
 }
-html.naxx-trial-ui :is(.hero,.hero-banner,.page-hero,.page-banner,[class*="hero-banner"]) {
-  border:1px solid #9e7a49!important;
-  border-left:4px solid #dbb276!important;
-  border-radius:9px!important;
-  box-shadow:inset 0 0 0 2px rgba(0,0,0,.33),0 15px 30px rgba(0,0,0,.27)!important;
+/* Do NOT frame every element named "hero" or "banner".
+   The Home banner is composed of an outer frame AND an inner text area.
+   The old broad selector put a second gold frame around the text area. 
+   Keep the original outer frame, without introducing a nested border. */
+html.naxx-trial-ui[data-naxx-style] body .naxx-v3-home-banner {
+  border:0!important;
+  border-left:0!important;
+  border-right:0!important;
+  border-top:0!important;
+  border-bottom:0!important;
+  outline:0!important;
+  outline-offset:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+/* In the Home masthead, avoid borders on nested text wrappers even if the
+   original markup uses a generic hero/card/panel class there. */
+html.naxx-trial-ui[data-naxx-style] body .naxx-v3-home-banner:is(
+  .hero,.hero-banner,.page-hero,.page-banner,.card,.panel,[class*="hero-banner"]) {
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
 }
 html.naxx-trial-ui :is(.hero,.hero-banner,.page-hero,.page-banner,[class*="hero-banner"]) :is(h1,h2) {
   color:#ffe4ad!important;
