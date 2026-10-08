@@ -19,11 +19,16 @@
       { name: "Naxxramas", at: null }
     ],
     elementalInvasion: { at: null },
-    // Leave Call to Arms unannounced until actual world.game_event timing is supplied.
-    // Populate with server-local timestamps including the UTC offset:
-    // { name: "Warsong Gulch", begins: "2026-10-09T00:00:00+02:00", ends: "2026-10-13T00:00:00+02:00" }
-    // IDs in game_event: AV=18, WSG=19, AB=20, EotS=21, SotA=53, IoC=54.
-    callToArms: [],
+    // Original AzerothCore game_event schedule. All times are server-local.
+    // 'occurence' and 'length' are measured in MINUTES. End dates cap recurrence.
+    callToArms: [
+      { eventEntry:18, name:"Alterac Valley", first:"2010-05-07 18:00:00", until:"2030-12-31 16:00:00", occurence:60480, length:6240 },
+      { eventEntry:19, name:"Warsong Gulch", first:"2010-04-02 18:00:00", until:"2030-12-31 16:00:00", occurence:60480, length:6240 },
+      { eventEntry:20, name:"Arathi Basin", first:"2010-04-23 00:00:00", until:"2030-12-31 23:59:00", occurence:60480, length:4320 },
+      { eventEntry:21, name:"Eye of the Storm", first:"2010-04-30 00:00:00", until:"2030-12-31 23:59:00", occurence:60480, length:4320 },
+      { eventEntry:53, name:"Strand of the Ancients", first:"2010-04-09 18:00:00", until:"2030-12-31 16:00:00", occurence:60480, length:6240 },
+      { eventEntry:54, name:"Isle of Conquest", first:"2010-04-16 18:00:00", until:"2030-12-31 16:00:00", occurence:60480, length:6240 }
+    ],
     // Major annual WoW holidays with predictable calendar dates.
     // Each time defaults to 00:00 server time; exact game-world activation may vary.
     seasonalEvents: [
@@ -154,15 +159,48 @@
     return { active: current, upcoming: upcoming };
   }
 
+  // SQL DATETIME is server-local: parse without applying the website visitor's timezone.
+  function parseEventWallTime(value) {
+    var match = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})$/.exec(value || "");
+    if (!match) return null;
+    var y=+match[1],mo=+match[2],d=+match[3],h=+match[4],mi=+match[5],s=+match[6];
+    var timestamp=Date.UTC(y,mo-1,d,h,mi,s), check=new Date(timestamp);
+    if (check.getUTCFullYear()!==y || check.getUTCMonth()+1!==mo ||
+        check.getUTCDate()!==d || check.getUTCHours()!==h ||
+        check.getUTCMinutes()!==mi || check.getUTCSeconds()!==s) return null;
+    return timestamp;
+  }
+
+  function wallTimeToDate(timestamp) {
+    var wall=new Date(timestamp);
+    return new Date(serverTimestamp(wall.getUTCFullYear(),wall.getUTCMonth()+1,
+      wall.getUTCDate(),wall.getUTCHours(),wall.getUTCMinutes())+wall.getUTCSeconds()*1000);
+  }
+
   function nextCallToArms(now) {
-    var events = schedule.callToArms.map(function (event) {
-      return { name: event.name, begins: readDate(event.begins), ends: readDate(event.ends) };
-    }).filter(function (event) {
-      return event.begins && event.ends && event.begins < event.ends && event.ends > now;
-    }).sort(function (a, b) { return a.begins - b.begins; });
-    var active = events.filter(function (event) { return event.begins <= now; })[0] || null;
-    return active ? { event: active, active: true } :
-      events.length ? { event: events[0], active: false } : null;
+    var p=serverParts(now), nowWall=Date.UTC(p.year,p.month-1,p.day,p.hour,p.minute,p.second);
+    var active=[], upcoming=[];
+    schedule.callToArms.forEach(function (event) {
+      var first=parseEventWallTime(event.first), cutoff=parseEventWallTime(event.until);
+      var interval=event.occurence*60000, duration=event.length*60000;
+      if (first===null || cutoff===null || !(interval>0) || !(duration>0)) return;
+      var closest=Math.max(0,Math.floor((nowWall-first)/interval));
+      for (var shift=-1; shift<=1; shift++) {
+        var iteration=closest+shift;
+        if (iteration<0) continue;
+        var wallStart=first+iteration*interval;
+        if (wallStart>cutoff) continue;
+        var wallEnd=Math.min(wallStart+duration,cutoff);
+        if (wallEnd<=wallStart) continue;
+        var one={ name:event.name,eventEntry:event.eventEntry,
+          begins:wallTimeToDate(wallStart),ends:wallTimeToDate(wallEnd) };
+        if (one.ends<=now) continue;
+        if (one.begins<=now) active.push(one); else upcoming.push(one);
+      }
+    });
+    active.sort(function (a,b) { return a.begins-b.begins; });
+    upcoming.sort(function (a,b) { return a.begins-b.begins; });
+    return { active:active[0] || null, upcoming:upcoming[0] || null };
   }
 
   function clockHTML() {
@@ -265,14 +303,20 @@
     var cta = nextCallToArms(now);
     var bg = miniCards[1];
     bg.querySelector("[data-mini-current]").textContent =
-      cta ? cta.event.name : "Featured battleground not configured";
+      cta.active ? "Active: " + cta.active.name :
+      cta.upcoming ? "Next: " + cta.upcoming.name : "No scheduled battleground";
     bg.querySelector("[data-mini-location]").textContent =
-      cta ? (cta.active ? "Bonus battleground active now" : "Next bonus battleground") :
-      "Uses the realm's battleground holiday events";
-    present(bg, cta ? (cta.active ? cta.event.ends : cta.event.begins) : null,
-      cta ? (cta.active ? "Bonus weekend ends" : "Bonus weekend begins") :
-      "Server event dates are required for an accurate Call to Arms rotation.",
-      "Awaiting server schedule");
+      cta.active && cta.upcoming ? "Coming next: " + cta.upcoming.name +
+        " — " + labelFormatter.format(cta.upcoming.begins) + " server time" :
+      cta.active ? "Bonus weekend is active now" :
+      cta.upcoming ? "The next battleground bonus weekend" :
+        "No remaining events within the server schedule";
+    var featured = cta.active || cta.upcoming;
+    present(bg, featured ? (cta.active ? featured.ends : featured.begins) : null,
+      cta.active ? "Call to Arms ends" :
+      cta.upcoming ? "Call to Arms begins" :
+        "Contact the server administrator for new dates.",
+      "No further events scheduled");
   }
 
   function update(section) {
