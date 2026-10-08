@@ -17,17 +17,18 @@
   const pointsInTree=(tree,pts=model.points)=>tree[3].reduce((s,t)=>s+(pts[t[0]]||0),0);
   const getTreeOf=(t)=>classData.find(tr=>tr[3].some(v=>v[0]===t[0]));
   const talentById=(id)=>records[Number(id)]||null;
-  // Historical availability and current DBC dependency chains both affect visibility.
-  function availableInEra(t,era=model.era,lookup=records,visited=new Set()){
-    if(t[1]>ERA[era].maxRow||eraFirst[t[0]]>ERA_ORDER[era])return false;
-    if(!t[6])return true;
-    if(visited.has(t[0]))return false;
-    const required=lookup[t[6]];
-    if(!required)return true; // Existing unresolved DBC prerequisites remain visible with a warning.
-    visited.add(t[0]);
-    const allowed=availableInEra(required,era,lookup,visited);
-    visited.delete(t[0]);
-    return allowed;
+  // Classify each talent by its own earliest era. Do not hide an old talent
+  // simply because its later 3.3.5 dependency did not exist in the older tree.
+  function availableInEra(t,era=model.era){
+    return t[1]<=ERA[era].maxRow && eraFirst[t[0]]<=ERA_ORDER[era];
+  }
+  // Pre-Wrath trees used different prerequisite relationships. When the current
+  // 3.3.5 prerequisite was introduced later, it does not apply to the historical
+  // era view. Unknown DBC prerequisite IDs still require manual verification.
+  function relevantPrerequisiteId(t,era=model.era,lookup=records){
+    if(!t[6])return 0;
+    const prerequisite=lookup[t[6]];
+    return prerequisite&&!availableInEra(prerequisite,era)?0:t[6];
   }
   const levelAvailable=(cls=model.class,era=model.era)=>cls!=='deathknight'||era==='wotlk';
   const cleanHTML=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -42,10 +43,11 @@
     if(!availableInEra(t))return 'This talent or a prerequisite is not available in '+era.title+'.';
     const below=tree[3].reduce((count,item)=>count+(item[1]<t[1]?(pts[item[0]]||0):0),0);
     if(below<t[1]*5)return 'Spend '+(t[1]*5)+' points in earlier rows of '+tree[1]+' (currently '+below+').';
-    if(t[6]){
-      const prerequisite=talentById(t[6]);
-      if(!prerequisite)return 'Unresolved DBC prerequisite: talent ID '+t[6]+'. This needs verification.';
-      if((pts[t[6]]||0)<t[7]+1)return 'Requires '+prerequisite[4]+' '+(t[7]+1)+'/'+prerequisite[3].length+'.';
+    const prereqId=relevantPrerequisiteId(t);
+    if(prereqId){
+      const prerequisite=talentById(prereqId);
+      if(!prerequisite)return 'Unresolved DBC prerequisite: talent ID '+prereqId+'. This needs verification.';
+      if((pts[prereqId]||0)<t[7]+1)return 'Requires '+prerequisite[4]+' '+(t[7]+1)+'/'+prerequisite[3].length+'.';
     }
     return '';
   }
@@ -63,9 +65,10 @@
       if(!tree)return 'Talent has no tree: '+id;
       const below=tree[3].reduce((s,x)=>s+(x[1]<t[1]?(pts[x[0]]||0):0),0);
       if(below<t[1]*5)return 'Insufficient earlier-row points for '+t[4]+'.';
-      if(t[6]){
-        if(!lookup[t[6]])return 'Unresolved prerequisite for '+t[4]+' (ID '+t[6]+').';
-        if((pts[t[6]]||0)<t[7]+1)return t[4]+' requires '+lookup[t[6]][4]+' rank '+(t[7]+1)+'.';
+      const prereqId=relevantPrerequisiteId(t,era,lookup);
+      if(prereqId){
+        if(!lookup[prereqId])return 'Unresolved prerequisite for '+t[4]+' (ID '+prereqId+').';
+        if((pts[prereqId]||0)<t[7]+1)return t[4]+' requires '+lookup[prereqId][4]+' rank '+(t[7]+1)+'.';
       }
     }
     return '';
@@ -136,10 +139,10 @@
       els.class.appendChild(opt);
     }
     els.class.value=model.class;els.level.max=cap();els.level.value=model.level;els['level-display'].value=model.level;
-    els['era-explanation'].textContent=ERA[model.era].title+': only historically available talents are shown in rows 1–'+(ERA[model.era].maxRow+1)+'. Talents introduced later are removed completely.';
+    els['era-explanation'].textContent=ERA[model.era].title+': rows 1–'+(ERA[model.era].maxRow+1)+'; later-expansion talents are hidden, while renamed earlier talents remain visible.';
   }
   function makeTalentButton(t){
-    const count=model.points[t[0]]||0,missing=!!(t[6]&&!talentById(t[6]));
+    const count=model.points[t[0]]||0,missing=!!(relevantPrerequisiteId(t)&&!talentById(t[6]));
     const reason=lockedReason(t);
     const b=d.createElement('button');b.type='button';b.className='talent'+(count?' spent':!reason?' ready':' locked')+(missing?' unknown':'');
     b.style.gridRow=t[1]+1;b.style.gridColumn=t[2]+1;b.dataset.talentId=t[0];
@@ -273,11 +276,11 @@
     const content=await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
     const parsed=JSON.parse(content);
     if(parsed.version!==1||!parsed.classes||Object.keys(parsed.classes).length!==10)throw Error('Data format is not recognised.');
-    const historyResponse=await fetch('data/era-availability-v1.json?v=1');
+    const historyResponse=await fetch('data/era-availability-v2.json?v=2');
     if(!historyResponse.ok)throw Error('Era availability data could not be fetched ('+historyResponse.status+').');
     const availability=await historyResponse.json();
     const talentNodes=Object.values(parsed.classes).flatMap(trees=>trees.flatMap(tree=>tree[3]));
-    if(availability.version!==1||!availability.earliest||talentNodes.length!==830||
+    if(availability.version!==2||!availability.earliest||talentNodes.length!==830||
       Object.keys(availability.earliest).length!==talentNodes.length||
       talentNodes.some(t=>![0,1,2].includes(availability.earliest[t[0]]))){
       throw Error('Expansion talent history does not match the server DBC snapshot.');
@@ -295,6 +298,6 @@
     }catch(error){els.trees.innerHTML='<p class="tree-empty">Talent data could not be loaded. Please refresh later or report this problem to the Resource Hub administrator.</p>';notify(error.message);console.error('Naxxramas Talent Calculator:',error);}
   }
   // Expose pure logic to local automated tests only; safe readonly method collection.
-  if(typeof window!=='undefined')window.NaxxTalentTest={checkBuild,parseBuildCode,createCode,lockedReason,availableInEra,setModel:(x,dataset,availability)=>{db=dataset;if(availability)eraFirst=availability;model.era=x.era;model.level=x.level;assignClass(x.class);model.points=x.points||{};},state:()=>({...model,points:{...model.points}})};
+  if(typeof window!=='undefined')window.NaxxTalentTest={checkBuild,parseBuildCode,createCode,lockedReason,availableInEra,relevantPrerequisiteId,setModel:(x,dataset,availability)=>{db=dataset;if(availability)eraFirst=availability;model.era=x.era;model.level=x.level;assignClass(x.class);model.points=x.points||{};},state:()=>({...model,points:{...model.points}})};
   start();
 })();

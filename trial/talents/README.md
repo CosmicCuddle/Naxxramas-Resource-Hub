@@ -57,3 +57,24 @@ Example: Fury Improved Whirlwind appears in TBC and Wrath, while Intensify Rage
 appears only in Wrath. 
 
 Historical references: https://github.com/lathcf/azerothcore-mod-era-talents/tree/main/era-data/_skeletons
+
+## 2026-10-08: Retain original-era talent equivalents
+
+The first per-talent history filter was too restrictive: it relied on exact names
+and hid earlier talents whenever the current 3.3.5 talent referenced a later-added
+prerequisite. Source data `era-availability-v2.json` restores 28 verified name/
+function equivalents from the Vanilla historical talent lists, covering all nine
+pre-Wrath classes. It also treats the talent's **own** era and row as the visibility
+rule, instead of recursively removing older talent nodes from the screen.
+
+Current DBC prerequisites are retained when they exist in the selected era. If a
+Wrath-era talent dependency did not exist during the selected earlier era,
+the calculator does not impose that later prerequisite for that earlier-era
+planning view. The WotLK view still uses all original DBC prerequisites.
+Unresolved DBC reference IDs remain flagged as before.
+
+This is still a server-specific 3.3.5 tree with era filtering. **Talents deleted
+entirely before Wrath cannot be recreated from the supplied 3.3.5 DBC**; a
+separate genuine 1.12/2.4.3 tree dataset and different validation rules would
+be needed for exact historical calculators. Custom 3.3.5 tooltip effects may
+also differ from their earlier historical equivalents.
