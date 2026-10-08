@@ -82,3 +82,35 @@
   #naxx-countdowns .nc-clock-number {font-size:26px;}
 }
 @media(prefers-reduced-motion:reduce) { #naxx-countdowns * {animation:none !important;transition:none !important;} }
+
+
+/* Compact second row: Darkmoon Faire and PvP Call to Arms. */
+#naxx-countdowns .nc-mini-grid {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:15px;margin-top:15px;
+}
+#naxx-countdowns .nc-mini {
+  --nc-accent:#e7c17b;--nc-glow:rgba(166,103,37,.15);
+  position:relative;min-width:0;overflow:hidden;
+  padding:14px 17px 15px;
+  border:1px solid #6b5336;border-radius:6px;
+  background:radial-gradient(circle at top left,var(--nc-glow),transparent 64%),
+    linear-gradient(165deg,#252019 0%,#0c0e12 100%);
+  box-shadow:inset 0 0 0 1px rgba(231,193,123,.04),inset 0 -14px 28px rgba(0,0,0,.32);
+}
+#naxx-countdowns .nc-mini--darkmoon {--nc-accent:#ddb2ed;--nc-glow:rgba(162,70,166,.19);}
+#naxx-countdowns .nc-mini--cta {--nc-accent:#da9a69;--nc-glow:rgba(187,89,39,.19);}
+#naxx-countdowns .nc-mini-heading {display:flex;align-items:center;gap:10px;}
+#naxx-countdowns .nc-mini-heading h3 {font:700 17px/1.25 Georgia,serif;color:#f0e2c8;margin:0;}
+#naxx-countdowns .nc-mini-seal {display:grid;place-items:center;border:1px solid var(--nc-accent);
+  width:30px;height:30px;border-radius:50%;flex:0 0 30px;color:var(--nc-accent);font:700 15px Georgia,serif;
+  background:#171316;}
+#naxx-countdowns .nc-mini-current {margin-top:12px;font:700 13px/1.4 Arial,sans-serif;color:var(--nc-accent);}
+#naxx-countdowns .nc-mini-location {margin-top:4px;min-height:18px;font:12px/1.5 Arial,sans-serif;color:#d5c6af;}
+#naxx-countdowns .nc-mini .nc-clock {margin-top:12px;max-width:380px;}
+#naxx-countdowns .nc-mini .nc-clock-number {font-size:clamp(17px,1.7vw,24px);padding:7px 1px;}
+#naxx-countdowns .nc-mini .nc-pending {min-height:48px;margin:7px 0;font-size:11px;}
+#naxx-countdowns .nc-mini .nc-note {margin:10px 0 0;text-align:left;font-size:11px;}
+@media(max-width:700px) {
+  #naxx-countdowns .nc-mini-grid {grid-template-columns:1fr;gap:11px;}
+}

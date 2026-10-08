@@ -19,6 +19,11 @@
       { name: "Naxxramas", at: null }
     ],
     elementalInvasion: { at: null },
+    // Leave Call to Arms unannounced until actual world.game_event timing is supplied.
+    // Populate with server-local timestamps including the UTC offset:
+    // { name: "Warsong Gulch", begins: "2026-10-09T00:00:00+02:00", ends: "2026-10-13T00:00:00+02:00" }
+    // IDs in game_event: AV=18, WSG=19, AB=20, EotS=21, SotA=53, IoC=54.
+    callToArms: [],
     // Major annual WoW holidays with predictable calendar dates.
     // Each time defaults to 00:00 server time; exact game-world activation may vary.
     seasonalEvents: [
@@ -112,6 +117,54 @@
     return upcoming.sort(function (a, b) { return a.date - b.date; })[0] || null;
   }
 
+  // Wrath of the Lich King-style Darkmoon Faire: first Sunday through Saturday.
+  // AzerothCore default location schedule: Jan Mulgore, Feb Terokkar, Mar Elwynn.
+  // Faire is in Terokkar Forest, just south of Shattrath, not inside Shattrath City.
+  function firstSunday(year, month) {
+    var weekday = new Date(Date.UTC(year, month - 1, 1)).getUTCDay();
+    return 1 + (7 - weekday) % 7;
+  }
+
+  function darkmoonVisit(year, month) {
+    var day = firstSunday(year, month);
+    var locations = [
+      { name: "Mulgore", info: "Southwest of Thunder Bluff" },
+      { name: "Terokkar Forest", info: "Near Shattrath City" },
+      { name: "Elwynn Forest", info: "South of Goldshire" }
+    ];
+    var location = locations[(month - 1) % 3];
+    return {
+      location: location.name, locationInfo: location.info,
+      begins: new Date(serverTimestamp(year, month, day, 0, 1)),
+      ends: new Date(serverTimestamp(year, month, day + 7, 0, 0))
+    };
+  }
+
+  function nextDarkmoon(now) {
+    var year = serverParts(now).year, month = serverParts(now).month;
+    var current = null, upcoming = null, nextAfter = null;
+    for (var i = -1; i <= 14; i++) {
+      var monthIndex = (year * 12 + month - 1) + i;
+      var y = Math.floor(monthIndex / 12);
+      var m = (monthIndex % 12) + 1;
+      var visit = darkmoonVisit(y, m);
+      if (visit.begins <= now && now < visit.ends) current = visit;
+      if (visit.begins > now && (!upcoming || visit.begins < upcoming.begins)) upcoming = visit;
+    }
+    return { active: current, upcoming: upcoming };
+  }
+
+  function nextCallToArms(now) {
+    var events = schedule.callToArms.map(function (event) {
+      return { name: event.name, begins: readDate(event.begins), ends: readDate(event.ends) };
+    }).filter(function (event) {
+      return event.begins && event.ends && event.begins < event.ends && event.ends > now;
+    }).sort(function (a, b) { return a.begins - b.begins; });
+    var active = events.filter(function (event) { return event.begins <= now; })[0] || null;
+    return active ? { event: active, active: true } :
+      events.length ? { event: events[0], active: false } : null;
+  }
+
   function clockHTML() {
     return '<div class="nc-clock" role="timer" aria-live="off" data-clock hidden>' +
       ['days', 'hours', 'minutes', 'seconds'].map(function (part) {
@@ -133,6 +186,20 @@
     return card;
   }
 
+  function makeMiniCard(type, symbol, heading) {
+    var card = document.createElement("article");
+    card.className = "nc-mini nc-mini--" + type;
+    card.innerHTML =
+      '<div class="nc-mini-heading"><span class="nc-mini-seal" aria-hidden="true">' + symbol + '</span>' +
+      '<h3>' + heading + '</h3></div>' +
+      '<div class="nc-mini-current" data-mini-current></div>' +
+      '<div class="nc-mini-location" data-mini-location></div>' +
+      clockHTML() +
+      '<div class="nc-pending" data-pending>Awaiting server schedule</div>' +
+      '<p class="nc-note" data-note></p>';
+    return card;
+  }
+
   function buildSection() {
     var section = document.createElement("section");
     section.id = "naxx-countdowns";
@@ -141,12 +208,16 @@
       '<h2 class="nc-title" id="naxx-countdowns-title">Azerothian Event Countdowns</h2>' +
       '<div class="nc-heading-rule" aria-hidden="true"></div>' +
       '<div class="nc-grid"></div>' +
+      '<div class="nc-mini-grid" aria-label="Recurring realm events"></div>' +
       '<p class="nc-footer">Countdowns use configured server time (UTC+02:00). Seasonal dates follow the standard WoW calendar; actual server activation may vary.</p>';
     var grid = section.querySelector(".nc-grid");
     grid.appendChild(makeCard("honor", "H", "Fortnightly Cycle", "Honor Reset"));
     grid.appendChild(makeCard("raid", "R", "Classic Raid Phases", "Next Raid Unlock"));
     grid.appendChild(makeCard("invasion", "E", "World Event", "Elemental Invasion"));
     grid.appendChild(makeCard("seasonal", "S", "World Holidays", "Next Seasonal Event"));
+    var mini = section.querySelector(".nc-mini-grid");
+    mini.appendChild(makeMiniCard("darkmoon", "D", "Darkmoon Faire"));
+    mini.appendChild(makeMiniCard("cta", "P", "Battleground Call to Arms"));
     return section;
   }
 
@@ -178,6 +249,32 @@
     noteNode.textContent = note + " — " + labelFormatter.format(date) + " server time";
   }
 
+  function updateMini(miniCards, now) {
+    var darkmoon = nextDarkmoon(now);
+    var active = darkmoon.active, upcoming = darkmoon.upcoming;
+    var dm = miniCards[0];
+    dm.querySelector("[data-mini-current]").textContent = active ? "Faire open now" : "Next visit";
+    dm.querySelector("[data-mini-location]").textContent =
+      (active || upcoming) ? ((active || upcoming).location + " — " + (active || upcoming).locationInfo) : "Location not available";
+    var dmDate = active ? active.ends : (upcoming ? upcoming.begins : null);
+    var nextText = active && upcoming ?
+      (" Next: " + upcoming.location + " (" + upcoming.locationInfo + "), " +
+       labelFormatter.format(upcoming.begins) + " server time.") : "";
+    present(dm, dmDate, active ? "Faire closes" + nextText : "Faire opens", "Schedule unavailable");
+
+    var cta = nextCallToArms(now);
+    var bg = miniCards[1];
+    bg.querySelector("[data-mini-current]").textContent =
+      cta ? cta.event.name : "Featured battleground not configured";
+    bg.querySelector("[data-mini-location]").textContent =
+      cta ? (cta.active ? "Bonus battleground active now" : "Next bonus battleground") :
+      "Uses the realm's battleground holiday events";
+    present(bg, cta ? (cta.active ? cta.event.ends : cta.event.begins) : null,
+      cta ? (cta.active ? "Bonus weekend ends" : "Bonus weekend begins") :
+      "Server event dates are required for an accurate Call to Arms rotation.",
+      "Awaiting server schedule");
+  }
+
   function update(section) {
     var now = new Date();
     var cards = section.querySelectorAll(".nc-card");
@@ -194,60 +291,88 @@
     present(cards[3], seasonal ? seasonal.date : null,
       seasonal ? (seasonal.name + (seasonal.isActive ? " ends" : " begins")) : "Standard WoW calendar",
       "Seasonal calendar unavailable");
+    updateMini(section.querySelectorAll(".nc-mini"), now);
+  }
+
+  // Only render inside the *visible* Home section. Never fall back to every page.
+  // Some views retain Home markup but hide it when other tabs/routes are selected.
+  var homeIntroCache = null;
+  var lastHomeScanAt = 0;
+  function visible(el) {
+    if (!el || !el.isConnected || !el.getClientRects || !el.getClientRects().length) return false;
+    for (var p = el; p && p.nodeType === 1; p = p.parentElement) {
+      if (p.hidden || p.getAttribute("aria-hidden") === "true" || p.hasAttribute("inert")) return false;
+      var style = window.getComputedStyle(p);
+      if (style.display === "none" || style.visibility === "hidden" || style.visibility === "collapse") return false;
+    }
+    return true;
   }
 
   function findHomeIntroduction() {
-    // Place AFTER the Home section's descriptive heading, not above it or inside the banner.
+    if (homeIntroCache && homeIntroCache.isConnected && visible(homeIntroCache)) return homeIntroCache;
+    // Scanning a large HTML document repeatedly on non-Home pages is expensive.
+    if (Date.now() - lastHomeScanAt < 2000) return null;
+    lastHomeScanAt = Date.now();
     var descriptions = document.querySelectorAll("p, .page-description, .page-subtitle, .section-subtitle, .intro");
     for (var i = 0; i < descriptions.length; i++) {
       var el = descriptions[i];
-      var text = (el.textContent || "").replace(/\s+/g, " ").trim();
-      if (text.indexOf("Everything your Naxxramas character needs in one place") !== 0 || text.length > 500) continue;
-      var target = el;
-      var parent = el.parentElement;
-      // A compact parent containing both Home heading and its description is the whole intro.
+      if (!visible(el)) continue;
+      var str = (el.textContent || "").replace(/\s+/g, " ").trim();
+      if (str.indexOf("Everything your Naxxramas character needs in one place") !== 0 || str.length > 500) continue;
+      var target = el, parent = el.parentElement;
       if (parent && parent.children.length <= 8 && (parent.textContent || "").length < 1400) {
         var heading = parent.querySelector("h1, h2, h3, h4");
-        if (heading && (heading.textContent || "").trim() === "Home") target = parent;
+        if (heading && (heading.textContent || "").trim() === "Home" && visible(heading)) target = parent;
       }
-      // Preserve the horizontal separator under the Home introduction.
       if (target.nextElementSibling && target.nextElementSibling.matches("hr")) {
         target = target.nextElementSibling;
       }
+      homeIntroCache = target;
       return target;
     }
     return null;
   }
 
-  function positionBelowHome(section) {
+  function syncHome(section) {
     var anchor = findHomeIntroduction();
-    if (!anchor || !anchor.parentNode) return false;
-    anchor.insertAdjacentElement("afterend", section);
-    return true;
+    if (!anchor || !visible(anchor)) {
+      if (section.isConnected) section.remove();
+      return;
+    }
+    if (anchor.nextElementSibling !== section) {
+      anchor.insertAdjacentElement("afterend", section);
+    }
   }
 
   function start() {
     if (document.getElementById("naxx-countdowns")) return;
     var section = buildSection();
-    var main = document.querySelector("main") ||
-      document.querySelector("#main-content") ||
-      document.querySelector(".main-content") ||
-      document.querySelector("#content") ||
-      document.querySelector("main-content");
-    if (!positionBelowHome(section)) {
-      // Fallback while a client-side homepage is still rendering.
-      if (main) main.insertBefore(section, main.firstChild);
-      else document.body.appendChild(section);
-      // Move the section into its intended position when Home content becomes available.
-      var observer = new MutationObserver(function () {
-        if (positionBelowHome(section)) observer.disconnect();
-      });
-      observer.observe(document.body, { childList: true, subtree: true });
-    }
+    syncHome(section);
     update(section);
+
+    var scheduled = false;
+    var observer = new MutationObserver(function (mutations) {
+      var relevant = mutations.some(function (mutation) {
+        var target = mutation.target;
+        return target.nodeType !== 1 || !target.closest || !target.closest("#naxx-countdowns");
+      });
+      if (!relevant || scheduled) return;
+      scheduled = true;
+      window.requestAnimationFrame(function () {
+        scheduled = false;
+        syncHome(section);
+      });
+    });
+    observer.observe(document.body, {
+      childList: true, subtree: true, attributes: true,
+      attributeFilter: ["style", "class", "hidden", "aria-hidden", "inert"]
+    });
+    window.addEventListener("popstate", function () { syncHome(section); });
+    window.addEventListener("hashchange", function () { syncHome(section); });
+    window.addEventListener("pageshow", function () { syncHome(section); });
     window.setInterval(function () {
-      if (!section.isConnected) return;
-      update(section);
+      syncHome(section);
+      if (section.isConnected) update(section);
     }, 1000);
   }
   if (document.readyState === "loading") {
