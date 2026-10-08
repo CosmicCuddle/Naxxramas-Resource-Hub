@@ -242,11 +242,12 @@
     var section = document.createElement("section");
     section.id = "naxx-countdowns";
     section.setAttribute("aria-labelledby", "naxx-countdowns-title");
-    section.innerHTML = '<span class="nc-kicker">Naxxramas Resource Hub</span>' +
-      '<h2 class="nc-title" id="naxx-countdowns-title">Azerothian Event Countdowns</h2>' +
-      '<p class="nc-subtitle">Watch the realm. Prepare for what comes next.</p>' +
+    section.innerHTML = '<div class="nc-masthead" aria-hidden="true"><span class="nc-masthead-wing">✦ ━━━</span><span class="nc-masthead-crest">N</span><span class="nc-masthead-wing">━━━ ✦</span></div>' +
+      '<span class="nc-kicker">The Naxxramas Realm Almanac</span>' +
+      '<h2 class="nc-title" id="naxx-countdowns-title">Events Across Azeroth</h2>' +
+      '<p class="nc-subtitle">The next battle, the next celebration, the next adventure.</p>' +
       '<div class="nc-heading-rule" aria-hidden="true"></div>' +
-      '<div class="nc-grid"></div>' +
+      '<div class="nc-grid" aria-label="Major server events"></div>' +
       '<div class="nc-mini-grid" aria-label="Recurring realm events"></div>' +
       '<p class="nc-footer">Countdowns use configured server time (UTC+02:00). Seasonal dates follow the standard WoW calendar; actual server activation may vary.</p>';
     var grid = section.querySelector(".nc-grid");
@@ -339,94 +340,188 @@
     updateMini(section.querySelectorAll(".nc-mini"), now);
   }
 
-  // Only render inside the *visible* Home section. Never fall back to every page.
-  // Some views retain Home markup but hide it when other tabs/routes are selected.
-  var homeIntroCache = null;
-  var lastHomeScanAt = 0;
+
+  /* Route-safe Home-only board.
+     The old implementation checked only whether its Home introduction still existed.
+     It never verified the active breadcrumb, so the board leaked into other views. */
+  var homeIntroCache = null, lastChecked = 0, lastAnchor = null;
+  var BREADCRUMB_HINTS = [
+    "[aria-label*='breadcrumb' i]", "[class*='breadcrumb' i]",
+    "[class*='crumb' i]", "[id*='breadcrumb' i]",
+    "nav", "[role='navigation']"
+  ].join(",");
   function visible(el) {
     if (!el || !el.isConnected || !el.getClientRects || !el.getClientRects().length) return false;
-    for (var p = el; p && p.nodeType === 1; p = p.parentElement) {
-      if (p.hidden || p.getAttribute("aria-hidden") === "true" || p.hasAttribute("inert")) return false;
-      var style = window.getComputedStyle(p);
-      if (style.display === "none" || style.visibility === "hidden" || style.visibility === "collapse") return false;
+    for (var p=el; p && p.nodeType===1; p=p.parentElement) {
+      if (p.hidden || p.getAttribute("aria-hidden")==="true" || p.hasAttribute("inert")) return false;
+      var style=window.getComputedStyle(p);
+      if (style.display==="none" || style.visibility==="hidden" || style.visibility==="collapse") return false;
     }
     return true;
   }
-
+  function normalize(text) {
+    return (text || "").replace(/\s+/g," ").trim();
+  }
+  function breadcrumbCandidates() {
+    var found = [];
+    var nodes = document.querySelectorAll(BREADCRUMB_HINTS);
+    for (var i=0; i<nodes.length; i++) {
+      var el=nodes[i];
+      if (!visible(el) || el.closest("#naxx-countdowns")) continue;
+      var text=normalize(el.innerText || el.textContent);
+      if (text.length<8 || text.length>230) continue;
+      if (!/naxxramas/i.test(text) || !/database/i.test(text)) continue;
+      found.push({element:el,text:text});
+    }
+    found.sort(function(a,b){return a.text.length-b.text.length;});
+    return found;
+  }
+  function breadcrumbHome(text) {
+    var t=normalize(text).toLowerCase();
+    var pos=t.lastIndexOf("database");
+    if (pos===-1) return false;
+    var after=t.slice(pos+"database".length);
+    after=after.replace(/^[\s›»>\/:|·•\-\u2192]+/g,"");
+    // Strict: other pages may keep a Home breadcrumb as an ancestor.
+    // Permit only the two badges shown next to the Home breadcrumb.
+    var tail=after.replace(/[›»>\/:|·•\-\u2192]+/g," ").replace(/\s+/g," ").trim();
+    return /^home(?:\s+(?:resource hub|wotlk\s*3[.]3[.]5a?))*$/.test(tail);
+  }
+  function selectedSidebarPage() {
+    // Active sidebar selection beats a stale or shared breadcrumb.
+    var nodes=document.querySelectorAll(
+      "aside a,aside button,aside [role='button']," +
+      "[class*='sidebar' i] a,[class*='sidebar' i] button," +
+      "[class*='side-nav' i] a,[class*='side-nav' i] button");
+    for (var i=0;i<nodes.length;i++) {
+      var el=nodes[i],label=normalize(el.textContent);
+      if (!label || label.length>55 || !visible(el)) continue;
+      for(var p=el,depth=0;p&&depth<3;p=p.parentElement,depth++) {
+        if (p.getAttribute("aria-current")==="page" ||
+            p.getAttribute("aria-selected")==="true" ||
+            p.classList.contains("active") || p.classList.contains("selected") ||
+            p.classList.contains("is-active") || p.classList.contains("current")) return label;
+      }
+    }
+    return null;
+  }
+  function isHomeRoute() {
+    if (/\/(?:patches|change-notes)(?:\/|$)/i.test(window.location.pathname)) return false;
+    var selected=selectedSidebarPage();
+    if (selected && selected!=="Home") return false;
+    var crumbs=breadcrumbCandidates();
+    if (crumbs.length) return breadcrumbHome(crumbs[0].text);
+    // If breadcrumbs cannot be read, require a positive selected Home link.
+    return selected==="Home";
+  }
   function findHomeIntroduction() {
-    if (homeIntroCache && homeIntroCache.isConnected && visible(homeIntroCache)) return homeIntroCache;
-    // Scanning a large HTML document repeatedly on non-Home pages is expensive.
-    if (Date.now() - lastHomeScanAt < 2000) return null;
-    lastHomeScanAt = Date.now();
-    var descriptions = document.querySelectorAll("p, .page-description, .page-subtitle, .section-subtitle, .intro");
-    for (var i = 0; i < descriptions.length; i++) {
-      var el = descriptions[i];
-      if (!visible(el)) continue;
-      var str = (el.textContent || "").replace(/\s+/g, " ").trim();
-      if (str.indexOf("Everything your Naxxramas character needs in one place") !== 0 || str.length > 500) continue;
-      var target = el, parent = el.parentElement;
-      if (parent && parent.children.length <= 8 && (parent.textContent || "").length < 1400) {
-        var heading = parent.querySelector("h1, h2, h3, h4");
-        if (heading && (heading.textContent || "").trim() === "Home" && visible(heading)) target = parent;
+    if (homeIntroCache && visible(homeIntroCache)) return homeIntroCache;
+    var nodes=document.querySelectorAll("p, .page-description, .page-subtitle, .section-subtitle, .intro");
+    for(var i=0;i<nodes.length;i++) {
+      var el=nodes[i], text=normalize(el.textContent);
+      if (!visible(el) || text.indexOf("Everything your Naxxramas character needs in one place")!==0 ||
+          text.length>500) continue;
+      var target=el, parent=el.parentElement;
+      if (parent && parent.children.length<=8 && normalize(parent.textContent).length<1400) {
+        var heading=parent.querySelector("h1,h2,h3,h4");
+        if (heading && normalize(heading.textContent)==="Home" && visible(heading)) target=parent;
       }
       if (target.nextElementSibling && target.nextElementSibling.matches("hr")) {
-        target = target.nextElementSibling;
+        target=target.nextElementSibling;
       }
-      homeIntroCache = target;
+      homeIntroCache=target;
       return target;
     }
     return null;
   }
-
-  function syncHome(section) {
-    var anchor = findHomeIntroduction();
-    if (!anchor || !visible(anchor)) {
-      if (section.isConnected) section.remove();
+  function pickFullWidthMount(anchor) {
+    // Climb out of narrow two-column wrappers; mount the board in a full-width row.
+    var node=anchor, viewport=window.innerWidth || document.documentElement.clientWidth || 1280;
+    for (var depth=0;depth<7 && node && node.parentElement;depth++) {
+      var box=node.getBoundingClientRect(),outer=node.parentElement.getBoundingClientRect();
+      if (outer.width>0 &&
+          outer.width>box.width*1.36 &&
+          outer.width>=Math.min(viewport*0.66,750)) {
+        return {sibling:node,parent:node.parentElement};
+      }
+      node=node.parentElement;
+    }
+    return {sibling:anchor,parent:anchor.parentElement};
+  }
+  var bannerStyled=false;
+  function markHomeBanner() {
+    if (bannerStyled) return;
+    // Match the existing Home banner's unique description (no hardcoded layout class).
+    var nodes=document.querySelectorAll("p,small,span,.hero-description,.hero-subtitle");
+    for(var i=0;i<nodes.length;i++) {
+      var el=nodes[i],label=normalize(el.textContent);
+      if (label.indexOf("Quick access to your latest guides, downloads and project resources")!==0 ||
+          label.length>190 || !visible(el)) continue;
+      var node=el;
+      for(var j=0;j<6 && node.parentElement;j++){
+        var parent=node.parentElement;
+        if (parent.getBoundingClientRect().width>
+            Math.min((window.innerWidth||1280)*.66,890)) {
+          parent.classList.add("naxx-v3-home-banner");
+          bannerStyled=true;
+          return;
+        }
+        node=parent;
+      }
       return;
     }
-    // Force the Home introduction and event panel to occupy their own rows.
-    // Previously, the site's parent grid placed these two items side by side.
-    anchor.classList.add("naxx-v2-home-intro");
-    if (anchor.parentElement) anchor.parentElement.classList.add("naxx-v2-home-flow");
-    if (anchor.nextElementSibling !== section) {
-      anchor.insertAdjacentElement("afterend", section);
-    }
   }
-
+  function syncHome(section) {
+    var routeHome=isHomeRoute();
+    var anchor=routeHome ? findHomeIntroduction() : null;
+    var show=!!(anchor && visible(anchor));
+    document.body.classList.toggle("naxx-v3-home-active",show);
+    if (!show) {
+      if(section.isConnected) section.remove();
+      return;
+    }
+    var slot=pickFullWidthMount(anchor);
+    if (!slot.parent) return;
+    anchor.classList.add("naxx-v3-home-intro");
+    slot.parent.classList.add("naxx-v3-home-layout");
+    if (section.parentNode!==slot.parent || slot.sibling.nextElementSibling!==section) {
+      slot.sibling.insertAdjacentElement("afterend",section);
+    }
+    markHomeBanner();
+  }
   function start() {
     if (document.getElementById("naxx-countdowns")) return;
-    var section = buildSection();
-    syncHome(section);
+    var section=buildSection();
     update(section);
-
-    var scheduled = false;
-    var observer = new MutationObserver(function (mutations) {
-      var relevant = mutations.some(function (mutation) {
-        var target = mutation.target;
-        return target.nodeType !== 1 || !target.closest || !target.closest("#naxx-countdowns");
+    // Never mount by default: only the selected Home route earns a visible board.
+    syncHome(section);
+    var queued=false;
+    var observer=new MutationObserver(function(mutations) {
+      if (queued) return;
+      var relevant=mutations.some(function(m) {
+        if (m.target.nodeType===1 && m.target.closest &&
+            m.target.closest("#naxx-countdowns")) return false;
+        return true;
       });
-      if (!relevant || scheduled) return;
-      scheduled = true;
-      window.requestAnimationFrame(function () {
-        scheduled = false;
+      if(!relevant) return;
+      queued=true;
+      window.requestAnimationFrame(function() {
+        queued=false;
         syncHome(section);
       });
     });
-    observer.observe(document.body, {
-      childList: true, subtree: true, attributes: true,
-      attributeFilter: ["style", "class", "hidden", "aria-hidden", "inert"]
+    observer.observe(document.body,{
+      childList:true,subtree:true,characterData:true,attributes:true,
+      attributeFilter:["style","class","hidden","aria-hidden","aria-current","aria-selected"]
     });
-    window.addEventListener("popstate", function () { syncHome(section); });
-    window.addEventListener("hashchange", function () { syncHome(section); });
-    window.addEventListener("pageshow", function () { syncHome(section); });
-    window.setInterval(function () {
+    ["hashchange","popstate","pageshow"].forEach(function(eventName){
+      window.addEventListener(eventName,function(){syncHome(section);});
+    });
+    window.setInterval(function(){
       syncHome(section);
-      if (section.isConnected) update(section);
-    }, 1000);
+      if(section.isConnected) update(section);
+    },1000);
   }
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", start, { once: true });
-  } else {
-    start();
-  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",start,{once:true});
+  else start();
 })();
