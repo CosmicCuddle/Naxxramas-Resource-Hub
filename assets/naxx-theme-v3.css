@@ -1,0 +1,268 @@
+/*
+ Naxxramas Resource Hub / V3 — The Realm Almanac
+ Distinct Warcraft-inspired homepage redesign; additive and reversible.
+ V3 loads after V2. Never affect unrelated views: active Home only.
+*/
+
+/* The old two-column panel is replaced by a separate full-width event row. */
+body.naxx-v3-home-active .naxx-v3-home-layout {
+  flex-wrap:wrap !important;
+  align-items:stretch !important;
+}
+body.naxx-v3-home-active .naxx-v3-home-layout > #naxx-countdowns,
+body.naxx-v3-home-active .naxx-v3-home-layout > .naxx-v3-home-intro,
+body.naxx-v3-home-active #naxx-countdowns {
+  display:block;
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  float:none !important;
+  clear:both !important;
+  order:999 !important;
+  flex:0 0 100% !important;
+  grid-column:1 / -1 !important;
+  grid-row:auto !important;
+  justify-self:stretch !important;
+}
+body.naxx-v3-home-active .naxx-v3-home-layout > .naxx-v3-home-intro {order:0 !important;}
+body.naxx-v3-home-active .naxx-v3-home-intro {
+  position:relative;
+  margin-bottom:4px !important;
+  padding-bottom:13px !important;
+  border-bottom:1px solid transparent;
+  border-image:linear-gradient(90deg,#b38540,rgba(179,133,64,.17),transparent) 1;
+}
+/* Visibly restyle the Home introduction title. */
+body.naxx-v3-home-active .naxx-v3-home-intro h1,
+body.naxx-v3-home-active .naxx-v3-home-intro h2 {
+  color:#ffe4b2 !important;
+  font:700 clamp(27px,2.6vw,36px)/1.2 Georgia,"Times New Roman",serif !important;
+  text-shadow:0 1px 0 #000,0 0 18px rgba(209,145,59,.18);
+}
+body.naxx-v3-home-active .naxx-v3-home-banner {
+  position:relative;
+  border:1px solid #aa824b !important;
+  border-left:4px solid #d3a55e !important;
+  border-radius:8px !important;
+  box-shadow:inset 0 0 0 2px rgba(0,0,0,.62),0 10px 32px rgba(0,0,0,.21),
+    0 0 14px rgba(179,111,36,.13) !important;
+}
+body.naxx-v3-home-active .naxx-v3-class-selector {
+  border-color:#74542f !important;
+  background:linear-gradient(135deg,rgba(48,31,19,.32),rgba(8,8,12,.36)) !important;
+  box-shadow:inset 0 0 0 1px rgba(213,158,74,.1),0 5px 20px rgba(0,0,0,.18) !important;
+}
+
+/* Completely distinct engraved almanac header, not just coloured timer squares. */
+body.naxx-v3-home-active #naxx-countdowns {
+  isolation:isolate;
+  position:relative;
+  margin:26px 0 40px !important;
+  padding:30px clamp(15px,2.5vw,38px) 25px !important;
+  border:2px solid #9f7b49 !important;
+  border-radius:12px !important;
+  background:
+    radial-gradient(ellipse 42% 30% at 50% 0%,rgba(216,146,65,.24),transparent 82%),
+    radial-gradient(circle at 0% 12%,rgba(71,109,109,.14),transparent 27%),
+    radial-gradient(circle at 100% 82%,rgba(109,73,130,.15),transparent 28%),
+    repeating-linear-gradient(93deg,rgba(228,196,142,.014) 0 1px,transparent 1px 8px),
+    linear-gradient(145deg,#211b17 0%,#0b0b10 37%,#121016 62%,#251a12 100%) !important;
+  box-shadow:inset 0 0 0 2px #120c09,inset 0 0 0 5px rgba(219,170,91,.14),
+    inset 0 0 70px rgba(0,0,0,.63),0 20px 36px rgba(0,0,0,.5),
+    0 0 24px rgba(211,137,55,.12) !important;
+}
+#naxx-countdowns::before,#naxx-countdowns::after {
+  width:45px !important;height:45px !important;
+  border-color:#eac17e !important;border-width:4px 0 0 4px !important;
+  filter:drop-shadow(0 0 8px rgba(238,165,79,.46));
+}
+#naxx-countdowns::before{top:6px;left:6px;}
+#naxx-countdowns::after{bottom:6px;right:6px;transform:rotate(180deg);}
+#naxx-countdowns .nc-masthead {
+  display:flex;justify-content:center;align-items:center;gap:15px;
+  margin:0 auto 12px;color:#cf9b51;
+}
+#naxx-countdowns .nc-masthead-wing {
+  font:700 clamp(12px,1.7vw,18px)/1 Georgia,serif;
+  letter-spacing:.18em;
+  text-shadow:0 0 10px rgba(226,154,62,.33);
+}
+#naxx-countdowns .nc-masthead-crest {
+  display:grid;place-items:center;position:relative;width:54px;height:54px;
+  background:radial-gradient(circle at 35% 25%,#46372c,#161219 70%);
+  border:2px solid #b78544;border-radius:12px 12px 20px 20px;
+  color:#f7db9d;
+  font:700 31px/1 Georgia,serif;text-shadow:0 0 9px #be7735;
+  box-shadow:0 0 0 4px rgba(11,8,7,.7),0 0 18px rgba(229,160,57,.2),inset 0 1px 8px #0c0a09;
+}
+#naxx-countdowns .nc-kicker {
+  font:700 10px/1.5 Arial,sans-serif !important;
+  text-align:center;letter-spacing:.29em !important;color:#c59d67 !important;
+  text-transform:uppercase;
+}
+#naxx-countdowns .nc-title {
+  margin:5px auto 0 !important;
+  font:700 clamp(27px,3.0vw,41px)/1.15 Georgia,"Times New Roman",serif !important;
+  letter-spacing:.024em !important;
+  color:#ffdf9e !important;
+  text-shadow:0 3px 2px #070505,0 0 21px rgba(248,171,59,.25) !important;
+}
+#naxx-countdowns .nc-subtitle {margin:12px auto 0 !important;
+  font:italic 14px/1.5 Georgia,serif;color:#e1cfae !important;letter-spacing:.025em;}
+#naxx-countdowns .nc-heading-rule {
+  max-width:670px !important;width:75% !important;height:2px !important;
+  margin:24px auto 27px !important;
+  background:linear-gradient(90deg,transparent,#8b663a 18%,#f1cd8a 50%,#8b663a 82%,transparent) !important;
+  box-shadow:0 0 14px rgba(228,159,69,.23) !important;
+}
+
+/* Visual hierarchy — colour-themed raid, honor, holiday and world-event banners. */
+#naxx-countdowns .nc-grid {
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:18px !important;
+}
+#naxx-countdowns .nc-card {
+  min-height:230px !important;
+  padding:24px 25px 23px !important;
+  border:1px solid #7d603d !important;
+  border-left:5px solid var(--nc-accent) !important;
+  border-radius:8px !important;
+  background:
+    radial-gradient(ellipse at 8% 18%,var(--nc-glow),transparent 73%),
+    linear-gradient(100deg,rgba(231,190,133,.035),transparent 47%),
+    repeating-linear-gradient(170deg,rgba(255,255,255,.012) 0 1px,transparent 1px 7px),
+    linear-gradient(160deg,#29231f,#0c0d13 92%) !important;
+  box-shadow:inset 0 0 0 2px rgba(8,6,7,.65),
+    inset 0 0 0 3px rgba(221,168,92,.09),
+    0 11px 26px rgba(0,0,0,.38) !important;
+}
+#naxx-countdowns .nc-card::before {
+  top:10px;left:12px;right:12px;height:1px;
+  background:linear-gradient(90deg,var(--nc-accent),rgba(171,124,66,.08),transparent);
+  opacity:.55;
+}
+#naxx-countdowns .nc-card::after {
+  left:32px;right:32px;bottom:12px;opacity:.36;
+  background:linear-gradient(90deg,transparent,var(--nc-accent),transparent);
+}
+#naxx-countdowns .nc-card-head {gap:18px !important;min-height:60px;}
+#naxx-countdowns .nc-seal {
+  width:58px !important;height:58px !important;flex-basis:58px !important;
+  font:700 26px/1 Georgia,serif !important;
+  border:2px solid var(--nc-accent) !important;
+  border-radius:14px 14px 18px 18px !important;
+  box-shadow:0 0 0 4px #0f0c0f,0 0 16px var(--nc-glow),
+    inset 0 0 10px rgba(0,0,0,.6) !important;
+}
+#naxx-countdowns .nc-seal::after {
+  border-radius:17px 17px 21px 21px;inset:-7px;
+}
+#naxx-countdowns .nc-card-label {
+  color:var(--nc-accent) !important;
+  font:700 11px/1.4 Arial,sans-serif !important;letter-spacing:.18em !important;
+}
+#naxx-countdowns .nc-card-title {
+  margin-top:5px !important;
+  font:700 clamp(22px,2.0vw,27px)/1.2 Georgia,serif !important;
+  color:#f8ecd4 !important;text-shadow:0 1px 2px #000;
+}
+#naxx-countdowns .nc-clock {
+  margin-top:24px !important;
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  gap:11px !important;
+}
+#naxx-countdowns .nc-clock-number {
+  padding:14px 3px 11px !important;
+  color:#ffebbb !important;
+  font:700 clamp(28px,3vw,39px)/1 Arial,sans-serif !important;
+  font-variant-numeric:tabular-nums;
+  border:1px solid #9d794f !important;border-radius:5px !important;
+  background:linear-gradient(180deg,#2b2929 0%,#18161a 48%,#07090e 49%,#17151b 100%) !important;
+  box-shadow:inset 0 0 0 1px rgba(255,211,137,.07),inset 0 2px 7px rgba(0,0,0,.54) !important;
+  text-shadow:0 0 10px rgba(255,194,95,.3);
+}
+#naxx-countdowns .nc-clock-label {
+  color:#cfb995 !important;
+  font:700 10px/1.3 Arial,sans-serif !important;
+  letter-spacing:.14em;
+}
+#naxx-countdowns .nc-note {
+  color:#cfc0a9 !important;
+  font:12px/1.68 Arial,sans-serif !important;
+}
+#naxx-countdowns .nc-pending {
+  color:var(--nc-accent) !important;font-size:14px !important;
+  line-height:1.55;letter-spacing:.12em;
+}
+
+/* The Faire and Call to Arms feel like two small notice boards under the main journal. */
+#naxx-countdowns .nc-mini-grid {
+  margin-top:22px !important;
+  gap:18px !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+}
+#naxx-countdowns .nc-mini {
+  border:1px solid #7f603f !important;
+  border-top:3px solid var(--nc-accent) !important;
+  background:
+    radial-gradient(ellipse at 0% 0%,var(--nc-glow),transparent 66%),
+    linear-gradient(135deg,#29201d,#0b0c12 88%) !important;
+  box-shadow:inset 0 0 0 2px #131014,0 12px 22px rgba(0,0,0,.27) !important;
+  padding:21px 25px 22px !important;
+}
+#naxx-countdowns .nc-mini-heading h3 {
+  font:700 22px/1.3 Georgia,serif !important;
+  color:#f8e6c6 !important;
+}
+#naxx-countdowns .nc-mini-seal {
+  width:42px;height:42px;flex-basis:42px;
+  border-width:2px !important;
+  font-size:21px;
+  background:radial-gradient(circle,#3e2e36,#121016 85%);
+}
+#naxx-countdowns .nc-mini-current {
+  font:700 15px/1.5 Arial,sans-serif !important;
+  color:var(--nc-accent) !important;margin-top:15px !important;
+}
+#naxx-countdowns .nc-mini-location {font-size:13px;color:#e1ceab !important;}
+#naxx-countdowns .nc-mini .nc-clock {
+  max-width:560px !important;
+  margin-top:17px !important;gap:11px;
+}
+#naxx-countdowns .nc-mini .nc-clock-number {
+  padding:11px 4px !important;font-size:clamp(24px,2.4vw,32px) !important;
+}
+#naxx-countdowns .nc-footer {
+  border-top:1px solid rgba(233,174,98,.32) !important;
+  margin:24px 0 0 !important;
+  padding-top:17px !important;
+  font-size:12px !important;
+  color:#b9a78d !important;
+}
+
+/* Width-aware layouts, independent of page/sidebar dimensions. */
+@media(max-width:1120px) {
+  #naxx-countdowns .nc-grid {grid-template-columns:1fr !important;}
+  #naxx-countdowns .nc-card {min-height:210px !important;}
+  #naxx-countdowns .nc-clock-number {font-size:clamp(28px,4vw,39px) !important;}
+}
+@media(max-width:820px) {
+  #naxx-countdowns .nc-mini-grid {grid-template-columns:1fr !important;}
+  #naxx-countdowns {padding:26px 19px 24px !important;}
+  #naxx-countdowns .nc-masthead-wing {letter-spacing:0;}
+}
+@media(max-width:500px) {
+  #naxx-countdowns {padding:24px 12px 18px !important;}
+  #naxx-countdowns .nc-card {padding:19px 13px !important;}
+  #naxx-countdowns .nc-grid {gap:12px !important;}
+  #naxx-countdowns .nc-clock {gap:5px !important;}
+  #naxx-countdowns .nc-clock-number {font-size:clamp(20px,5.7vw,30px) !important;padding:10px 1px !important;}
+  #naxx-countdowns .nc-clock-label {font-size:8px !important;letter-spacing:0 !important;}
+  #naxx-countdowns .nc-mini {padding:17px 14px !important;}
+  #naxx-countdowns .nc-title {font-size:27px !important;}
+}
+@media(prefers-reduced-motion:reduce) {
+  #naxx-countdowns .nc-card {transition:none !important;}
+  #naxx-countdowns .nc-card:hover {transform:none !important;}
+}

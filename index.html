@@ -23,7 +23,7 @@
       }
       var styleURL = new URL("assets/naxx-countdowns.css", siteRoot).href;
       var scriptURL = new URL("assets/naxx-countdowns.js", siteRoot).href;
-      html = html.replace(/<\/head>/i, '<link rel="stylesheet" href="' + styleURL + '"><link rel="stylesheet" href="' + new URL("assets/naxx-theme-v2.css", siteRoot).href + '"></head>');
+      html = html.replace(/<\/head>/i, '<link rel="stylesheet" href="' + styleURL + '"><link rel="stylesheet" href="' + new URL("assets/naxx-theme-v2.css", siteRoot).href + '"><link rel="stylesheet" href="' + new URL("assets/naxx-theme-v3.css", siteRoot).href + '"></head>');
       var closingBody = html.toLowerCase().lastIndexOf("</body>");
       html = html.slice(0, closingBody) + '<script src="' + scriptURL + '"><\/script>' + html.slice(closingBody);
       document.open();
