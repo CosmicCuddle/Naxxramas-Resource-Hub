@@ -6,7 +6,7 @@
  */
 (function(){
   "use strict";
-  if(!document.documentElement.classList.contains("naxx-frostbound-ui"))return;
+  // Works in the restored original UI as well as any future theme.
   function filterMainHandbooks(){
     var grid=document.getElementById("resourceGrid");
     if(!grid||!grid.classList.contains("main-handbook-fit-grid"))return;

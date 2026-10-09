@@ -22,32 +22,16 @@ html,body{margin:0;min-height:100%;background:#090806;color:#c8c0b5;font-family:
       return response.text();
     })
     .then(function(html){
-
-      // The original 31MB Resource Hub content remains unchanged. Give its
-      // root element the same Frostbound theme scope as the approved trial.
-      html=html.replace(/<html\b([^>]*)>/i,function(full,attributes){
-        if(/\bclass\s*=\s*(["'])(.*?)\1/i.test(attributes)){
-          attributes=attributes.replace(/\bclass\s*=\s*(["'])(.*?)\1/i,function(_,quote,value){
-            return 'class='+quote+value+' naxx-frostbound-ui'+quote;
-          });
-        }else{
-          attributes+=' class="naxx-frostbound-ui"';
-        }
-        if(!/\bdata-naxx-style\s*=/i.test(attributes))attributes+=' data-naxx-style="frostbound"';
-        return '<html'+attributes+'>';
-      });
-      // CSS and navigation runtime live under assets; the trials can eventually
-      // be archived without affecting the published website.
-      html=html.replace(/<\/head>/i,'<link rel="stylesheet" href="/Naxxramas-Resource-Hub/assets/naxx-frostbound.css?v=2"><link rel="stylesheet" href="/Naxxramas-Resource-Hub/assets/naxx-frostbound-finish.css?v=2"><link rel="stylesheet" href="/Naxxramas-Resource-Hub/assets/naxx-frostbound-context.css?v=1"><link rel="stylesheet" href="/Naxxramas-Resource-Hub/assets/naxx-frostbound-components.css?v=1"><link rel="stylesheet" href="/Naxxramas-Resource-Hub/assets/naxx-notes-handbook-frostbound.css?v=1"></head>');
-
       if(!/<base\b/i.test(html)){
         html=html.replace(/<head([^>]*)>/i,'<head$1><base href="/Naxxramas-Resource-Hub/">');
       }
       html=html.replace(/<\/body>\s*<\/html>\s*$/i,INJECTION+'</body></html>');
-      // Keep existing patch/change-note index fix and navigation behaviour.
-      var ending=html.toLowerCase().lastIndexOf("</body>");
-      if(ending>=0){
-        html=html.slice(0,ending)+'<scr'+'ipt src="/Naxxramas-Resource-Hub/assets/naxx-frostbound-live.js?v=2"></scr'+'ipt>'+'<scr'+'ipt src="/Naxxramas-Resource-Hub/assets/naxx-frostbound-components.js?v=1"></scr'+'ipt>'+'<scr'+'ipt src="/Naxxramas-Resource-Hub/assets/naxx-handbook-progression-fix.js?v=1"></scr'+'ipt>'+html.slice(ending);
+      var closingBody=html.toLowerCase().lastIndexOf("</body>");
+      if(closingBody>=0){
+        html=html.slice(0,closingBody)
+          +'<scr'+'ipt src="/Naxxramas-Resource-Hub/assets/naxx-resource-navigation.js?v=1"></scr'+'ipt>'
+          +'<scr'+'ipt src="/Naxxramas-Resource-Hub/assets/naxx-handbook-progression-fix.js?v=2"></scr'+'ipt>'
+          +html.slice(closingBody);
       }
       document.open();
       document.write(html);
