@@ -5,8 +5,8 @@
 
   // EVENT SETTINGS
   // Honor reset: Wednesday, 7 October 2026 at 06:00 SERVER time; repeats every 14 days.
-  // Raid and invasion unlocks: add an ISO 8601 date with explicit offset, e.g. "2026-12-01T18:00:00+02:00".
-  // Keep "at: null" until a date is confirmed. No date is fabricated.
+  // Raid unlocks: add an ISO 8601 date with explicit offset, e.g. "2026-12-01T18:00:00+02:00".
+  // Elemental Invasions use the 1st through 5th of each server-local calendar month.
   var schedule = {
     honor: { anchorYear: 2026, anchorMonth: 10, anchorDay: 7, hour: 6, minute: 0, everyDays: 14 },
     raids: [
@@ -18,7 +18,7 @@
       { name: "Temple of Ahn'Qiraj", at: null },
       { name: "Naxxramas", at: null }
     ],
-    elementalInvasion: { at: null },
+    elementalInvasion: { day: 1, hour: 0, minute: 0, durationDays: 5 },
     // Original AzerothCore game_event schedule. All times are server-local.
     // 'occurence' and 'length' are measured in MINUTES. End dates cap recurrence.
     callToArms: [
@@ -88,6 +88,26 @@
       steps += 1;
     } while (target <= now.getTime());
     return new Date(target);
+  }
+
+  // Calendar-month schedule: 1st at configured time through the 6th at
+  // the same time. The next start is the following month's 1st, not
+  // a fixed count of 30 days.
+  function nextElementalInvasion(now) {
+    var event = schedule.elementalInvasion, p = serverParts(now);
+    var begin = new Date(serverTimestamp(p.year, p.month, event.day, event.hour, event.minute));
+    var end = new Date(serverTimestamp(p.year, p.month,
+      event.day + event.durationDays, event.hour, event.minute));
+
+    if (now < begin) return { date: begin, isActive: false };
+    if (now < end) return { date: end, isActive: true };
+
+    var next = new Date(Date.UTC(p.year, p.month, 1));
+    return {
+      date: new Date(serverTimestamp(next.getUTCFullYear(),
+        next.getUTCMonth() + 1, event.day, event.hour, event.minute)),
+      isActive: false
+    };
   }
 
   function readDate(value) {
@@ -249,7 +269,7 @@
       '<div class="nc-heading-rule" aria-hidden="true"></div>' +
       '<div class="nc-grid" aria-label="Major server events"></div>' +
       '<div class="nc-mini-grid" aria-label="Recurring realm events"></div>' +
-      '<p class="nc-footer">Countdowns use configured server time (UTC+02:00). Seasonal dates follow the standard WoW calendar; actual server activation may vary.</p>';
+      '<p class="nc-footer">Countdowns use configured server time (UTC+02:00). Elemental Invasions run from the 1st through the 5th of each month. Seasonal dates follow the standard WoW calendar; actual server activation may vary.</p>';
     var grid = section.querySelector(".nc-grid");
     grid.appendChild(makeCard("honor", "H", "Fortnightly Cycle", "Honor Reset"));
     grid.appendChild(makeCard("raid", "R", "Classic Raid Phases", "Next Raid Unlock"));
@@ -329,10 +349,12 @@
     present(cards[1], raid ? raid.date : null,
       raid ? raid.name + " unlocks" : "Classic Phase 1: Molten Core / Onyxia; Phase 3: Blackwing Lair; Phase 4: Zul\u0027Gurub; Phase 5: Ahn\u0027Qiraj; Phase 6: Naxxramas.",
       "Schedule to be announced");
-    var invasion = readDate(schedule.elementalInvasion.at);
-    present(cards[2], invasion && invasion > now ? invasion : null,
-      invasion && invasion > now ? "Elemental Invasion begins" : "The invasion start date has not been set.",
-      "Date to be announced");
+    var invasion = nextElementalInvasion(now), invasionCard = cards[2];
+    invasionCard.querySelector(".nc-card-label").textContent =
+      invasion.isActive ? "Invasion Underway" : "Monthly World Event";
+    present(invasionCard, invasion.date,
+      invasion.isActive ? "Elemental Invasion ends" : "Next Elemental Invasion begins",
+      "Schedule unavailable");
     var seasonal = nextSeasonal(now);
     present(cards[3], seasonal ? seasonal.date : null,
       seasonal ? (seasonal.name + (seasonal.isActive ? " ends" : " begins")) : "Standard WoW calendar",
