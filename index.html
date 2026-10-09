@@ -41,7 +41,7 @@
       var scriptURL = new URL("assets/naxx-countdowns.js?v=3", siteRoot).href;
       var liveScriptURL = new URL("assets/naxx-frostbound-live.js?v=2",siteRoot).href;
       html = html.replace(/<\/head>/i, '<link rel="stylesheet" href="' + styleURL + '"><link rel="stylesheet" href="' + new URL("assets/naxx-theme-v2.css", siteRoot).href + '"><link rel="stylesheet" href="' + new URL("assets/naxx-theme-v3.css", siteRoot).href + '"></head>');
-      html=html.replace(/<\/head>/i,'<link rel="stylesheet" href="/Naxxramas-Resource-Hub/assets/naxx-frostbound.css?v=2"><link rel="stylesheet" href="/Naxxramas-Resource-Hub/assets/naxx-frostbound-finish.css?v=1"></head>');
+      html=html.replace(/<\/head>/i,'<link rel="stylesheet" href="/Naxxramas-Resource-Hub/assets/naxx-frostbound.css?v=2"><link rel="stylesheet" href="/Naxxramas-Resource-Hub/assets/naxx-frostbound-finish.css?v=2"></head>');
       var closingBody = html.toLowerCase().lastIndexOf("</body>");
       html = html.slice(0, closingBody) + '<script src="' + scriptURL + '"><\/script>'
         + '<scr'+'ipt src="' + liveScriptURL + '"></scr'+'ipt>' + html.slice(closingBody);

@@ -74,8 +74,14 @@ html.naxx-frostbound-ui body :is(
  * additional nested border or changes the graphic. */
 html.naxx-frostbound-ui body.naxx-v3-home-active
   :is(div,section,article):has(> .naxx-v3-home-banner) {
-  border-color:#517890!important;
-  background-color:#16283a!important;
+  /* This is the actual existing illustrated Home frame. A shadow on
+     the parent tints its artwork BELOW its text and other children. */
+  border-color:#527c99!important;
+  background-color:#14283a!important;
+  box-shadow:
+    inset 0 0 0 999px rgba(18,49,73,.22),
+    inset 0 0 0 1px rgba(160,204,227,.12),
+    0 6px 20px rgba(0,0,0,.22)!important;
 }
 /* Catch search controls wrapped in unnamed app-generated containers. */
 html.naxx-frostbound-ui body
@@ -84,13 +90,18 @@ html.naxx-frostbound-ui body
   background-color:#152537!important;
 }
 
-/* Home masthead: tint the previous obsidian/bronze backing toward blue.
- * Keep its existing large graphic and outer framing. Never add a second
- * border to the nested .naxx-v3-home-banner element. */
+/* The old Home banner is an INNER TEXT CONTAINER, not the artwork panel.
+ * The previous release accidentally filled it blue with an enormous inset
+ * shadow. Keep it transparent so the actual original graphic is visible.
+ * Never apply an opaque fill or inset colour overlay to this element. */
 html.naxx-frostbound-ui body.naxx-v3-home-active .naxx-v3-home-banner {
-  background-color:#192f44!important;
-  background-blend-mode:luminosity!important;
-  box-shadow:inset 0 0 0 999px rgba(18,42,67,.26)!important;
+  background:transparent!important;
+  background-color:transparent!important;
+  background-image:none!important;
+  background-blend-mode:normal!important;
+  box-shadow:none!important;
+  border:0!important;
+  outline:0!important;
 }
 html.naxx-frostbound-ui body.naxx-v3-home-active :is(.naxx-v3-home-intro,.naxx-v2-home-intro) {
   border-image:linear-gradient(90deg,#649fbe,rgba(88,136,167,.34),transparent) 1!important;
@@ -105,12 +116,13 @@ html.naxx-frostbound-ui body.naxx-v3-home-active .naxx-v3-home-intro :is(h1,h2) 
 html.naxx-frostbound-ui body.naxx-v3-home-active .naxx-v3-home-banner
   :is(a,button,[role="button"],[class*="pill"],[class*="badge"]) {
   border-color:#55738b!important;
-  background-color:#21364b!important;
+  background:linear-gradient(180deg,#27445a,#162b3c)!important;
   color:#f0dbb4!important;
+  box-shadow:inset 0 0 0 1px rgba(156,203,228,.06)!important;
 }
 html.naxx-frostbound-ui body.naxx-v3-home-active .naxx-v3-home-banner
   :is(a,button,[role="button"]):hover {
-  background-color:#304e66!important;
+  background:linear-gradient(180deg,#315774,#1c3950)!important;
   border-color:#a6d5ee!important;
 }
 html.naxx-frostbound-ui body.naxx-v3-home-active .naxx-v3-class-selector {
