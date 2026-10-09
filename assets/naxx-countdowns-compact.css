@@ -1,0 +1,220 @@
+/* Naxxramas Resource Hub — compact centred Realm Almanac (v1).
+ *
+ * This stylesheet loads AFTER naxx-theme-v2.css and naxx-theme-v3.css.
+ * Those older themes include !important rules and a stacked <1120px layout;
+ * overriding them here keeps all event cards, data and original theme intact.
+ *
+ * CSS container queries use the actual Home content width, not just viewport
+ * width (the Resource Hub has a sidebar). No countdown logic is changed.
+ */
+
+#naxx-countdowns { container-type:inline-size; }
+
+/* Keep the event board prominent without making it a full-width wall of cards. */
+body.naxx-v3-home-active .naxx-v3-home-layout > #naxx-countdowns,
+body.naxx-v3-home-active #naxx-countdowns,
+.naxx-v2-home-flow > #naxx-countdowns {
+  width:100% !important;
+  max-width:1100px !important;
+  flex:0 1 100% !important;
+  margin:14px auto 19px !important;
+  padding:14px clamp(12px,1.6vw,19px) 16px !important;
+}
+#naxx-countdowns::before,
+#naxx-countdowns::after {
+  width:23px !important;
+  height:23px !important;
+  border-width:2px 0 0 2px !important;
+}
+#naxx-countdowns .nc-masthead {
+  gap:9px;
+  margin:0 auto 4px;
+}
+#naxx-countdowns .nc-masthead-wing {
+  font-size:11px;
+  letter-spacing:.08em;
+}
+#naxx-countdowns .nc-masthead-crest {
+  width:30px;
+  height:30px;
+  font-size:18px;
+  border-radius:8px 8px 12px 12px;
+}
+#naxx-countdowns .nc-kicker {
+  font-size:9px !important;
+  letter-spacing:.16em !important;
+  margin-bottom:3px !important;
+}
+#naxx-countdowns .nc-title {
+  margin:2px auto 0 !important;
+  font:700 clamp(20px,1.8vw,26px)/1.16 Georgia,"Times New Roman",serif !important;
+}
+#naxx-countdowns .nc-heading-rule {
+  width:60% !important;
+  max-width:370px !important;
+  height:1px !important;
+  margin:9px auto 12px !important;
+}
+
+/* Four compact primary event cards on a genuinely wide content area. */
+#naxx-countdowns .nc-grid {
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  gap:10px !important;
+}
+#naxx-countdowns .nc-card {
+  min-height:0 !important;
+  padding:11px 11px 10px !important;
+  border-left-width:3px !important;
+}
+#naxx-countdowns .nc-card::after {
+  bottom:6px;
+  left:28%;
+  right:28%;
+}
+#naxx-countdowns .nc-card-head {
+  min-height:36px !important;
+  gap:9px !important;
+}
+#naxx-countdowns .nc-seal {
+  width:34px !important;
+  height:34px !important;
+  flex-basis:34px !important;
+  font:700 16px/1 Georgia,serif !important;
+  border-radius:10px 10px 13px 13px !important;
+  box-shadow:0 0 0 2px #0f0c0f,0 0 9px var(--nc-glow) !important;
+}
+#naxx-countdowns .nc-seal::after { inset:-3px; }
+#naxx-countdowns .nc-card-label {
+  font:700 9px/1.25 Arial,sans-serif !important;
+  letter-spacing:.08em !important;
+}
+#naxx-countdowns .nc-card-title {
+  margin-top:2px !important;
+  font:700 clamp(14px,1.3vw,17px)/1.18 Georgia,serif !important;
+}
+#naxx-countdowns .nc-clock {
+  margin-top:11px !important;
+  gap:5px !important;
+}
+#naxx-countdowns .nc-clock-number {
+  padding:7px 1px 6px !important;
+  font:700 clamp(17px,1.7vw,23px)/1.05 Arial,sans-serif !important;
+}
+#naxx-countdowns .nc-clock-label {
+  margin-top:4px !important;
+  font:700 8px/1.2 Arial,sans-serif !important;
+  letter-spacing:0 !important;
+}
+#naxx-countdowns .nc-pending {
+  flex:0 0 auto !important;
+  min-height:42px !important;
+  margin-top:9px !important;
+  font-size:11px !important;
+  line-height:1.35 !important;
+  letter-spacing:.05em;
+}
+#naxx-countdowns .nc-card .nc-note,
+#naxx-countdowns .nc-note {
+  margin:8px 0 0 !important;
+  padding:0 !important;
+  font:11px/1.42 Arial,sans-serif !important;
+}
+
+/* Small notices for Darkmoon Faire and Battleground bonus weekends. */
+#naxx-countdowns .nc-mini-grid {
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  margin-top:10px !important;
+  gap:10px !important;
+}
+#naxx-countdowns .nc-mini {
+  padding:10px 13px 11px !important;
+  border-top-width:2px !important;
+}
+#naxx-countdowns .nc-mini-heading { gap:8px; }
+#naxx-countdowns .nc-mini-heading h3 {
+  font:700 16px/1.25 Georgia,serif !important;
+}
+#naxx-countdowns .nc-mini-seal {
+  width:28px !important;
+  height:28px !important;
+  flex-basis:28px !important;
+  font-size:14px !important;
+}
+#naxx-countdowns .nc-mini-current {
+  margin-top:7px !important;
+  font:700 12px/1.3 Arial,sans-serif !important;
+}
+#naxx-countdowns .nc-mini-location {
+  margin-top:2px !important;
+  min-height:0 !important;
+  font:11px/1.4 Arial,sans-serif !important;
+}
+#naxx-countdowns .nc-mini .nc-clock {
+  max-width:310px !important;
+  margin:8px auto 0 !important;
+  gap:6px !important;
+}
+#naxx-countdowns .nc-mini .nc-clock-number {
+  padding:5px 1px !important;
+  font:700 19px/1.1 Arial,sans-serif !important;
+}
+#naxx-countdowns .nc-mini .nc-note {
+  margin:7px 0 0 !important;
+  padding:0 !important;
+  font:11px/1.38 Arial,sans-serif !important;
+  text-align:left !important;
+}
+#naxx-countdowns .nc-footer {
+  margin:11px 0 0 !important;
+  padding-top:8px !important;
+  font:10px/1.45 Arial,sans-serif !important;
+}
+
+/* The available content width may be much narrower than the window. */
+@container (max-width: 790px) {
+  #naxx-countdowns .nc-grid {
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+}
+@container (max-width: 585px) {
+  #naxx-countdowns .nc-mini-grid {
+    grid-template-columns:1fr !important;
+  }
+}
+@container (max-width: 455px) {
+  #naxx-countdowns .nc-grid {
+    grid-template-columns:1fr !important;
+  }
+  #naxx-countdowns .nc-card { padding:10px 11px !important; }
+  #naxx-countdowns .nc-clock {
+    max-width:310px;
+    margin-left:auto;
+    margin-right:auto;
+  }
+  #naxx-countdowns .nc-clock-number {
+    font-size:clamp(20px,5vw,23px) !important;
+  }
+  #naxx-countdowns .nc-card .nc-note { margin-top:6px !important; }
+}
+@media (max-width: 540px) {
+  body.naxx-v3-home-active #naxx-countdowns,
+  .naxx-v2-home-flow > #naxx-countdowns {
+    padding:12px 11px 13px !important;
+  }
+  #naxx-countdowns .nc-masthead-wing { font-size:9px; }
+  #naxx-countdowns .nc-title { font-size:22px !important; }
+}
+/* Fallback in browsers without CSS container query support. */
+@supports not (container-type:inline-size) {
+  @media (max-width:1120px) {
+    #naxx-countdowns .nc-grid {
+      grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    }
+  }
+  @media (max-width:600px) {
+    #naxx-countdowns .nc-grid,
+    #naxx-countdowns .nc-mini-grid {
+      grid-template-columns:1fr !important;
+    }
+  }
+}
