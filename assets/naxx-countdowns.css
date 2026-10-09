@@ -114,3 +114,47 @@
 @media(max-width:700px) {
   #naxx-countdowns .nc-mini-grid {grid-template-columns:1fr;gap:11px;}
 }
+
+
+/* Compact desktop layout v4: preserve the original Warcraft styling while
+ * reducing vertical space. Event dates, labels and mobile readability remain. */
+@media (min-width: 701px) {
+  #naxx-countdowns {
+    margin: 14px 0 19px;
+    padding: 13px clamp(12px, 1.65vw, 20px) 15px;
+  }
+  #naxx-countdowns .nc-kicker { margin-bottom: 3px; font-size: 10px; }
+  #naxx-countdowns .nc-title { font-size: clamp(20px, 2vw, 25px); }
+  #naxx-countdowns .nc-heading-rule { margin: 8px auto 11px; }
+  #naxx-countdowns .nc-grid { gap: 10px; }
+  #naxx-countdowns .nc-card { min-height: 154px; padding: 11px 11px 10px; }
+  #naxx-countdowns .nc-card-head { gap: 8px; min-height: 38px; }
+  #naxx-countdowns .nc-seal { width: 34px; height: 34px; flex-basis: 34px; font-size: 16px; }
+  #naxx-countdowns .nc-card-title { font-size: clamp(14px, 1.35vw, 17px); }
+  #naxx-countdowns .nc-clock { margin-top: 12px; gap: 4px; }
+  #naxx-countdowns .nc-clock-number { padding: 7px 1px 6px; font-size: clamp(18px, 1.9vw, 24px); }
+  #naxx-countdowns .nc-clock-label { margin-top: 5px; }
+  #naxx-countdowns .nc-pending { min-height: 62px; margin-top: 8px; }
+  #naxx-countdowns .nc-note { margin-top: 9px; line-height: 1.4; }
+  #naxx-countdowns .nc-footer { margin-top: 10px; }
+  #naxx-countdowns .nc-mini-grid { gap: 10px; margin-top: 10px; }
+  #naxx-countdowns .nc-mini { padding: 9px 12px 10px; }
+  #naxx-countdowns .nc-mini-heading { gap: 8px; }
+  #naxx-countdowns .nc-mini-heading h3 { font-size: 15px; }
+  #naxx-countdowns .nc-mini-seal { width: 25px; height: 25px; flex-basis: 25px; font-size: 12px; }
+  #naxx-countdowns .nc-mini-current { margin-top: 7px; font-size: 12px; }
+  #naxx-countdowns .nc-mini-location { margin-top: 2px; min-height: 0; }
+  #naxx-countdowns .nc-mini .nc-clock { margin-top: 8px; max-width: 330px; }
+  #naxx-countdowns .nc-mini .nc-clock-number { padding: 5px 1px; font-size: clamp(17px, 1.6vw, 21px); }
+  #naxx-countdowns .nc-mini .nc-note { margin-top: 6px; }
+}
+@media (max-width: 700px) {
+  #naxx-countdowns { margin: 15px 0 20px; padding: 15px 12px; }
+  #naxx-countdowns .nc-heading-rule { margin: 9px auto 13px; }
+  #naxx-countdowns .nc-grid { gap: 10px; }
+  #naxx-countdowns .nc-card { min-height: 165px; padding: 12px; }
+  #naxx-countdowns .nc-clock { margin-top: 12px; }
+  #naxx-countdowns .nc-note { margin-top: 10px; }
+  #naxx-countdowns .nc-mini-grid { margin-top: 10px; }
+  #naxx-countdowns .nc-footer { margin-top: 11px; }
+}
