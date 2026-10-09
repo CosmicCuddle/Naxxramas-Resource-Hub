@@ -302,9 +302,18 @@
       minutes: Math.floor((remaining % 3600) / 60),
       seconds: remaining % 60
     };
+    // Show only significant leading units. Keep intermediate zeroes and
+    // seconds visible; each update restores days/hours when a new cycle starts.
+    var showing = false;
+    var visibleUnits = 0;
     Object.keys(units).forEach(function (key) {
-      card.querySelector('[data-part="' + key + '"]').textContent = pad(units[key]);
+      var numberNode = clock.querySelector('[data-part="' + key + '"]');
+      numberNode.textContent = pad(units[key]);
+      if (units[key] > 0 || key === "seconds") showing = true;
+      numberNode.parentElement.hidden = !showing;
+      if (showing) visibleUnits++;
     });
+    clock.setAttribute("data-visible-units", String(visibleUnits));
     noteNode.textContent = note + " — " + labelFormatter.format(date) + " server time";
   }
 

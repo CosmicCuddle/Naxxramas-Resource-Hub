@@ -218,3 +218,24 @@ body.naxx-v3-home-active #naxx-countdowns,
     }
   }
 }
+
+/* Countdown precision: remove leading zeroes without leaving empty slots.
+ * Days > 0: D/H/M/S | under 1 day: H/M/S | under 1 hour: M/S
+ * | under 1 minute: S. The existing JavaScript restores the four units
+ * automatically when a later countdown starts.
+ */
+#naxx-countdowns .nc-clock[data-visible-units="3"] {
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+}
+#naxx-countdowns .nc-clock[data-visible-units="2"] {
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  max-width:190px !important;
+  margin-left:auto !important;
+  margin-right:auto !important;
+}
+#naxx-countdowns .nc-clock[data-visible-units="1"] {
+  grid-template-columns:minmax(0,1fr) !important;
+  max-width:100px !important;
+  margin-left:auto !important;
+  margin-right:auto !important;
+}
