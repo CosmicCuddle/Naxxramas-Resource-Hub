@@ -22,11 +22,12 @@
         throw new Error("The original website could not be read.");
       }
       var styleURL = new URL("assets/naxx-countdowns.css?v=4", siteRoot).href;
+      var compactStyleURL = new URL("assets/naxx-countdowns-compact.css?v=1", siteRoot).href;
       var scriptURL = new URL("assets/naxx-countdowns.js?v=5", siteRoot).href;
       var navScriptURL = new URL("assets/naxx-resource-navigation.js?v=1", siteRoot).href;
       var handbookScriptURL = new URL("assets/naxx-handbook-progression-fix.js?v=2", siteRoot).href;
       var resourceInfoURL = new URL("assets/naxx-resource-information.js?v=1", siteRoot).href;
-      html = html.replace(/<\/head>/i, '<link rel="stylesheet" href="' + styleURL + '"><link rel="stylesheet" href="' + new URL("assets/naxx-theme-v2.css", siteRoot).href + '"><link rel="stylesheet" href="' + new URL("assets/naxx-theme-v3.css", siteRoot).href + '"></head>');
+      html = html.replace(/<\/head>/i, '<link rel="stylesheet" href="' + styleURL + '"><link rel="stylesheet" href="' + new URL("assets/naxx-theme-v2.css", siteRoot).href + '"><link rel="stylesheet" href="' + new URL("assets/naxx-theme-v3.css", siteRoot).href + '"><link rel="stylesheet" href="' + compactStyleURL + '"></head>');
       var closingBody = html.toLowerCase().lastIndexOf("</body>");
       html = html.slice(0, closingBody) + '<script src="' + scriptURL + '"><\/script>'
         + '<scr'+'ipt src="' + navScriptURL + '"></scr'+'ipt>'
