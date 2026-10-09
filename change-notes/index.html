@@ -38,7 +38,7 @@ html,body{margin:0;min-height:100%;background:#090806;color:#c8c0b5;font-family:
       });
       // CSS and navigation runtime live under assets; the trials can eventually
       // be archived without affecting the published website.
-      html=html.replace(/<\/head>/i,'<link rel="stylesheet" href="/Naxxramas-Resource-Hub/assets/naxx-frostbound.css?v=2"><link rel="stylesheet" href="/Naxxramas-Resource-Hub/assets/naxx-frostbound-finish.css?v=2"><link rel="stylesheet" href="/Naxxramas-Resource-Hub/assets/naxx-frostbound-context.css?v=1"><link rel="stylesheet" href="/Naxxramas-Resource-Hub/assets/naxx-frostbound-components.css?v=1"></head>');
+      html=html.replace(/<\/head>/i,'<link rel="stylesheet" href="/Naxxramas-Resource-Hub/assets/naxx-frostbound.css?v=2"><link rel="stylesheet" href="/Naxxramas-Resource-Hub/assets/naxx-frostbound-finish.css?v=2"><link rel="stylesheet" href="/Naxxramas-Resource-Hub/assets/naxx-frostbound-context.css?v=1"><link rel="stylesheet" href="/Naxxramas-Resource-Hub/assets/naxx-frostbound-components.css?v=1"><link rel="stylesheet" href="/Naxxramas-Resource-Hub/assets/naxx-notes-handbook-frostbound.css?v=1"></head>');
 
       if(!/<base\b/i.test(html)){
         html=html.replace(/<head([^>]*)>/i,'<head$1><base href="/Naxxramas-Resource-Hub/">');
@@ -47,7 +47,7 @@ html,body{margin:0;min-height:100%;background:#090806;color:#c8c0b5;font-family:
       // Keep existing patch/change-note index fix and navigation behaviour.
       var ending=html.toLowerCase().lastIndexOf("</body>");
       if(ending>=0){
-        html=html.slice(0,ending)+'<scr'+'ipt src="/Naxxramas-Resource-Hub/assets/naxx-frostbound-live.js?v=2"></scr'+'ipt>'+'<scr'+'ipt src="/Naxxramas-Resource-Hub/assets/naxx-frostbound-components.js?v=1"></scr'+'ipt>'+html.slice(ending);
+        html=html.slice(0,ending)+'<scr'+'ipt src="/Naxxramas-Resource-Hub/assets/naxx-frostbound-live.js?v=2"></scr'+'ipt>'+'<scr'+'ipt src="/Naxxramas-Resource-Hub/assets/naxx-frostbound-components.js?v=1"></scr'+'ipt>'+'<scr'+'ipt src="/Naxxramas-Resource-Hub/assets/naxx-handbook-progression-fix.js?v=1"></scr'+'ipt>'+html.slice(ending);
       }
       document.open();
       document.write(html);
