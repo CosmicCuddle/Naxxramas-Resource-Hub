@@ -265,7 +265,6 @@
     section.innerHTML = '<div class="nc-masthead" aria-hidden="true"><span class="nc-masthead-wing">✦ ━━━</span><span class="nc-masthead-crest">N</span><span class="nc-masthead-wing">━━━ ✦</span></div>' +
       '<span class="nc-kicker">The Naxxramas Realm Almanac</span>' +
       '<h2 class="nc-title" id="naxx-countdowns-title">Events Across Azeroth</h2>' +
-      '<p class="nc-subtitle">The next battle, the next celebration, the next adventure.</p>' +
       '<div class="nc-heading-rule" aria-hidden="true"></div>' +
       '<div class="nc-grid" aria-label="Major server events"></div>' +
       '<div class="nc-mini-grid" aria-label="Recurring realm events"></div>' +
