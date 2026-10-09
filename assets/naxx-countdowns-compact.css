@@ -15,7 +15,7 @@ body.naxx-v3-home-active .naxx-v3-home-layout > #naxx-countdowns,
 body.naxx-v3-home-active #naxx-countdowns,
 .naxx-v2-home-flow > #naxx-countdowns {
   width:100% !important;
-  max-width:1100px !important;
+  max-width:1400px !important;
   flex:0 1 100% !important;
   margin:14px auto 19px !important;
   padding:14px clamp(12px,1.6vw,19px) 16px !important;
