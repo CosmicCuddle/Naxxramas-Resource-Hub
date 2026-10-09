@@ -16,12 +16,35 @@ html,body{margin:0;min-height:100%;background:#090806;color:#c8c0b5;font-family:
 (function(){
   var SOURCE="content.html";
   var INJECTION="<style id=\"patch-change-jump-index-final-v35\">\nhtml body.runeforged-steel-ui .change-note-index > .change-note-index-buttons{\n  display:flex !important;\n  flex-wrap:wrap !important;\n  align-content:flex-start !important;\n  align-items:flex-start !important;\n  box-sizing:border-box !important;\n  height:168px !important;\n  min-height:0 !important;\n  max-height:168px !important;\n  overflow-y:scroll !important;\n  overflow-x:hidden !important;\n  padding-right:8px !important;\n  scrollbar-gutter:stable !important;\n  overscroll-behavior:contain;\n  scrollbar-width:thin;\n  scrollbar-color:#806437 #17130f;\n}\nhtml body.runeforged-steel-ui .change-note-index > .change-note-index-buttons::-webkit-scrollbar{width:8px}\nhtml body.runeforged-steel-ui .change-note-index > .change-note-index-buttons::-webkit-scrollbar-track{\n  background:#17130f;border-left:1px solid #2f2921;\n}\nhtml body.runeforged-steel-ui .change-note-index > .change-note-index-buttons::-webkit-scrollbar-thumb{\n  background:linear-gradient(180deg,#9a7738,#654c27);\n  border:2px solid #17130f;border-radius:8px;\n}\nhtml body.runeforged-steel-ui .change-note-index > .change-note-index-buttons::-webkit-scrollbar-thumb:hover{\n  background:linear-gradient(180deg,#b88b3d,#7b5c2b);\n}\n@media(max-width:640px){\n  html body.runeforged-steel-ui .change-note-index > .change-note-index-buttons{\n    height:188px !important;\n    max-height:188px !important;\n  }\n}\n</style>" + '<scr'+'ipt id="patch-change-jump-index-final-v35-runtime">' + "(function(){\n  function compactJumpIndexes(){\n    var mobile=window.matchMedia&&window.matchMedia(\"(max-width:640px)\").matches;\n    var h=mobile?\"188px\":\"168px\";\n    document.querySelectorAll(\".change-note-index > .change-note-index-buttons\").forEach(function(el){\n      el.style.setProperty(\"height\",h,\"important\");\n      el.style.setProperty(\"max-height\",h,\"important\");\n      el.style.setProperty(\"min-height\",\"0\",\"important\");\n      el.style.setProperty(\"overflow-y\",\"scroll\",\"important\");\n      el.style.setProperty(\"overflow-x\",\"hidden\",\"important\");\n      el.style.setProperty(\"align-content\",\"flex-start\",\"important\");\n    });\n  }\n  compactJumpIndexes();\n  if(document.readyState===\"loading\"){\n    document.addEventListener(\"DOMContentLoaded\",compactJumpIndexes,{once:true});\n  }\n  new MutationObserver(compactJumpIndexes).observe(document.documentElement,{childList:true,subtree:true});\n  window.addEventListener(\"resize\",compactJumpIndexes);\n  setTimeout(compactJumpIndexes,0);\n  setTimeout(compactJumpIndexes,250);\n})();" + '</scr'+'ipt>';
-  fetch(SOURCE,{cache:"no-cache"})
-    .then(function(response){
+  // Keep the original large site export unchanged. Load this release as data
+  // and add it to the embedded Resource Hub records before the page starts.
+  Promise.all([
+    fetch(SOURCE,{cache:"no-cache"}).then(function(response){
       if(!response.ok) throw new Error("Unable to load Change Notes.");
       return response.text();
+    }),
+    fetch("update-1.0.6.8.4.json",{cache:"no-cache"}).then(function(response){
+      if(!response.ok) throw new Error("Unable to load update 1.0.6.8.4.");
+      return response.json();
     })
-    .then(function(html){
+  ])
+    .then(function(results){
+      var html=results[0],note=results[1];
+      if(!note || !note.id || !note.content ||
+         note.title.indexOf("1.0.6.8.4")<0) {
+        throw new Error("Invalid 1.0.6.8.4 note record.");
+      }
+      if(html.indexOf('"id":"'+note.id+'"')<0){
+        var marker='],"sideFooterTitle":';
+        var position=html.indexOf(marker);
+        if(position<0 || position!==html.lastIndexOf(marker) ||
+           html.indexOf('window.NAXX_DATA = ')<0) {
+          throw new Error("Could not locate Resource Hub note data.");
+        }
+        // Avoid a literal closing script tag inside an embedded JSON value.
+        var serialized=JSON.stringify(note).replace(/</g,"\\u003c");
+        html=html.slice(0,position)+","+serialized+html.slice(position);
+      }
       if(!/<base\b/i.test(html)){
         html=html.replace(/<head([^>]*)>/i,'<head$1><base href="/Naxxramas-Resource-Hub/">');
       }
