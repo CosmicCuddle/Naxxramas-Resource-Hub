@@ -28,7 +28,8 @@
       var handbookScriptURL = new URL("assets/naxx-handbook-progression-fix.js?v=2", siteRoot).href;
       var resourceInfoURL = new URL("assets/naxx-resource-information.js?v=1", siteRoot).href;
       var classPanelURL = new URL("assets/naxx-home-class-selector.js?v=1", siteRoot).href;
-      html = html.replace(/<\/head>/i, '<link rel="stylesheet" href="' + styleURL + '"><link rel="stylesheet" href="' + new URL("assets/naxx-theme-v2.css", siteRoot).href + '"><link rel="stylesheet" href="' + new URL("assets/naxx-theme-v3.css?v=2", siteRoot).href + '"><link rel="stylesheet" href="' + compactStyleURL + '"></head>');
+      var classPanelStyleURL = new URL("assets/naxx-home-class-selector.css?v=1", siteRoot).href;
+      html = html.replace(/<\/head>/i, '<link rel="stylesheet" href="' + styleURL + '"><link rel="stylesheet" href="' + new URL("assets/naxx-theme-v2.css", siteRoot).href + '"><link rel="stylesheet" href="' + new URL("assets/naxx-theme-v3.css?v=2", siteRoot).href + '"><link rel="stylesheet" href="' + compactStyleURL + '"><link rel="stylesheet" href="' + classPanelStyleURL + '"></head>');
       var closingBody = html.toLowerCase().lastIndexOf("</body>");
       html = html.slice(0, closingBody) + '<script src="' + scriptURL + '"><\/script>'
         + '<scr'+'ipt src="' + navScriptURL + '"></scr'+'ipt>'
