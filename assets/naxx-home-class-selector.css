@@ -1,0 +1,4 @@
+/* Homepage-only duplicate selector. Sidebar and handbook navigation remain visible. */
+body.naxx-v3-home-active .naxx-home-duplicate-class-selector {
+  display: none !important;
+}
