@@ -239,3 +239,59 @@ body.naxx-v3-home-active #naxx-countdowns,
   margin-left:auto !important;
   margin-right:auto !important;
 }
+
+/* Vanilla raid resets — seven independently ticking rows, scoped to the
+ * existing raid card to keep the Home board compact and centred.
+ * The scrollable list prevents the four main cards from growing excessively.
+ */
+#naxx-countdowns .nc-card--raid .nc-raid-list {
+  display:block;
+  max-height:117px;
+  margin-top:9px;
+  padding:2px 4px 2px 0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-width:thin;
+  scrollbar-color:#5c7490 #11151a;
+}
+#naxx-countdowns .nc-raid-row {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:6px;
+  min-height:24px;
+  padding:4px 2px;
+  border-bottom:1px solid rgba(117,142,164,.18);
+  color:#cfdae5;
+  font:11px/1.2 Arial,sans-serif;
+}
+#naxx-countdowns .nc-raid-row:last-child { border-bottom:0; }
+#naxx-countdowns .nc-raid-row:hover {
+  background:rgba(120,168,203,.08);
+}
+#naxx-countdowns .nc-raid-name {
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+#naxx-countdowns .nc-raid-remaining {
+  color:#9dd9ff;
+  font:700 10px/1.2 ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace;
+  white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+#naxx-countdowns .nc-card--raid .nc-raid-hint {
+  margin:6px 0 0;
+  padding:0;
+  color:#8da6ba;
+  font:10px/1.3 Arial,sans-serif;
+  text-align:center;
+}
+@container (max-width:455px) {
+  #naxx-countdowns .nc-card--raid .nc-raid-list {
+    max-height:148px;
+  }
+  #naxx-countdowns .nc-raid-row { font-size:12px; }
+  #naxx-countdowns .nc-raid-remaining { font-size:11px; }
+}
