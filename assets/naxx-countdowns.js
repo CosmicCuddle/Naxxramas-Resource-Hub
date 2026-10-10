@@ -5,19 +5,24 @@
 
   // EVENT SETTINGS
   // Honor reset: Wednesday, 7 October 2026 at 06:00 SERVER time; repeats every 14 days.
-  // Raid unlocks: add an ISO 8601 date with explicit offset, e.g. "2026-12-01T18:00:00+02:00".
+  // Raid reset anchors: confirmed via acore_characters.instance_reset on 10 Oct 2026.
+  // Reset periods: verified from the user's MapDifficulty.dbc, multiplier=1.
+  // These are global reset times, not raid unlock times, player-specific IDs,
+  // or real-time SQL queries. Recheck after any reset DB/DBC/config change.
   // Elemental Invasions use the 1st through 5th of each server-local calendar month.
   var schedule = {
     honor: { anchorYear: 2026, anchorMonth: 10, anchorDay: 7, hour: 6, minute: 0, everyDays: 14 },
     raids: [
-      { name: "Molten Core", at: null },
-      { name: "Onyxia's Lair", at: null },
-      { name: "Blackwing Lair", at: null },
-      { name: "Zul'Gurub", at: null },
-      { name: "Ruins of Ahn'Qiraj", at: null },
-      { name: "Temple of Ahn'Qiraj", at: null },
-      { name: "Naxxramas", at: null }
+      { mapId: 409, name: "Molten Core", mode: "40", resetAt: 1792123200, periodDays: 7 },
+      { mapId: 249, name: "Onyxia's Lair", mode: "10/25", resetAt: 1792123200, periodDays: 7 },
+      { mapId: 469, name: "Blackwing Lair", mode: "40", resetAt: 1792123200, periodDays: 7 },
+      { mapId: 309, name: "Zul'Gurub", mode: "20", resetAt: 1791864000, periodDays: 3 },
+      { mapId: 509, name: "Ruins of Ahn'Qiraj", mode: "20", resetAt: 1791864000, periodDays: 3 },
+      { mapId: 531, name: "Temple of Ahn'Qiraj", mode: "40", resetAt: 1792123200, periodDays: 7 },
+      { mapId: 533, name: "Naxxramas", mode: "10/25", resetAt: 1792123200, periodDays: 7 }
     ],
+    // SQL difficulty 2 rows for maps 249/533 are not defined in the uploaded
+    // MapDifficulty.dbc; do not invent their reset cycles or display them.
     elementalInvasion: { day: 1, hour: 0, minute: 0, durationDays: 5 },
     // Original AzerothCore game_event schedule. All times are server-local.
     // 'occurence' and 'length' are measured in MINUTES. End dates cap recurrence.
@@ -110,17 +115,30 @@
     };
   }
 
-  function readDate(value) {
-    if (typeof value !== "string" || !/[zZ]|[+-]\d\d:\d\d$/.test(value)) return null;
-    var timestamp = Date.parse(value);
-    return Number.isFinite(timestamp) ? new Date(timestamp) : null;
+  // AzerothCore's global reset period is the DBC duration in whole days,
+  // multiplied by Rate.InstanceResetTime. The owner's configured rate is 1.
+  // Unix epoch anchors remain independent of the visitor's local timezone.
+  function nextRaidReset(raid, now) {
+    var anchor = raid.resetAt * 1000;
+    var period = raid.periodDays * 86400000;
+    if (!(period > 0) || !Number.isFinite(anchor)) return null;
+    var steps = Math.max(0, Math.floor((now.getTime() - anchor) / period) + 1);
+    return new Date(anchor + steps * period);
   }
 
-  function nextRaid(now) {
-    return schedule.raids
-      .map(function (raid) { return { name: raid.name, date: readDate(raid.at) }; })
-      .filter(function (raid) { return raid.date && raid.date.getTime() > now.getTime(); })
-      .sort(function (a, b) { return a.date.getTime() - b.date.getTime(); })[0] || null;
+  // Compress leading zero units exactly as the main countdowns already do.
+  function raidRemainingText(date, now) {
+    var value = Math.max(0, Math.ceil((date.getTime() - now.getTime()) / 1000));
+    var items = [
+      [Math.floor(value / 86400), "d"],
+      [Math.floor((value % 86400) / 3600), "h"],
+      [Math.floor((value % 3600) / 60), "m"],
+      [value % 60, "s"]
+    ];
+    while (items.length > 1 && items[0][0] === 0) items.shift();
+    return items.map(function (part) {
+      return (part[1] === "s" && items.length > 1 ? pad(part[0]) : String(part[0])) + part[1];
+    }).join(" ");
   }
 
   function nextSeasonal(now) {
@@ -244,6 +262,50 @@
     return card;
   }
 
+  function makeRaidCard() {
+    var card = document.createElement("article");
+    card.className = "nc-card nc-card--raid";
+    card.innerHTML =
+      '<div class="nc-card-head"><span class="nc-seal" aria-hidden="true">R</span>' +
+      '<div><div class="nc-card-label">Confirmed Server Lockouts</div>' +
+      '<h3 class="nc-card-title">Vanilla Raid Resets</h3></div></div>' +
+      '<div class="nc-raid-list" role="list" aria-label="Raid reset countdowns"></div>' +
+      '<p class="nc-raid-hint">Scroll for all seven raids · 06:00 server time</p>';
+    var list = card.querySelector(".nc-raid-list");
+    schedule.raids.forEach(function (raid) {
+      var row = document.createElement("div");
+      row.className = "nc-raid-row";
+      row.setAttribute("role", "listitem");
+      row.dataset.raidMap = String(raid.mapId);
+      var name = document.createElement("span");
+      name.className = "nc-raid-name";
+      name.textContent = raid.name;
+      var countdown = document.createElement("span");
+      countdown.className = "nc-raid-remaining";
+      countdown.textContent = "—";
+      row.appendChild(name);
+      row.appendChild(countdown);
+      row.title = raid.name + " (" + raid.mode + "-player map): every " + raid.periodDays + " days";
+      list.appendChild(row);
+    });
+    return card;
+  }
+
+  function updateRaidCard(card, now) {
+    var rows = card.querySelectorAll(".nc-raid-row");
+    schedule.raids.forEach(function (raid, index) {
+      var date = nextRaidReset(raid, now);
+      var row = rows[index];
+      if (!row) return;
+      var nextText = date ? raidRemainingText(date, now) : "Unknown";
+      row.querySelector(".nc-raid-remaining").textContent = nextText;
+      row.title = raid.name + " (" + raid.mode + "-player, every " +
+        raid.periodDays + " days). Next reset: " +
+        (date ? labelFormatter.format(date) + " server time" : "Unavailable");
+      row.setAttribute("aria-label", raid.name + ": " + nextText + " until reset");
+    });
+  }
+
   function makeMiniCard(type, symbol, heading) {
     var card = document.createElement("article");
     card.className = "nc-mini nc-mini--" + type;
@@ -268,10 +330,10 @@
       '<div class="nc-heading-rule" aria-hidden="true"></div>' +
       '<div class="nc-grid" aria-label="Major server events"></div>' +
       '<div class="nc-mini-grid" aria-label="Recurring realm events"></div>' +
-      '<p class="nc-footer">Countdowns use configured server time (UTC+02:00). Elemental Invasions run from the 1st through the 5th of each month. Seasonal dates follow the standard WoW calendar; actual server activation may vary.</p>';
+      '<p class="nc-footer">Countdowns use configured server time (UTC+02:00). Raid resets follow the 10 October server database snapshot and supplied DBC durations; server setting changes require an update. Elemental Invasions run from the 1st through the 5th of each month.</p>';
     var grid = section.querySelector(".nc-grid");
     grid.appendChild(makeCard("honor", "H", "Fortnightly Cycle", "Honor Reset"));
-    grid.appendChild(makeCard("raid", "R", "Classic Raid Phases", "Next Raid Unlock"));
+    grid.appendChild(makeRaidCard());
     grid.appendChild(makeCard("invasion", "E", "World Event", "Elemental Invasion"));
     grid.appendChild(makeCard("seasonal", "S", "World Holidays", "Next Seasonal Event"));
     var mini = section.querySelector(".nc-mini-grid");
@@ -353,10 +415,7 @@
     var now = new Date();
     var cards = section.querySelectorAll(".nc-card");
     present(cards[0], nextHonor(now), "Next automatic honor reset", "");
-    var raid = nextRaid(now);
-    present(cards[1], raid ? raid.date : null,
-      raid ? raid.name + " unlocks" : "Classic Phase 1: Molten Core / Onyxia; Phase 3: Blackwing Lair; Phase 4: Zul\u0027Gurub; Phase 5: Ahn\u0027Qiraj; Phase 6: Naxxramas.",
-      "Schedule to be announced");
+    updateRaidCard(cards[1], now);
     var invasion = nextElementalInvasion(now), invasionCard = cards[2];
     invasionCard.querySelector(".nc-card-label").textContent =
       invasion.isActive ? "Invasion Underway" : "Monthly World Event";
