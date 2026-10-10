@@ -5,9 +5,11 @@
   'use strict';
   const ERA={vanilla:{title:'Vanilla',level:60,maxRow:6},tbc:{title:'The Burning Crusade',level:70,maxRow:8},wotlk:{title:'Wrath of the Lich King',level:80,maxRow:10}};
   // Only the final-row capstone survives the Vanilla/TBC row trim.
-  // These three DBC tree layouts place their real capstone off the centre column.
-  // Keys are TalentTab.dbc IDs, values are Talent.dbc IDs.
-  const OFF_CENTRE_CAPSTONES={vanilla:{263:901,302:1022},tbc:{382:1747}};
+  // Use the centre-column talent by default; only truly off-centre
+  // capstones require an override (TalentTab ID -> Talent.dbc ID).
+  // Vanilla Enhancement (TalentTab 263) must keep its centre talent,
+  // Dual Wield (1690). Stormstrike (901) is the side talent unlocked in TBC.
+  const OFF_CENTRE_CAPSTONES={vanilla:{302:1022},tbc:{382:1747}};
   const CLASSES=[['warrior','Warrior'],['paladin','Paladin'],['hunter','Hunter'],['rogue','Rogue'],['priest','Priest'],['deathknight','Death Knight'],['shaman','Shaman'],['mage','Mage'],['warlock','Warlock'],['druid','Druid']];
   const PALETTE=['#e7c17e','#eabec3','#a8cc85','#eed29a','#e0e3e8','#da8277','#6bbadd','#a0dafa','#bb9dcf','#e7a970'];
   const BASE='NT1';const STORAGE='naxx.talent.saves.v1';const d=document;
