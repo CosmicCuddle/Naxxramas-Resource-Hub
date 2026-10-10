@@ -75,10 +75,28 @@ assert.deepEqual(finalRow('shaman', 263, 'tbc', 8), [1693]);
 assert.equal(availableInEra(dualWield, 'wotlk', 'shaman'), true);
 assert.equal(availableInEra(stormstrike, 'wotlk', 'shaman'), true);
 
-// Existing off-centre capstone exceptions must not regress.
-assert.deepEqual(finalRow('warlock', 302, 'vanilla', 6), [1022]);
+// Affliction: Contagion is the centre-column row-7 choice in Vanilla.
+// Dark Pact shares row 7 but is in the right column; it unlocks in TBC.
+const contagion = talent('warlock', 302, 1669);
+const darkPact = talent('warlock', 302, 1022);
+assert.equal(contagion[4], 'Contagion');
+assert.equal(darkPact[4], 'Dark Pact');
+assert.equal(contagion[1], 6);
+assert.equal(contagion[2], 1);
+assert.equal(darkPact[1], 6);
+assert.equal(darkPact[2], 2);
+assert.deepEqual(finalRow('warlock', 302, 'vanilla', 6), [1669]);
+assert.equal(availableInEra(darkPact, 'vanilla', 'warlock'), false);
+assert.equal(availableInEra(contagion, 'tbc', 'warlock'), true);
+assert.equal(availableInEra(darkPact, 'tbc', 'warlock'), true);
+assert.equal(availableInEra(contagion, 'wotlk', 'warlock'), true);
+assert.equal(availableInEra(darkPact, 'wotlk', 'warlock'), true);
+
+// The remaining off-centre capstone exception must not regress.
 assert.deepEqual(finalRow('paladin', 382, 'tbc', 8), [1747]);
 
 console.log('PASS: Vanilla Enhancement ends with Dual Wield (1690), not Stormstrike (901).');
 console.log('PASS: Stormstrike is visible from TBC; Wrath retains both talents.');
-console.log('PASS: other custom off-centre capstones remain unchanged.');
+console.log('PASS: Vanilla Affliction ends with Contagion (1669), not Dark Pact (1022).');
+console.log('PASS: Dark Pact unlocks in TBC; Wrath retains both Affliction talents.');
+console.log('PASS: TBC Holy Paladin off-centre capstone remains unchanged.');
