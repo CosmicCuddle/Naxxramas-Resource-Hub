@@ -24,14 +24,15 @@ All available-row talents stay visible regardless of when introduced: e.g.,
 and **Improved Whirlwind** (both are row 7). Both of those are side talents on
 Vanilla's *final* row and are therefore excluded in Vanilla.
 
-### Off-centre final-row capstones in the user's current DBC
+### Final-row capstones in the user's current DBC
 
-We preserve the real end-of-tree abilities even when they are not in column 2:
-- Vanilla Shaman Enhancement (TalentTab 263): **Stormstrike** (Talent 901).
+The main capstone on the last allowed talent row is normally the **centre-column** talent. Only genuinely off-centre capstones require explicit overrides:
 - Vanilla Warlock Affliction (TalentTab 302): **Dark Pact** (Talent 1022).
 - TBC Paladin Holy (TalentTab 382): **Divine Illumination** (Talent 1747).
 
-All other final rows retain their middle-column talent (zero-based column 1).
+**Vanilla Shaman Enhancement (TalentTab 263)** has **Dual Wield** (Talent 1690) as its row-7 centre capstone. **Stormstrike** (Talent 901) is alongside it in the row-7 right column and must not replace Dual Wield in Vanilla. Stormstrike becomes visible starting in **TBC**, when row 7 is no longer the final restricted row. WotLK still displays the complete tree.
+
+Other final rows retain their centre-column talent (zero-based column 1).
 No history/earliest-expansion data is fetched or used. Older
 `era-availability-v1.json` and `era-availability-v2.json` were an abandoned
 prototype and should not be included in deployment; prior backup branches preserve
