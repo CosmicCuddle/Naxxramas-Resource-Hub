@@ -41,6 +41,17 @@ This repository is the main public website for the custom Naxxramas AzerothCore 
 - Classic Combat Rogue Talent Sets imported from the owner's 10 October exported website file: separate **Maces** and **Daggers** solo level-60 Phase-1 builds, each pointing to its respective Talent Calculator share code. The existing 48 builds and original site source are not rewritten. Snapshot: `backup/pre-talent-sets-sync-2026-10-10`.
 - Full Classic Talent Sets sync (this update): owner's exported `index.html` and `Pasted text.txt` confirm **40 linked level-60 Vanilla builds** for Druid (9), Mage (3), Shaman (7), Priest (7), Rogue (6) and Hunter (8), covering both Raid and Solo sets. **Warrior and Warlock remain untouched** by request. Script: `assets/naxx-talent-sets-full-sync.js`, loaded after the two Rogue additions in `naxx-talent-set-sync.js`. This fixes the accidentally malformed Shaman Restoration URL in the exported HTML using the clean link from the text list. The list is matched by class/spec/role/raid-or-solo and creation-order variant, and is applied only when all 31 group sizes agree; mismatches produce no partial changes. No replacement of the original resource data or unrelated sections. Backup branch: `backup/pre-complete-talent-sets-sync-2026-10-10`. Test: `assets/tests/talent-sets-full-sync.test.cjs`. The live browser's Talent Sets view still needs a visual check.
 
+## Completed: Warrior and Warlock Talent Set conversion notes — 10 October 2026
+
+- Player request: add **TO BE CONVERTED** to the visible notes in the **Solo Builds** and **Raid Builds** cards for Warrior and Warlock only.
+- Target group confirmed against the owner's current full HTML export: Warrior **3 Solo + 3 Raid**, Warlock **2 Solo + 2 Raid** = **10** cards.
+- The user's exported Solo records already have the label, while Raid summaries are blank. Lightweight script `assets/naxx-talent-set-conversion-notes.js` ensures that all ten card `summary` fields display the exact phrase, without adding duplicate phrases.
+- Notes that already contain other text are preserved; `TO BE CONVERTED` is appended on a new line.
+- The existing compact Talent Sets card renderer displays `summary` as `.talent-set-short-description`. Script runs after the full link sync, and re-renders the active page when changed.
+- Only the relevant Vanilla Builds records are targeted. Warrior and Warlock Talent Calculator URLs, class/spec roles, all other classes, page categories and server settings remain unchanged.
+- The overlay is designed to be removed when the 10 builds are converted. It skips changes if the expected 3/3 Warrior and 2/2 Warlock structure no longer matches.
+- Backup: `backup/pre-talent-sets-conversion-notes-2026-10-10`. Regression: `assets/tests/talent-set-conversion-notes.test.cjs`. Live browser verification remains pending.
+
 ## Completed: Vanilla raid reset countdowns — 10 October 2026
 
 **Player request:** Replace the inaccurate **Next Raid Unlock** placeholder in Events Across Azeroth with live, independently calculated countdowns for the seven Vanilla raid names.
