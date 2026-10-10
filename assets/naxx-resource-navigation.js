@@ -85,13 +85,26 @@
     }
     return copy;
   }
+  // The Talent Calculator intentionally inherits the original marksmanship icon.
+  // Change only the original Talent Sets control to a Warcraft scroll,
+  // after cloning it so the two sidebar entries no longer share an icon.
+  var TALENT_SETS_ICON="https://wow.zamimg.com/images/wow/icons/large/inv_scroll_03.jpg";
+  function updateTalentSetsIcon(sets){
+    var img=sets.querySelector(".nav-icon > img.nav-icon-image");
+    if(img&&img.getAttribute("src")!==TALENT_SETS_ICON)
+      img.setAttribute("src",TALENT_SETS_ICON);
+  }
   function mountLink(){
-    var old=document.getElementById(LINK_ID);
-    if(old&&old.isConnected)return;
     var sets=findTalentSets();
     if(!sets)return; // No intrusive floating button; the sidebar is the only location.
+    var old=document.getElementById(LINK_ID);
+    if(old&&old.isConnected){
+      updateTalentSetsIcon(sets);
+      return;
+    }
     var item=createNativeMenuEntry(sets);
     if(!item)return;
+    updateTalentSetsIcon(sets);
     var li=sets.closest("li,[role='listitem']");
     if(li&&li.parentNode){
       var wrapper=li.cloneNode(false);
