@@ -40,51 +40,37 @@ This repository is the main public website for the custom Naxxramas AzerothCore 
 - Sidebar Talent Sets receives a distinct WoW scroll icon; Talent Calculator keeps its existing original icon. Validation of this last change in a live browser is pending.
 - Classic Combat Rogue Talent Sets imported from the owner's 10 October exported website file: separate **Maces** and **Daggers** solo level-60 Phase-1 builds, each pointing to its respective Talent Calculator share code. The existing 48 builds and original site source are not rewritten. Snapshot: `backup/pre-talent-sets-sync-2026-10-10`.
 
-## Active next task: Vanilla raid reset countdowns
+## Completed: Vanilla raid reset countdowns — 10 October 2026
 
-**User requirement:** Replace the **Next Raid Unlock** placeholder card with a Wowhead-style set of live ticking countdowns, **one for each Vanilla raid**, showing when its next lockout reset occurs. Do **not** confuse progression unlocks, Honor resets or lockout reset times.
+**Player request:** Replace the inaccurate **Next Raid Unlock** placeholder in Events Across Azeroth with live, independently calculated countdowns for the seven Vanilla raid names.
 
-Expected Classic reference cadence:
-- 7-day: Molten Core, Blackwing Lair, Temple of Ahn'Qiraj (AQ40), Naxxramas.
-- 5-day: Onyxia's Lair.
-- 3-day: Zul'Gurub, Ruins of Ahn'Qiraj (AQ20).
+### Verified inputs
+- SQL: `acore_characters.instance_reset` results supplied by the server owner on 10 October 2026, numeric Unix epoch timestamps retained.
+- Uploaded `MapDifficulty.dbc`: valid WDBC header, **187 rows, 23 fields/row, resetTime at zero-based field 20**, confirmed against AzerothCore's `DBCStructure.h`. Periods verified at **604800 seconds (7 days)** for MC (409), Onyxia (249) difficulties 0/1, BWL (469), AQ40 (531), Naxx (533) difficulties 0/1; **259200 seconds (3 days)** for ZG (309) and AQ20 (509).
+- `Rate.InstanceResetTime = 1` from the server owner's active Worldserver configuration.
+- Confirmed next global reset timestamps: **1792123200** = Friday 16 October 2026, 04:00 UTC / 06:00 configured site time (UTC+02:00); **1791864000** = Tuesday 13 October 2026 at the same UTC/offset clock hours.
+- **Not supported in uploaded DBC:** SQL `difficulty=2` rows for Onyxia and Naxxramas. Do not publish a 3-day reset for these unsupported modes or silently combine them with the defined 10/25-player modes.
+- **Naxxramas caution:** AzerothCore map 533's DBC entries are 10/25-player Wrath format, not proof of a distinct Vanilla 40-player version. Site lists the map's supplied reset schedule without claiming custom progression mechanics are verified.
 
-**Important:** These are historical Classic conventions, NOT confirmed schedules for this custom 3.3.5a realm.
+### Implementation
+- `assets/naxx-countdowns.js`: `schedule.raids` uses the exact seven map IDs, confirmed initial Unix reset times, and DBC reset periods (7 or 3 days). Rollover advances each independent timer by the relevant period; the script never invents a real-time server connection.
+- New `makeRaidCard` / `updateRaidCard` replace **Next Raid Unlock** with **Vanilla Raid Resets** and seven scrollable rows. Each row shows the name, a compact time remaining (leading zero units disappear), and a mouse tooltip giving the reset date, format and period. The rest of the original countdown grid remains unchanged.
+- `assets/naxx-countdowns-compact.css`: bounded scroll area, small Warcraft blue/gold labels and mobile adjustments, preserving the compact centred board.
+- `index.html`: refresh cache for JS `v=7` and compact CSS `v=4`.
+- `assets/tests/raid-resets.test.cjs`: regression suite for all seven map IDs, DBC cadences, confirmed timestamps, 3/7-day rollover and time-unit formatting.
+- **No SQL edits, DBC edits, AzerothCore module changes or worldserver restart required** for the website-only update.
 
-**Confirmed 10 October 2026 database snapshot** (not a recurring schedule): epoch 1791864000 / Tuesday 13 October at 06:00 server time for ZG 309 difficulty 0, AQ20 509 difficulty 0, Onyxia 249 difficulty 2 and Naxxramas 533 difficulty 2; epoch 1792123200 / Friday 16 October at 06:00 for MC 409, BWL 469, AQ40 531, Onyxia 249 difficulties 0/1 and Naxx 533 difficulties 0/1. Never collapse different difficulty rows silently. These timestamps are valid for the next reset only; cadence afterward is unverified. A static GitHub Pages site cannot interrogate SQL autonomously. AzerothCore stores actual global raid reset timestamps in the characters DB table `instance_reset` (`mapid`, `difficulty`, `resettime`, epoch seconds). The user needs to supply the relevant read-only SELECT output and, if necessary, Worldserver reset settings. Do not make up dates or label estimates as verified. Server time zone/DST must be confirmed: existing countdown code currently uses fixed `Etc/GMT-2` (UTC+02:00).
+### Limitations and follow-up checks
+- The static website cannot query private `acore_characters.instance_reset`; it projects future resets from the confirmed 10 October snapshot. A reset reschedule or updated DBC/rate needs an explicit website data update.
+- Website `ZONE = "Etc/GMT-2"` is fixed UTC+02:00. It matches the October 10 SQL example but **server OS daylight-saving rules are not yet confirmed**. Reset countdown instants use absolute Unix time and thus avoid visitor timezone ambiguity; the visible formatted reset date should be checked if the server adjusts its local clock seasonally.
+- Visually verify Home on desktop and mobile, hover the rows, test scrolling, and check the other five event cards remain unchanged.
+- Pre-change backup branch: `backup/pre-raid-reset-countdowns-2026-10-10`. Revert the focused PR to roll back safely, not the entire main branch.
 
-Expected map IDs to verify against the custom server: MC 409, Onyxia 249, BWL 469, ZG 309, AQ20 509, AQ40 531, Naxx 533. In AzerothCore 3.3.5, map 533 can represent WotLK Naxxramas; verify the server's Vanilla Naxx implementation before publication.
-
-**Planned implementation after confirming data:**
-1. Save a pre-change Git branch and note exact affected files.
-2. Replace only the raid placeholder section with a compact expandable/reset list within the existing main event card or a compact dedicated raid panel. All seven raids must be visible without crowding the other five event timers.
-3. Render correct remaining time for each raid, using server-confirmed reset timestamps and durations/periods. Recalculate in the browser; never misrepresent a historic Classic default as a current realm timestamp.
-4. Preserve Home-only board mounting, all other countdowns, leading-zero handling, responsive layout and Warcraft colour styling.
-5. Add automated boundary tests for reset rollover, 3/5/7-day periods, independent individual raids and timezone boundaries.
-6. Bump static asset cache versions; verify the mobile and desktop presentation. Explain that GitHub Pages cannot directly query the private characters database.
-7. Update this roadmap and give the user the merged PR, result and rollback instructions.
-
-### Read-only SQL for next-reset discovery
-
-```sql
-SELECT
-  CASE mapid
-    WHEN 409 THEN 'Molten Core'
-    WHEN 249 THEN 'Onyxia''s Lair'
-    WHEN 469 THEN 'Blackwing Lair'
-    WHEN 309 THEN 'Zul''Gurub'
-    WHEN 509 THEN 'Ruins of Ahn''Qiraj'
-    WHEN 531 THEN 'Temple of Ahn''Qiraj'
-    WHEN 533 THEN 'Naxxramas (check custom map)'
-  END AS raid,
-  mapid, difficulty, resettime,
-  FROM_UNIXTIME(resettime) AS next_reset_database_time
-FROM acore_characters.instance_reset
-WHERE mapid IN (409,249,469,309,509,531,533)
-ORDER BY FIELD(mapid,409,249,469,309,509,531,533),difficulty;
-```
-
-This SQL changes nothing. Its formatted time is influenced by the SQL session time zone. Keep the numeric `resettime` for reliable calculations.
+## Next recommended work
+1. Verify in the live browser that all seven raid rows show and scroll, and that timing agrees with server on October 13/16.
+2. Confirm worldserver OS timezone (e.g. `timedatectl`) and whether the existing event labels need DST support.
+3. Continue latest Patch Notes and Change Notes publication, with content-specific Git commits.
+4. Audit the remaining 30 Talent Calculator trees and add a resource search only after existing navigation is stable.
 
 ## Other known work
 
