@@ -38,6 +38,7 @@ This repository is the main public website for the custom Naxxramas AzerothCore 
 - Talent Calculator: Vanilla Enhancement capstone is Dual Wield (1690), not Stormstrike (901); Vanilla Affliction capstone is Contagion (1669), not Dark Pact (1022). Later eras preserve both abilities.
 - Removed the duplicate class-picker panel from Home while preserving left navigation.
 - Sidebar Talent Sets receives a distinct WoW scroll icon; Talent Calculator keeps its existing original icon. Validation of this last change in a live browser is pending.
+- Classic Combat Rogue Talent Sets imported from the owner's 10 October exported website file: separate **Maces** and **Daggers** solo level-60 Phase-1 builds, each pointing to its respective Talent Calculator share code. The existing 48 builds and original site source are not rewritten. Snapshot: `backup/pre-talent-sets-sync-2026-10-10`.
 
 ## Active next task: Vanilla raid reset countdowns
 
@@ -48,7 +49,9 @@ Expected Classic reference cadence:
 - 5-day: Onyxia's Lair.
 - 3-day: Zul'Gurub, Ruins of Ahn'Qiraj (AQ20).
 
-**Important:** These are historical Classic conventions, NOT confirmed schedules for this custom 3.3.5a realm. AzerothCore stores actual global raid reset timestamps in the characters DB table `instance_reset` (`mapid`, `difficulty`, `resettime`, epoch seconds). The user needs to supply the relevant read-only SELECT output and, if necessary, Worldserver reset settings. Do not make up dates or label estimates as verified. Server time zone/DST must be confirmed: existing countdown code currently uses fixed `Etc/GMT-2` (UTC+02:00).
+**Important:** These are historical Classic conventions, NOT confirmed schedules for this custom 3.3.5a realm.
+
+**Confirmed 10 October 2026 database snapshot** (not a recurring schedule): epoch 1791864000 / Tuesday 13 October at 06:00 server time for ZG 309 difficulty 0, AQ20 509 difficulty 0, Onyxia 249 difficulty 2 and Naxxramas 533 difficulty 2; epoch 1792123200 / Friday 16 October at 06:00 for MC 409, BWL 469, AQ40 531, Onyxia 249 difficulties 0/1 and Naxx 533 difficulties 0/1. Never collapse different difficulty rows silently. These timestamps are valid for the next reset only; cadence afterward is unverified. A static GitHub Pages site cannot interrogate SQL autonomously. AzerothCore stores actual global raid reset timestamps in the characters DB table `instance_reset` (`mapid`, `difficulty`, `resettime`, epoch seconds). The user needs to supply the relevant read-only SELECT output and, if necessary, Worldserver reset settings. Do not make up dates or label estimates as verified. Server time zone/DST must be confirmed: existing countdown code currently uses fixed `Etc/GMT-2` (UTC+02:00).
 
 Expected map IDs to verify against the custom server: MC 409, Onyxia 249, BWL 469, ZG 309, AQ20 509, AQ40 531, Naxx 533. In AzerothCore 3.3.5, map 533 can represent WotLK Naxxramas; verify the server's Vanilla Naxx implementation before publication.
 
