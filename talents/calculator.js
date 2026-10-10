@@ -7,9 +7,10 @@
   // Only the final-row capstone survives the Vanilla/TBC row trim.
   // Use the centre-column talent by default; only truly off-centre
   // capstones require an override (TalentTab ID -> Talent.dbc ID).
-  // Vanilla Enhancement (TalentTab 263) must keep its centre talent,
-  // Dual Wield (1690). Stormstrike (901) is the side talent unlocked in TBC.
-  const OFF_CENTRE_CAPSTONES={vanilla:{302:1022},tbc:{382:1747}};
+  // Vanilla Enhancement uses Dual Wield (1690), not Stormstrike (901).
+  // Vanilla Affliction uses Contagion (1669), not Dark Pact (1022).
+  // These side talents appear in TBC, when row 7 is no longer restricted.
+  const OFF_CENTRE_CAPSTONES={vanilla:{},tbc:{382:1747}};
   const CLASSES=[['warrior','Warrior'],['paladin','Paladin'],['hunter','Hunter'],['rogue','Rogue'],['priest','Priest'],['deathknight','Death Knight'],['shaman','Shaman'],['mage','Mage'],['warlock','Warlock'],['druid','Druid']];
   const PALETTE=['#e7c17e','#eabec3','#a8cc85','#eed29a','#e0e3e8','#da8277','#6bbadd','#a0dafa','#bb9dcf','#e7a970'];
   const BASE='NT1';const STORAGE='naxx.talent.saves.v1';const d=document;
