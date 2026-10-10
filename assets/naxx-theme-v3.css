@@ -266,3 +266,12 @@ body.naxx-v3-home-active #naxx-countdowns {
   #naxx-countdowns .nc-card {transition:none !important;}
   #naxx-countdowns .nc-card:hover {transform:none !important;}
 }
+
+
+/* Home cleanup: class resources already have dedicated sidebar navigation.
+ * Hide only the redundant 10-class Home chooser. Do not remove its data,
+ * class handbooks, sidebar links, or the Talent Calculator.
+ */
+#classPicker {
+  display:none !important;
+}
