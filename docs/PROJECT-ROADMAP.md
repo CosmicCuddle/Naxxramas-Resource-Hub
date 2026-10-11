@@ -45,15 +45,25 @@ This repository is the main public website for the custom Naxxramas AzerothCore 
 
 - Player supplied **7 Vanilla level-60 Warrior talent builds**, each containing exactly 51 talent points. Solo: Protection Tank, Fury DPS, Arms DPS. Raid: Protection Tank, **Fury Rend Flurry Build 01**, **Fury Anger Management Build 02**, Arms DPS.
 - Updated the **six existing Warrior** resource cards in-place, using their exact supplied Talent Calculator links. Added **one new Fury Raid card** cloned from the existing Fury card, with stable ID `naxx-warrior-raid-fury-anger-management-02` and its own share link and descriptive note.
-- Removed the former `TO BE CONVERTED` placeholder from the **Warrior** summary fields, while preserving unrelated existing notes and display metadata. Warlock remains unfinished: its **2 Solo and 2 Raid** cards still show `TO BE CONVERTED`.
+- Removed the former `TO BE CONVERTED` placeholder from the **Warrior** summary fields, while preserving unrelated existing notes and display metadata. Warlock's **2 Solo and 2 Raid** cards still showed `TO BE CONVERTED` at the time; see the later completion section below.
 - `assets/naxx-warrior-talent-sets.js` is loaded after the general talent set synchronization and before `assets/naxx-talent-set-conversion-notes.js` (now Warlock-only). The original source website file remains unchanged.
 - Safety: abort without partial edits if the expected six pre-existing Warrior class/spec/mode/role records cannot be matched. The new Fury record is idempotent; extra unrecognised records cause a guarded abort.
 - `assets/tests/warrior-talent-sets.test.cjs` tests the seven exact level-60 links, separate Fury raid choices, required summaries, placeholders, idempotence, and fail-closed mismatch. The existing conversion-notes test was updated to cover Warlock alone.
 - Pre-change backup: `backup/pre-warrior-talent-sets-2026-10-11`. Revert the single change PR for rollback. Browser QA of all seven buttons and the visible notes is still required.
 - No DBC, SQL, AzerothCore module or server restart needed: static Resource Hub update.
 
-## Current pending Talent Sets: Warlock only
-- Affliction and Demonology in both Solo and Raid continue to show `TO BE CONVERTED`; their four existing Talent Calculator links remain unchanged until the owner supplies final builds.
+## Completed: All Vanilla Talent Sets — 11 October 2026
+
+- Owner-supplied `Replace Website Talents.txt` includes **54 complete level-60 Vanilla builds**, each checked to contain exactly 51 points.
+- Confirmed the **47 previously published** Talent Calculator links (40 Druid/Mage/Shaman/Priest/Rogue/Hunter plus 7 Warrior) match the new list exactly; no existing build code needed replacing.
+- `assets/naxx-final-vanilla-talent-sets.js` now completes Warlock's 2 Raid and 3 Solo cards:
+  - **Raid:** Affliction DPS, Demonology DPS.
+  - **Solo:** Affliction DPS, Demonology DPS, **new Destruction DPS**.
+- It also adds **Arcane Mage Solo** and **Fire Mage Solo**; Mage Frost still has its two distinct Solo versions, with the second marked **More Focus AOE** according to the new source.
+- There are **no remaining `TO BE CONVERTED` Talent Sets**. The obsolete `assets/naxx-talent-set-conversion-notes.js` overlay and its outdated regression test have been retired. Older history in this roadmap describes their previous lifecycle.
+- All new records clone same-class resources for consistent UI styling, and retain unique stable IDs. Original source website file, class handbooks, unrelated links and server modules are unchanged.
+- Test: `assets/tests/final-vanilla-talent-sets.test.cjs`. It checks 54 total recorded builds, Warlock and Mage new URLs, note cleanup, existing class preservation, no duplicates on repeat and fail-closed group matching.
+- Recovery branch: `backup/pre-final-vanilla-talent-sets-2026-10-11`. Revert the related GitHub PR to roll back without resetting `main`. Browser verification of the new Warlock and Mage cards is still recommended.
 
 ## Completed: Vanilla raid reset countdowns — 10 October 2026
 
