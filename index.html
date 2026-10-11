@@ -30,7 +30,8 @@
       var classPanelURL = new URL("assets/naxx-home-class-selector.js?v=1", siteRoot).href;
       var talentSetsSyncURL = new URL("assets/naxx-talent-set-sync.js?v=1", siteRoot).href;
       var fullTalentSetsURL = new URL("assets/naxx-talent-sets-full-sync.js?v=1", siteRoot).href;
-      var conversionNotesURL = new URL("assets/naxx-talent-set-conversion-notes.js?v=1", siteRoot).href;
+      var warriorSetsURL = new URL("assets/naxx-warrior-talent-sets.js?v=1", siteRoot).href;
+      var conversionNotesURL = new URL("assets/naxx-talent-set-conversion-notes.js?v=2", siteRoot).href;
       var classPanelStyleURL = new URL("assets/naxx-home-class-selector.css?v=1", siteRoot).href;
       html = html.replace(/<\/head>/i, '<link rel="stylesheet" href="' + styleURL + '"><link rel="stylesheet" href="' + new URL("assets/naxx-theme-v2.css", siteRoot).href + '"><link rel="stylesheet" href="' + new URL("assets/naxx-theme-v3.css?v=2", siteRoot).href + '"><link rel="stylesheet" href="' + compactStyleURL + '"><link rel="stylesheet" href="' + classPanelStyleURL + '"></head>');
       var closingBody = html.toLowerCase().lastIndexOf("</body>");
@@ -41,6 +42,7 @@
         + '<scr'+'ipt src="' + classPanelURL + '"></scr'+'ipt>'
         + '<scr'+'ipt src="' + talentSetsSyncURL + '"></scr'+'ipt>'
         + '<scr'+'ipt src="' + fullTalentSetsURL + '"></scr'+'ipt>'
+        + '<scr'+'ipt src="' + warriorSetsURL + '"></scr'+'ipt>'
         + '<scr'+'ipt src="' + conversionNotesURL + '"></scr'+'ipt>' + html.slice(closingBody);
       document.open();
       document.write(html);

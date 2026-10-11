@@ -1,68 +1,54 @@
 // Run: node assets/tests/talent-set-conversion-notes.test.cjs
-// Verifies only Warrior and Warlock Solo/Raid notes are updated.
+// Only unfinished Warlock Talent Sets remain marked TO BE CONVERTED.
 "use strict";
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
 
-const script = fs.readFileSync(path.join(__dirname, "..", "naxx-talent-set-conversion-notes.js"), "utf8");
-function makeData() {
-  const records = [];
-  [["Warrior",3],["Warlock",2]].forEach(([cls,number]) => {
-    ["Solo Builds","Raid Builds"].forEach(type => {
-      for (let i=0;i<number;i++) {
-        records.push({
-          id: cls + ":" + type + ":" + i,
-          section: "Vanilla Builds",classes:[cls],buildType:type,
-          summary:type==="Solo Builds"?"TO BE CONVERTED":"",
-          downloadUrl:"https://example.org/keep-" + cls + "-" + i,
-          downloadName:"Talent Calculator"
-        });
-      }
+const script = fs.readFileSync(path.join(__dirname, "..", "naxx-talent-set-conversion-notes.js"),"utf8");
+function fixture() {
+  const resources=[];
+  ["Solo Builds","Raid Builds"].forEach(mode => {
+    for(let i=0;i<2;i++)resources.push({
+      id:"warlock-"+mode+"-"+i,section:"Vanilla Builds",classes:["Warlock"],
+      buildType:mode,summary:i?"Existing description":"TO BE CONVERTED",
+      downloadUrl:"keep-warlock-"+i
+    });
+    for(let i=0;i<3;i++)resources.push({
+      id:"warrior-"+mode+"-"+i,section:"Vanilla Builds",classes:["Warrior"],
+      buildType:mode,summary:"",downloadUrl:"keep-warrior-"+i
     });
   });
-  records.push({
-    id:"druid",section:"Vanilla Builds",classes:["Druid"],
-    buildType:"Raid Builds",summary:"OTHER NOTE",downloadUrl:"unchanged"
-  });
-  records.push({
-    id:"warrior-guide",section:"Class Handbooks",classes:["Warrior"],
-    buildType:"Raid Builds",summary:"Handbook note",downloadUrl:"keep"
-  });
-  return {resources:records};
+  resources.push({id:"mage",section:"Vanilla Builds",classes:["Mage"],
+    buildType:"Solo Builds",summary:"Mage note",downloadUrl:"keep-mage"});
+  return {resources};
 }
 function run(data) {
-  const context={DATA:data,currentSection:"Vanilla Builds",calls:0,
-    renderPublic(){context.calls++;},console:{warn(){context.warned=true;}}};
-  vm.runInNewContext(script,context,{filename:"naxx-talent-set-conversion-notes.js"});
+  const context={DATA:data,currentSection:"Vanilla Builds",renders:0,
+    renderPublic(){context.renders++},console:{warn(){context.warned=true}}};
+  vm.runInNewContext(script,context);
   return context;
 }
-const data=makeData();
-data.resources.find(x=>x.id==="Warrior:Raid Builds:0").summary="Existing build note";
-const result=run(data);
-assert.equal(result.calls,1,"Should repaint current Talent Sets page");
-const matched=data.resources.filter(x=>x.section==="Vanilla Builds" &&
-  ["Warrior","Warlock"].includes(x.classes[0]));
-assert.equal(matched.length,10);
-matched.forEach(record => {
-  assert.equal((record.summary.match(/TO BE CONVERTED/g)||[]).length,1,
-    "Exactly one note for "+record.id);
-  assert.ok(record.downloadUrl.startsWith("https://example.org/keep-"),
-    "Links must not change");
+const data=fixture();
+assert.equal(run(data).renders,1);
+const warlocks=data.resources.filter(r=>r.classes[0]==="Warlock");
+assert.equal(warlocks.length,4);
+warlocks.forEach(r => {
+  assert.equal((r.summary.match(/TO BE CONVERTED/g)||[]).length,1);
+  assert.ok(r.downloadUrl.startsWith("keep-warlock-"));
 });
-assert.equal(data.resources.find(x=>x.id==="Warrior:Raid Builds:0").summary,
-  "Existing build note\nTO BE CONVERTED");
-assert.equal(data.resources.find(x=>x.id==="druid").summary,"OTHER NOTE");
-assert.equal(data.resources.find(x=>x.id==="warrior-guide").summary,"Handbook note");
-assert.equal(run(data).calls,0,"Running again must be idempotent");
-const mismatch=makeData();
-mismatch.resources=mismatch.resources.filter(x=>x.id!=="Warlock:Raid Builds:0");
-const failed=run(mismatch);
-assert.equal(failed.warned,true,"Unexpected count must be logged");
-assert.equal(failed.calls,0);
-assert.ok(mismatch.resources.every(x=>x.summary!=="TO BE CONVERTED" ||
-  x.buildType==="Solo Builds"),"Fail closed without partially labelling");
-console.log("PASS: Warrior and Warlock Solo/Raid entries each show TO BE CONVERTED once.");
-console.log("PASS: Existing descriptions, Talent Calculator links and other sections preserved.");
-console.log("PASS: Idempotence and count-mismatch safeguard.");
+assert.ok(warlocks.filter(r=>r.summary.includes("Existing description")).length===2);
+assert.ok(data.resources.filter(r=>r.classes[0]==="Warrior").every(r=>
+  r.summary==="" && r.downloadUrl.startsWith("keep-warrior-")));
+assert.equal(data.resources.find(r=>r.id==="mage").summary,"Mage note");
+assert.equal(run(data).renders,0,"No duplicates on re-run");
+const mismatch=fixture();
+mismatch.resources=mismatch.resources.filter(r=>r.id!=="warlock-Raid Builds-0");
+const result=run(mismatch);
+assert.equal(result.warned,true);
+assert.equal(result.renders,0);
+assert.ok(mismatch.resources.every(r=>!r.summary.includes("Existing description\nTO BE CONVERTED")));
+console.log("PASS: exactly four Warlock builds remain TO BE CONVERTED.");
+console.log("PASS: Warrior builds, unrelated classes, original notes and URLs unchanged.");
+console.log("PASS: idempotence and unexpected-count safety.");
