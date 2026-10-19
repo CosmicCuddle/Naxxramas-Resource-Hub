@@ -39,7 +39,7 @@ for(let i=0;i<3;i++){
 assert.ok(loader.length < 10000, "index.html must remain a small wrapper");
 assert.ok(loader.includes('fetch(source, { cache: "default" })'));
 assert.ok(loader.includes('"site-content.html"'));
-assert.ok(loader.includes("assets/naxx-talent-set-sync.js?v=1"));
+assert.ok(loader.includes("assets/naxx-talent-set-sync.js?v=2"));
 assert.ok(loader.includes("assets/naxx-talent-sets-full-sync.js?v=2"));
 assert.ok(loader.includes("assets/naxx-warrior-talent-sets.js?v=1"));
 assert.ok(loader.includes("assets/naxx-final-vanilla-talent-sets.js?v=1"));
