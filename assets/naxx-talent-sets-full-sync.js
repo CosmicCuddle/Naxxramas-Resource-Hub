@@ -288,6 +288,15 @@
       record.downloadName = "Talent Calculator";
       changed++;
     }
+    // The first Combat Rogue Solo variant is the Swords build.
+    // Maces and Daggers already have their own labels from the seed data.
+    // Fill only the blank note, preserving any future custom description.
+    if (row[0] === "Rogue|Solo Builds|Combat Rogue|DPS" &&
+        row[1] === 0 &&
+        !String(record.summary || "").trim()) {
+      record.summary = "Swords";
+      changed++;
+    }
   });
   if (changed && typeof currentSection !== "undefined" &&
       currentSection === "Vanilla Builds" && typeof renderPublic === "function") {
