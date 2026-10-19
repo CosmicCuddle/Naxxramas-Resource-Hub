@@ -34,13 +34,53 @@ for(let i=0;i<3;i++){
   }
 }
 
+// Exercise the real full-sync script, including its new Swords note logic.
+// All expected groups must be represented so fail-closed validation can pass.
+const vm = require("node:vm");
+const expectedMatch = full.match(/var expectedGroupSizes = (\\{[\\s\\S]*?\\});\\s*var grouped/);
+assert.ok(expectedMatch,"Expected build group sizes missing");
+const sizes = JSON.parse(expectedMatch[1]);
+function makeRecords() {
+  let serial = 0;
+  const resources = [];
+  Object.entries(sizes).forEach(([key,count]) => {
+    const [cls,mode,spec,role] = key.split("|");
+    for(let index=0;index<count;index++) {
+      resources.push({
+        id:"source-"+(++serial),createdAt:1000+index,section:"Vanilla Builds",
+        classes:[cls],buildType:mode,classOption:spec,role,
+        summary:cls==="Rogue"&&mode==="Solo Builds"&&spec==="Combat Rogue"
+          ? ["","Maces","Daggers"][index] : "Keep note",
+        downloadUrl:"old",downloadName:"Old"
+      });
+    }
+  });
+  return resources;
+}
+const fixture = { resources: makeRecords() };
+const context = {
+  DATA:fixture,currentSection:"Vanilla Builds",renders:0,
+  renderPublic(){context.renders++},
+  console:{warn(){throw new Error("Unexpected group mismatch")}}
+};
+vm.runInNewContext(full,context,{filename:"naxx-talent-sets-full-sync.js"});
+const combat = fixture.resources.filter(r => r.classes[0]==="Rogue" &&
+  r.buildType==="Solo Builds" && r.classOption==="Combat Rogue")
+  .sort((a,b)=>a.createdAt-b.createdAt);
+assert.deepEqual(combat.map(r=>r.summary),["Swords","Maces","Daggers"]);
+assert.equal(fixture.resources.filter(r=>r.summary==="Swords").length,1);
+assert.ok(fixture.resources.filter(r=>r.classOption!=="Combat Rogue").every(r=>r.summary==="Keep note"));
+assert.equal(context.renders,1,"Visible Talent Sets should refresh after new label");
+vm.runInNewContext(full,context,{filename:"naxx-talent-sets-full-sync.js"});
+assert.equal(context.renders,1,"Second run must not duplicate the update");
+
 // Replacing the loader with a full admin-export HTML file breaks addon scripts,
 // website countdowns, handbooks and the isolated talent-data patches.
 assert.ok(loader.length < 10000, "index.html must remain a small wrapper");
 assert.ok(loader.includes('fetch(source, { cache: "default" })'));
 assert.ok(loader.includes('"site-content.html"'));
 assert.ok(loader.includes("assets/naxx-talent-set-sync.js?v=2"));
-assert.ok(loader.includes("assets/naxx-talent-sets-full-sync.js?v=2"));
+assert.ok(loader.includes("assets/naxx-talent-sets-full-sync.js?v=3"));
 assert.ok(loader.includes("assets/naxx-warrior-talent-sets.js?v=1"));
 assert.ok(loader.includes("assets/naxx-final-vanilla-talent-sets.js?v=1"));
 assert.ok(loader.includes("assets/naxx-countdowns.js?v=7"));
@@ -48,4 +88,5 @@ assert.ok(!loader.includes("window.NAXX_DATA"));
 
 console.log("PASS: Swords, Maces and Daggers have exact updated 51-point links.");
 console.log("PASS: seeded Rogue variant links are consistent with the full sync.");
+console.log("PASS: Swords summary is visible; Maces/Daggers and other notes stay intact.");
 console.log("PASS: lightweight index.html loader and website scripts are preserved.");
