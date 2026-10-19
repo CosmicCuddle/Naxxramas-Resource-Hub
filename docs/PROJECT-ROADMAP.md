@@ -13,6 +13,19 @@ This repository is the main public website for the custom Naxxramas AzerothCore 
 - Every focused update should have its own branch, descriptive commits, PR, validation notes and a clear revert path.
 - Revert merged PRs to undo a change without discarding later work. Back up original site files and important data before larger changes.
 
+## Recovered loader and updated Rogue Combat Solo builds — 19 October 2026
+
+**Incident and safe fix**
+- The owner's ordinary site export was accidentally uploaded as the root `index.html` (GitHub commit `e197edcb884ffd561cb4b7f234a94c331bb25f91`), increasing it from about **3.5 KB** to **31 MB** and bypassing the tiny loader that includes the Resource Hub's overlay scripts.
+- Owner supplied a complete pre-incident repository backup `Naxxramas-Resource-Hub-main.zip` with the known-good root loader; its `index.html` Git blob SHA `4ac418bd7a57dfcb4a7e72617e26b067f7b9b2c5` matches pre-incident GitHub commit `dcf80c64a6e30ef321186c1e85710c650a2cf6c4` exactly. The root `site-content.html` blob remained untouched and matches the ZIP backup.
+- Restore that validated loader rather than reverting all intervening repository improvements. **Do not upload a full exported HTML file directly as GitHub's root `index.html`**. The original large website data lives in `site-content.html`. Follow focused source/overlay PRs for resource updates.
+- Player supplied updated **Classic Rogue Combat Solo Swords, Maces, Daggers** share codes, all **51 talent points**. Changed only their three rows in `assets/naxx-talent-sets-full-sync.js`; the two cloned Rogue Maces/Daggers seed entries in `assets/naxx-talent-set-sync.js` are kept consistent. Other classes, builds, scripts and page content are unchanged.
+- Cache bump: full Talent Sets sync `v=2`, Rogue seed `v=2` in the restored root loader, so visitors pick up fresh links.
+- Regression `assets/tests/combat-rogue-solo-links.test.cjs` protects all three exact share codes, seed consistency and the lightweight website loader.
+- Backup branch `backup/pre-loader-repair-rogue-solo-2026-10-19` preserves the exact accidental-upload state; pre-incident ZIP held by owner. Repair branch `fix/restore-loader-and-rogue-solo-2026-10-19`.
+- Verify GitHub Pages Home, side navigation, events and all three Rogue Solo links after merge/deploy; live-browser verification is still pending.
+- Future follow-up: provide the owner a guided workflow to export/save new Talent Sets and submit only their updated resource codes, rather than replacing the root index loader. Consider a dedicated safe resource import mechanism in a separate issue.
+
 ## Current website structure
 
 - `site-content.html` — original source site and player resource records.

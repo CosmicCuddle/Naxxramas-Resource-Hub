@@ -173,17 +173,17 @@
   [
     "Rogue|Solo Builds|Combat Rogue|DPS",
     0,
-    "NT1:vanilla:rogue:51-5.56-3.57-3.5l-2.65-5.67-1.6q-5.7h-4.7i-5.7k-2.7l-2.8d-1.v6-5.1bb-2.1be-2.1er-2.1lg-2"
+    "NT1:vanilla:rogue:51-5.56-3.57-3.5l-2.5p-1.65-3.67-1.6q-5.7h-4.7i-5.7k-2.7l-2.8d-1.v6-5.1bb-2.1be-2.1er-2.1lg-2.1qc-1"
   ],
   [
     "Rogue|Solo Builds|Combat Rogue|DPS",
     1,
-    "NT1:vanilla:rogue:51-5.54-5.56-3.57-3.5l-2.65-5.67-1.7h-4.7i-5.7k-2.7l-2.8d-1.v6-5.1bb-2.1be-2.1er-2.1lg-2"
+    "NT1:vanilla:rogue:51-5.54-5.56-3.57-3.5l-2.5p-1.65-3.67-1.7h-4.7i-5.7k-2.7l-2.8d-1.v6-5.1bb-2.1be-2.1er-2.1lg-2.1qc-1"
   ],
   [
     "Rogue|Solo Builds|Combat Rogue|DPS",
     2,
-    "NT1:vanilla:rogue:51-5.52-5.56-3.57-3.5l-2.65-5.67-1.7h-4.7i-5.7k-2.7l-2.8d-1.v6-5.1bb-2.1be-2.1er-2.1lg-2"
+    "NT1:vanilla:rogue:51-5.52-3.56-3.57-3.5l-2.5p-1.65-5.67-1.7h-4.7i-5.7k-2.7l-2.8d-1.v6-5.1bb-2.1be-2.1er-2.1lg-2.1qc-1"
   ],
   [
     "Hunter|Solo Builds|Survival Hunter|DPS",
