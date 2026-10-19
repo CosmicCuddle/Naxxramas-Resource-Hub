@@ -37,7 +37,7 @@ for(let i=0;i<3;i++){
 // Exercise the real full-sync script, including its new Swords note logic.
 // All expected groups must be represented so fail-closed validation can pass.
 const vm = require("node:vm");
-const expectedMatch = full.match(/var expectedGroupSizes = (\\{[\\s\\S]*?\\});\\s*var grouped/);
+const expectedMatch = full.match(/var expectedGroupSizes = (\{[\s\S]*?\});\s*var grouped/);
 assert.ok(expectedMatch,"Expected build group sizes missing");
 const sizes = JSON.parse(expectedMatch[1]);
 function makeRecords() {
