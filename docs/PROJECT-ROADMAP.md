@@ -26,6 +26,15 @@ This repository is the main public website for the custom Naxxramas AzerothCore 
 - Verify GitHub Pages Home, side navigation, events and all three Rogue Solo links after merge/deploy; live-browser verification is still pending.
 - Future follow-up: provide the owner a guided workflow to export/save new Talent Sets and submit only their updated resource codes, rather than replacing the root index loader. Consider a dedicated safe resource import mechanism in a separate issue.
 
+## Combat Rogue Solo Swords label — 19 October 2026
+
+- The user's visual check after PR #44 showed the Swords build's summary was blank, while Maces and Daggers were labelled correctly.
+- `assets/naxx-talent-sets-full-sync.js` now sets `summary = "Swords"` only for the first `Rogue|Solo Builds|Combat Rogue|DPS` entry **when the existing description is empty**.
+- The code never changes the three working Talent Calculator URLs or overwrites other existing descriptions. The other two weapon labels and all other classes remain untouched.
+- Incremented this overlay's loader cache version from `v=2` to `v=3`, preserving the lightweight `index.html` loader.
+- Extended `assets/tests/combat-rogue-solo-links.test.cjs` to execute the real full Talent Sets overlay against all expected groups, check labels and idempotence.
+- Safe rollback: revert the scoped PR; snapshot branch `backup/pre-rogue-swords-label-2026-10-19`. Live browser check remains pending.
+
 ## Current website structure
 
 - `site-content.html` — original source site and player resource records.
