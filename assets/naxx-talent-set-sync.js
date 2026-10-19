@@ -20,7 +20,7 @@
       classOption: "Combat Rogue",
       summary: "Maces",
       downloadName: "Talent Calculator",
-      downloadUrl: "https://cosmiccuddle.github.io/Naxxramas-Resource-Hub/talents/?code=NT1%3Avanilla%3Arogue%3A51-5.54-5.56-3.57-3.5l-2.65-5.67-1.7h-4.7i-5.7k-2.7l-2.8d-1.v6-5.1bb-2.1be-2.1er-2.1lg-2&level=60"
+      downloadUrl: "https://cosmiccuddle.github.io/Naxxramas-Resource-Hub/talents/?code=NT1%3Avanilla%3Arogue%3A51-5.54-5.56-3.57-3.5l-2.5p-1.65-3.67-1.7h-4.7i-5.7k-2.7l-2.8d-1.v6-5.1bb-2.1be-2.1er-2.1lg-2.1qc-1&level=60"
     },
     {
       id: "talent_mv2qqfg5_dxluyr",
@@ -34,7 +34,7 @@
       classOption: "Combat Rogue",
       summary: "Daggers",
       downloadName: "Talent Calculator",
-      downloadUrl: "https://cosmiccuddle.github.io/Naxxramas-Resource-Hub/talents/?code=NT1%3Avanilla%3Arogue%3A51-5.52-5.56-3.57-3.5l-2.65-5.67-1.7h-4.7i-5.7k-2.7l-2.8d-1.v6-5.1bb-2.1be-2.1er-2.1lg-2&level=60"
+      downloadUrl: "https://cosmiccuddle.github.io/Naxxramas-Resource-Hub/talents/?code=NT1%3Avanilla%3Arogue%3A51-5.52-3.56-3.57-3.5l-2.5p-1.65-5.67-1.7h-4.7i-5.7k-2.7l-2.8d-1.v6-5.1bb-2.1be-2.1er-2.1lg-2.1qc-1&level=60"
     }
   ];
 
