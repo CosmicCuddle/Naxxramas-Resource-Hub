@@ -232,6 +232,34 @@ body.naxx-three-page-route .naxx-guide-disabled button {
   cursor:not-allowed;
 }
 body.naxx-three-page-route .naxx-guide-disabled input[disabled] {max-width:100%;}
+
+/* Owner-supplied Tally application. Inert while native renderer approval gate is OFF. */
+body.naxx-three-page-route .naxx-tally-live-application[hidden] {display:none!important;}
+body.naxx-three-page-route .naxx-tally-live-application {
+  margin-top:12px;
+  padding:14px;
+  border:1px solid #65482e;
+  background:#15110d;
+  border-radius:3px;
+}
+body.naxx-three-page-route .naxx-tally-live-application iframe {
+  display:block;
+  width:100%;
+  max-width:100%;
+  min-height:350px;
+  border:1px solid #4b3826;
+  border-radius:3px;
+  background:#fff;
+}
+body.naxx-three-page-route .naxx-tally-fallback {
+  margin:10px 0 0;
+  font-size:13px;
+  color:#bfb3a3;
+}
+@media(max-width:690px) {
+  body.naxx-three-page-route .naxx-tally-live-application {padding:8px;}
+}
+
 body.naxx-three-page-route .naxx-guide-loading,
 body.naxx-three-page-route .naxx-guide-error {
   border:1px solid #63452b;
