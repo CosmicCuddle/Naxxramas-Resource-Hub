@@ -16,13 +16,27 @@ After viewing the offline screenshot, the owner confirmed the overall layout was
 ## Included for review
 
 - `new-players/` — detailed New Player Guide, character-based Individual Progression, client build 12340, verified patch release links, private post-acceptance configuration, Playerbots, altbots, Auction House, loot and 14 anticipated FAQ questions.
-- `rules/` — twelve full, permanently visible rule cards, examples, group etiquette, ticket help, enforcement and nine clarification FAQ questions.
+- `rules/` — twelve full, permanently visible rule cards, examples, group etiquette, ticket help, enforcement and nine practical Getting Started FAQ questions about client setup, IP tiers, Playerbots and altbots.
 - `apply/` — short Download → Complete and Save → Upload and Submit flow, disabled uploader, manual owner-review/reply explanation and ten anticipated FAQ questions.
 - `assets/naxx-three-pages.js` — adds exactly three native-styled links immediately after Home in both original sidebar and mobile drawer; leaves all original groups, search, breadcrumbs, existing Admin controls and resources intact.
 - `assets/naxx-three-page-bootstrap.js` — loads the **same native ~31MB source** and the exact existing root overlay scripts for the new permanent URLs. Does not use the visual preview as code.
 - `assets/naxx-three-pages.css` — new-page-card-only styles, matching native black/deep-red/gold; avoids modifying sitewide sidebar dimensions, search, breadcrumbs and general site CSS.
 
 The root `index.html` remains a lightweight loader with only two new asset references. `site-content.html` must remain bit-for-bit unchanged during this feature draft. Existing talent fixes, raids timers, patch notes, Change Notes, modules, other menus and Admin are not replaced.
+
+## Owner's FAQ direction — 3 November 2026 (awaiting wording approval)
+
+The owner reviewed the original Rules FAQ and requested **more practical questions**, especially how to set up the client, what Individual Progression does, what each tier means, how a player determines their tier, what Playerbots do, and whether bots complete their own quests.
+
+The draft Rules page FAQ was replaced with **nine Getting Started Q&As**. The twelve already approved rules and the approved Vanilla group etiquette, ticket guide and enforcement sections are unchanged. The New Player Guide remains the detailed source, linked from these short FAQ answers. The FAQ text itself is **proposed for owner review, not yet approved**.
+
+Grounding:
+- The required 3.3.5a client and two patch filenames, character-based Individual Progression and permissible altbot levelling come from the existing reviewed guide and the owner's recorded rules.
+- [The owner's Grimfeather IP fork](https://github.com/CosmicCuddle/mod-individual-progression/blob/master/src/IndividualProgression.h) has internal completed-milestone state values 0–7 for early Vanilla, Molten Core, Onyxia, Blackwing Lair, AQ preparation/war, AQ and Naxxramas; these are **not character levels**. It does not establish a public-facing player tier lookup. Its [`ip get` chat command](https://github.com/CosmicCuddle/mod-individual-progression/blob/master/src/cs_individualProgression.cpp) is restricted to `SEC_GAMEMASTER`, so the public page **does not instruct normal players to use it**.
+- Upstream Playerbots can quest independently depending on settings, but the owner's **deployed** autonomous quest and group quest syncing options are not yet confirmed. The FAQ makes this caveat explicit.
+- A targeted verification request has been filed with Maintenance at [Coordination Issue #34](https://github.com/CosmicCuddle/Naxxramas-Server-Coordination/issues/34). Update the two provisional answers once actual live capabilities are established.
+
+**No merge or publication authorised.** This is a draft content edit only.
 
 ## Native runtime regression work — 3 November 2026
 
