@@ -17,7 +17,22 @@
  <p><label for="naxx-disabled-file">Completed application (planned: one Word DOCX file, up to 10 MB)</label></p>
  <input id="naxx-disabled-file" type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" disabled>
  <p><button type="button" disabled aria-disabled="true">Submit Application — Unavailable</button></p>
- <p role="status">No file has been selected or submitted. A private receiver, confirmation messages and an external fallback link will be added only after successful owner-approved testing.</p>
+ <p role="status">No file has been selected or submitted. The real upload is still awaiting the owner's website activation approval.</p>
+</div>
+<!-- PREPARED BUT INACTIVE: never loads or displays until APPLICATION_EMBED_APPROVED is explicitly enabled in the native route code. -->
+<div id="naxx-tally-live-application" class="naxx-tally-live-application" hidden aria-label="Private Naxxramas application form">
+ <p>Complete the official Naxxramas Word application, then upload <strong>one .docx file (up to 10 MB)</strong> below. Applications are reviewed privately by the server owner.</p>
+ <iframe
+   data-tally-src="https://tally.so/embed/q5Lqr8?alignLeft=1&amp;hideTitle=1&amp;transparentBackground=1&amp;dynamicHeight=1"
+   title="Naxxramas private application upload"
+   loading="lazy"
+   width="100%"
+   height="550"
+   frameborder="0"
+   marginheight="0"
+   marginwidth="0"
+   referrerpolicy="strict-origin-when-cross-origin"></iframe>
+ <p class="naxx-tally-fallback">If the upload does not display, <a href="https://tally.so/r/q5Lqr8" target="_blank" rel="noopener noreferrer">open the secure application upload in a separate tab</a>.</p>
 </div>
 </section>
 <section id="next" class="naxx-guide-card"><h2>What Happens Next?</h2>
