@@ -17,7 +17,7 @@ After viewing the offline screenshot, the owner confirmed the overall layout was
 
 - `new-players/` — detailed New Player Guide, character-based Individual Progression, client build 12340, verified patch release links, private post-acceptance configuration, Playerbots, altbots, Auction House, loot and 38 detailed FAQ answers balanced across Vanilla, TBC and Wrath.
 - `rules/` — twelve full, permanently visible rule cards, examples, group etiquette, ticket help, enforcement and 35 practical Getting Started FAQ questions grouped into five topic sections about client setup, IP tiers, Playerbots and altbots.
-- `apply/` — short Download → Complete and Save → Upload and Submit flow, disabled uploader, manual owner-review/reply explanation and ten anticipated FAQ questions.
+- `apply/` — short Download → Complete and Save → Upload and Submit flow, disabled uploader, manual owner-review/reply explanation and eight practical FAQ questions after removing two redundant preview/account questions.
 - `assets/naxx-three-pages.js` — adds exactly three native-styled links immediately after Home in both original sidebar and mobile drawer; leaves all original groups, search, breadcrumbs, existing Admin controls and resources intact.
 - `assets/naxx-three-page-bootstrap.js` — loads the **same native ~31MB source** and the exact existing root overlay scripts for the new permanent URLs. Does not use the visual preview as code.
 - `assets/naxx-three-pages.css` — new-page-card-only styles, matching native black/deep-red/gold; avoids modifying sitewide sidebar dimensions, search, breadcrumbs and general site CSS.
@@ -112,7 +112,7 @@ After the owner approves the form and supplies its exact embed URL, add the nati
 
 ## Regression and manual checks
 
-Run `node assets/tests/native-three-pages.test.cjs`. It checks the exact three routes, preserved lightweight loader, unchanged original source SHA, native nav integration, all 12 visible rules, the 38/35/10 FAQ groups, no accordions and inactive application receiver.
+Run `node assets/tests/native-three-pages.test.cjs`. It checks the exact three routes, preserved lightweight loader, unchanged original source SHA, native nav integration, all 12 visible rules, the 38/35/8 FAQ groups, no accordions and inactive application receiver.
 
 On desktop and mobile:
 1. Verify Home → New Players → Server Rules → Apply to Join appears **under Home** with the existing navigation icon sizing; Class Handbooks and every other native item remain in place.
