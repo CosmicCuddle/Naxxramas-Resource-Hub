@@ -4,6 +4,15 @@
 **Planning:** https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/issues/46
 **Status:** Scoped review branch only. No merge, deployment, application uploads or player accounts activated.
 
+## Design feedback incorporated — 3 November 2026
+
+After viewing the offline screenshot, the owner confirmed the overall layout was acceptable but pointed out **non-native menu icons** and a **large empty gap** in the hero/header area.
+
+- The earlier offline screenshot generator used temporary Unicode glyphs (sparkle, pencil, envelope) and **was not accurate for sidebar icon appearance**. The draft's real navigation script has now been explicitly tied to three Warcraft icon-image assets confirmed in the original site's own HTML (book for New Players, note for Server Rules, key for Apply to Join), using the site's original `nav-icon-image` class and native size.
+- `assets/naxx-three-pages.css` now collapses the native `170px` artwork column only for the three new pages, where large banner emblems were intentionally removed. It also tightens excess header padding. The original native banner and images on every other Resource Hub page are unaffected.
+- Asset versions bumped to `v=2` in the root and subpage loaders; tests verify the icon assets exist in original site source and the empty column is removed.
+- **The previous screenshots predate these corrections**. Do not present those old images as proof of this revised layout. A real connected browser review is still required for full Warcraft icon rendering and the final visual appearance before owner merge approval.
+
 ## Included for review
 
 - `new-players/` — detailed New Player Guide, character-based Individual Progression, client build 12340, verified patch release links, private post-acceptance configuration, Playerbots, altbots, Auction House, loot and 14 anticipated FAQ questions.
