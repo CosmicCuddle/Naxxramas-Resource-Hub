@@ -37,11 +37,15 @@ The initial screenshots showed only the intended design. An additional source-le
 - In-session execution of the production navigation and mounting logic with isolated DOM simulations passed for Home and Rules navigation/rebuild and for New Players, Rules and Apply guide redraw/recovery. These are **simulated checks**, not proof of actual deployed browser integration.
 - Full connected-browser QA and screenshots that show the real CDN icons are still required; do not portray earlier mock screenshots as final browser evidence.
 
-## Critical publication blocker: existing source needs private-connection review
+## Public Game Clients correction incorporated — 3 November 2026
 
-The pre-existing massive `site-content.html` contains legacy player onboarding prose with a connection-setting line and a reference to the realm configuration file. **These were already public before this PR** and are not copied into any newly created page. The line's accuracy/current status is not confirmed. The owner explicitly requires these details to be absent from all public website/repository sources and previews.
+**Resolved in the current website source:** CosmeticCuddle approved the separate targeted Game Clients sanitisation, merged into `main` via [PR #48](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/pull/48). This draft branch has now incorporated that merge, retaining the original Resource Hub source file **after** the approved single-field redaction. Exact source Git blob: `71ab9f2bf4cf12282fcbe135f7ec787805715b62`.
 
-**Do not merge or publish these three new pages until a separate, carefully reviewed sanitisation removes this material from the existing source as well**, without losing current gameplay data or other custom modifications. Do not paste the original line, filename or private address into GitHub issues, PRs, comments, acceptance templates or public screenshots. This draft does not pretend that the entire existing repository has been sanitised.
+The public site no longer gives new applicants the old connection-setting line; it explains that approved connection instructions are supplied privately as an acceptance-email attachment. Existing client and custom patch information remain intact. The draft test now requires the sanitized content hash, so the old source must not be reintroduced by accident.
+
+**Historical exposure is a separate issue:** Earlier public commits, cached files and previous downloads cannot be erased by an ordinary merge. Maintenance is assessing whether the historic information is still sensitive via [Coordination Issue #33](https://github.com/CosmicCuddle/Naxxramas-Server-Coordination/issues/33). Do not reproduce the historical address or file contents in public tickets, PRs or new documents.
+
+**Still outstanding before publication:** owner approval of full page text and raid-only loot details, real-browser desktop/mobile QA, and review of the closed application state. The private Tally upload remains disabled and requires a separate owner-approved activation process.
 
 ## Publication gates — owner decisions needed
 
