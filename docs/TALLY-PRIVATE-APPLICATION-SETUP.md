@@ -58,6 +58,25 @@ Keep the **existing required acknowledgement**: “I have read the privacy infor
 - [ ] Test manual deletion and emptying Trash **with dummy data** only.
 - [ ] Return test form to CLOSED and record results. Do not put test form URL or submission data in public Issues.
 
+### Confirmed Tally URL and staged native website integration (3 November 2026)
+
+CosmicCuddle supplied the public Tally share link **`https://tally.so/r/q5Lqr8`**, which identifies form `q5Lqr8`. This is a **form link, not a secret credential or access-control mechanism**. The Tally server may accept submissions if its own **Close form** setting is OFF, even if the Naxxramas website has not linked to it.
+
+The website **DRAFT PR #47** now stages a standard responsive iframe inside the existing native Apply to Join section, preserving the surrounding Resource Hub header, sidebar, approved three-step instructions and eight FAQs. Uses documented embed query options `alignLeft=1`, `hideTitle=1`, `transparentBackground=1`, `dynamicHeight=1`, framed by site-native CSS; a direct-link fallback is also present.
+
+**Double safety gate:** the HTML iframe has **no `src`** and lives inside an initially hidden section. The existing native page renderer sets `var APPLICATION_EMBED_APPROVED = false;` and **does not load Tally's widget script or set the iframe src while false**. The current disabled-demo upload stays visible instead. Only a future owner-approved **code release**, alongside other text changes and the approved blank Word download, should enable the switch. Merely publishing the separate Tally form does **not** open the application's embed on the Naxxramas Resource Hub. The draft code **contains the public Tally link** on a visible GitHub branch: don't treat obscurity of that link as privacy protection.
+
+On authorised launch, separately confirm:
+- The owner-created Tally form has been end-to-end tested and intentionally opened.
+- A public **blank** official Word application is downloadable at the native Apply page with permission; no applicant data is in the repo.
+- The site removes its **Applications closed** text and disabled-demo control and enables the iframe only once all requirements pass.
+- Tally's theme and the iframe's transparent-background option are checked on desktop/mobile for contrast; current default Tally colours could clash with the dark Warcraft theme.
+- The external direct-link fallback works and opens **the same form**.
+- The Tally form's *actual* privacy notice includes 30-day post-decision deletion and 90-day maximum pending period; applicant withdrawal contact and compliance details remain to be finalised.
+- No application claim of success occurs unless Tally confirms actual submission.
+
+**Evidence boundary:** CosmicCuddle reported the dummy Word test “worked”, but receipt visibility in the Tally owner dashboard, email notification arrival, the Thank You message, permanent deletion/Trash clearing and the current Close form status are **not independently verified here**.
+
 ## 4. Website integration — separate approval gate
 
 1. Owner approves the exact public blank DOCX and gives explicit permission to commit/publish that **blank template**. The private DOCX supplied in chat must not be uploaded to the public repository without this approval.
