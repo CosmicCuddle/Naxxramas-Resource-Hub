@@ -98,6 +98,14 @@ assert.ok(rules.includes("Will Playerbots finish my quests for me?")&&rules.incl
 assert.ok(rules.includes("ten-player dungeons"));
 const guide=read("new-players/content.html");
 assert.ok(guide.includes("tiers 1–7"));
+assert.ok(guide.includes("Vanilla Tier 0") && rules.includes("Tier 0"),
+ "Most fresh characters should be explained as starting at Tier 0");
+for(const exception of ["Blood Elves","Draenei","Death Knights"]) {
+ assert.ok(guide.includes(exception) && rules.includes(exception),
+  "Starting progression exception must be explained in guide and FAQ: "+exception);
+}
+assert.ok(rules.includes("exact starting stage depends on the character type and server configuration"),
+ "Do not invent a blanket starting tier for special race/class cases");
 assert.ok(guide.includes("no permanent server-wide level-60 cap"));
 assert.ok(guide.includes("patch-V.mpq")&&guide.includes("patch-Z.mpq"));
 assert.ok(guide.includes("buy and sell")&&guide.includes("supply and demand"));
