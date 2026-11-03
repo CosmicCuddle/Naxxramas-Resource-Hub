@@ -15,7 +15,7 @@ const bootstrap = read("assets/naxx-three-page-bootstrap.js");
 const css = read("assets/naxx-three-pages.css");
 const pages = ["new-players","rules","apply"];
 const titles = ["New Player Guide","Server Rules","Apply to Join Naxxramas"];
-const faqs = [38,35,10];
+const faqs = [38,35,8];
 assert.ok(index.length<6500,"Original root index loader must stay small");
 assert.ok(index.includes("site-content.html"),"Existing site content must remain bootstrapped");
 assert.ok(index.includes("naxx-three-pages.js?v=2"));
@@ -143,7 +143,7 @@ const hash=crypto.createHash("sha1").update(Buffer.concat([
 assert.equal(hash,"71ab9f2bf4cf12282fcbe135f7ec787805715b62",
  "Source must match the owner-approved sanitized main branch without further alterations");
 console.log("PASS: original site source, root loader, three native routes and sidebar safety");
-console.log("PASS: 12 visible rules, 83 FAQ answers across three pages, closed application");
+console.log("PASS: 12 visible rules, 81 FAQ answers across three pages, closed application");
 console.log("PASS: no private connection file or upload receiver in new page assets");
 console.log("PASS: approved public Game Clients privacy correction is incorporated from main.");
 console.warn("REVIEW GATES: confirm final Rules wording, real-browser behavior and disabled application process before merge.");
