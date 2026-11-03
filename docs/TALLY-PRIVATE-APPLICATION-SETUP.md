@@ -94,3 +94,8 @@ On authorised launch, separately confirm:
 - Tally standard embedding: https://tally.so/help/embed-your-form
 
 **Do not invent a Tally ID, URL, embed snippet, recipient address, credentials or a claim of completed testing.**
+
+
+## Approved blank DOCX download — draft branch (3 November 2026)
+
+CosmicCuddle separately approved publication of the original unanswered three-page Word application. The uploaded source file was verified to contain 17 questions, 26 unchecked Word checkboxes, and 12 placeholder text fields. Only the final submission instruction was updated to direct players to the private website upload, consistent with the previously approved process. Visual rendering confirmed all three pages are intact. The public-draft asset is `apply/naxxramas-application.docx`; the proposed Apply page includes the native-styled download link. This approval does **not** open Tally or authorise merging the draft to main. Application intake and the live website remain unchanged pending separate owner release approval and privacy/browser QA.

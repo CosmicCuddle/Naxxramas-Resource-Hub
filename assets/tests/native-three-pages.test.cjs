@@ -160,12 +160,21 @@ assert.ok(apply.includes("one Word DOCX file, up to 10 MB"),
 assert.ok(apply.includes("email")&&apply.includes("Discord"));
 assert.ok(apply.includes("preferred account username"),"Website must match original owner Word application, not community nickname");
 assert.ok(!apply.includes("community nickname"),"Outdated applicant identity wording must not reappear");
+const officialForm=path.join(root,"apply/naxxramas-application.docx");
+assert.ok(fs.existsSync(officialForm),"Owner-approved blank application must be included");
+const formBytes=fs.readFileSync(officialForm);
+assert.ok(formBytes.length>10000&&formBytes.length<10*1024*1024,"DOCX must be a plausible, under-10-MB file");
+assert.equal(formBytes.subarray(0,2).toString("ascii"),"PK","DOCX must be a ZIP container");
+assert.equal(crypto.createHash("sha256").update(formBytes).digest("hex"),
+ "f6617c8a4da6e9b75b56b020361f8aab57a8cca47921a9225685b0c0cddfa695",
+ "Public file must match owner-approved blank DOCX, with website-upload closing instruction");
+assert.ok(apply.includes('href="naxxramas-application.docx"')&&apply.includes('download="Naxxramas-Application.docx"'),"Apply page must have direct native download link");
 assert.ok(apply.includes("three-page editable Word (DOCX)")&&apply.includes("17 questions and fields"),
  "Working document and original application content must remain identified");
 assert.ok(apply.includes("Accounts are arranged manually after acceptance."),
  "Application must not imply automatic account creation");
-assert.ok(apply.includes("No live download is offered in this preview."),
- "Do not offer the private review copy as a published official form");
+assert.ok(apply.includes("applications are not yet open"),
+ "Document download must not imply applications can be submitted");
 
 const blob=Buffer.from(site);
 const hash=crypto.createHash("sha1").update(Buffer.concat([
