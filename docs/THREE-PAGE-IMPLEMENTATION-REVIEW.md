@@ -93,7 +93,7 @@ The public site no longer gives new applicants the old connection-setting line; 
 - Confirm final Rules Draft 1.0 wording, especially the separate raid-only Master Looter setup; the exact approved raid workflow and automation status have **not** been independently verified.
 - Confirm any final player account onboarding/registration sequence, application access model and how future tier access is actually enabled in game. No assumed race restrictions, automatic whitelist or paid expansion services are claimed.
 - Verify required patch releases remain current immediately before publication (checked 3 Nov 2026: main v1.0.6.8.4 includes `patch-V.mpq`; v1.0.6.7 supplies `patch-Z.mpq`).
-- Review and explicitly approve the **owner's existing three-page editable DOCX application** as the primary download; a separate PDF is optional and not selected. A minimally revised local review copy preserves all 17 existing questions/fields and three pages, changing only the closing instruction to refer to the future private website upload area. **Do not publish or upload that private review file to the repository without owner approval.**
+- The owner has **approved the existing three-page editable DOCX application review copy** as satisfactory. It preserves the original 17 numbered questions/fields and three-page layout; the closing instruction now refers to a future private website upload. A separate PDF remains optional/unselected. **Approval of the form is not approval to publish it or open applications; hold the public downloadable asset until the owner separately authorises publication.**
 - Approve a privacy notice, retention/deletion schedule, contact email handling, reviewer access, spam/rate limits and permitted reapplications/withdrawals.
 - Review desktop/mobile visual QA, header/footer, three new links, keyboard navigation, original site content and all anticipated FAQ answers.
 - Confirm the only publicly displayed application state is **closed** until genuine end-to-end tests and explicit owner activation approval.
@@ -106,7 +106,7 @@ CosmicCuddle asked us to continue from that existing form, not replace it with a
 
 Draft `apply/content.html` was aligned with the **preferred account username** wording (instead of the earlier invented community nickname) and clarifies that the owner creates accounts manually after acceptance. The already approved three-step **download → complete/save → private upload** workflow is unchanged. The website's official form download remains disabled/not offered; no private upload receiver has been activated. Do not create a fake public form or leak private applications.
 
-**Remaining choice:** owner approval to publish the revised DOCX as the official downloadable blank form and whether to offer a separately validated PDF; verify any real private upload service before enabling. The draft website remains unmerged.
+**Owner document approval:** CosmicCuddle confirmed on 3 November 2026 that the revised DOCX is satisfactory. A subsequent direct OOXML check confirmed that all **26 checkboxes are already genuine Word checkbox controls**, with **12 editable text content controls**; no checkbox redesign was necessary. **Remaining release decisions:** whether to offer an optional PDF, authorisation to publish the approved blank DOCX on the website, and verification/activation of a real private upload service. The draft website remains unmerged and applications closed.
 
 ## Tally Free integration plan — not connected
 
