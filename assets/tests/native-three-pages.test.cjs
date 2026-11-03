@@ -136,6 +136,12 @@ assert.ok(apply.includes('type="file"')&&apply.includes("disabled"),"Upload must
 assert.ok(apply.includes("Applications are not currently open"));
 assert.ok(!/<form\b/i.test(apply),"No live form endpoint");
 assert.ok(!/<iframe\b/i.test(apply),"No unapproved upload embed");
+assert.ok(apply.includes('accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"'),
+ "Private test form must reflect the approved Word DOCX template, not a premature PDF offer");
+assert.ok(apply.includes("private Tally upload")&&apply.includes("not connected or active"),
+ "Tally setup is a plan, not a functional submission receiver");
+assert.ok(apply.includes("one Word DOCX file, up to 10 MB"),
+ "Keep planned Free-tier upload limit visible during review");
 assert.ok(apply.includes("email")&&apply.includes("Discord"));
 assert.ok(apply.includes("preferred account username"),"Website must match original owner Word application, not community nickname");
 assert.ok(!apply.includes("community nickname"),"Outdated applicant identity wording must not reappear");
