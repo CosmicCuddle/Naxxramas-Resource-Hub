@@ -16,7 +16,7 @@ After viewing the offline screenshot, the owner confirmed the overall layout was
 ## Included for review
 
 - `new-players/` — detailed New Player Guide, character-based Individual Progression, client build 12340, verified patch release links, private post-acceptance configuration, Playerbots, altbots, Auction House, loot and 14 anticipated FAQ questions.
-- `rules/` — twelve full, permanently visible rule cards, examples, group etiquette, ticket help, enforcement and nine practical Getting Started FAQ questions about client setup, IP tiers, Playerbots and altbots.
+- `rules/` — twelve full, permanently visible rule cards, examples, group etiquette, ticket help, enforcement and 35 practical Getting Started FAQ questions grouped into five topic sections about client setup, IP tiers, Playerbots and altbots.
 - `apply/` — short Download → Complete and Save → Upload and Submit flow, disabled uploader, manual owner-review/reply explanation and ten anticipated FAQ questions.
 - `assets/naxx-three-pages.js` — adds exactly three native-styled links immediately after Home in both original sidebar and mobile drawer; leaves all original groups, search, breadcrumbs, existing Admin controls and resources intact.
 - `assets/naxx-three-page-bootstrap.js` — loads the **same native ~31MB source** and the exact existing root overlay scripts for the new permanent URLs. Does not use the visual preview as code.
@@ -28,7 +28,7 @@ The root `index.html` remains a lightweight loader with only two new asset refer
 
 The owner reviewed the original Rules FAQ and requested **more practical questions**, especially how to set up the client, what Individual Progression does, what each tier means, how a player determines their tier, what Playerbots do, and whether bots complete their own quests.
 
-The draft Rules page FAQ was replaced with **nine Getting Started Q&As**. The twelve already approved rules and the approved Vanilla group etiquette, ticket guide and enforcement sections are unchanged. The New Player Guide remains the detailed source, linked from these short FAQ answers. The FAQ text itself is **proposed for owner review, not yet approved**.
+The draft Rules page FAQ was expanded to **35 Getting Started Q&As**, with 5 topic headings and jump links. The twelve already approved rules and the approved Vanilla group etiquette, ticket guide and enforcement sections are unchanged. The New Player Guide remains the detailed source, linked from these short FAQ answers. The FAQ text itself is **proposed for owner review, not yet approved**.
 
 Grounding:
 - The required 3.3.5a client and two patch filenames, character-based Individual Progression and permissible altbot levelling come from the existing reviewed guide and the owner's recorded rules.
@@ -37,6 +37,12 @@ Grounding:
 - A targeted verification request has been filed with Maintenance at [Coordination Issue #34](https://github.com/CosmicCuddle/Naxxramas-Server-Coordination/issues/34). Update the two provisional answers once actual live capabilities are established.
 
 **No merge or publication authorised.** This is a draft content edit only.
+
+### Owner request: substantially larger but readable FAQ
+
+CosmicCuddle asked for **many more questions and answers**, with useful detail that remains easy to read. The draft FAQ has been extended to **35 questions**, grouped by Client Setup & Joining (7), Individual Progression & Tiers (11), Playerbots & Altbots (10), Loot, Trading & Everyday Play (4), and Help & Troubleshooting (3). Short topic links allow navigation without collapsing any answer. Each answer stays to a few sentences and points to the full New Player Guide or the relevant rule when more detail is needed.
+
+**Content status:** proposed for owner review; do not interpret this drafting action as approval of the FAQ or as authority to merge. The 12 individually approved rules, group etiquette, in-game ticket instructions, and ban enforcement sections are unchanged. The server-specific tier display and installed bot quest behaviour are still awaiting verification from Maintenance ([Issue #34](https://github.com/CosmicCuddle/Naxxramas-Server-Coordination/issues/34)).
 
 ## Native runtime regression work — 3 November 2026
 
