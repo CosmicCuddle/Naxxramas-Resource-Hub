@@ -1,0 +1,186 @@
+/* Scope all page-specific presentation to the existing native Resource Hub.
+ * Inherit the real dark / burgundy / gold theme, header, sidebar and cards.
+ * No body-wide navigation/theme/sidebar replacements.
+ */
+body.naxx-three-page-route #resourceGrid {
+  display:block!important;
+  width:100%;
+  min-width:0;
+  max-width:var(--pro-content-max,1320px);
+  margin:0 auto;
+}
+body.naxx-three-page-route #contextArtworkPanel .wh-context-thumb {
+  display:none!important; /* no extra enlarged page-banner emblems */
+}
+body.naxx-three-page-route .naxx-guide-body {
+  width:100%;
+  min-width:0;
+  color:#d9cebe;
+  font-size:14px;
+  line-height:1.65;
+  overflow-wrap:break-word;
+}
+body.naxx-three-page-route .naxx-guide-intro {
+  padding:2px 0 13px;
+  margin:0;
+  color:#c9baa6;
+  max-width:85ch;
+}
+body.naxx-three-page-route .naxx-guide-nav {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:5px 0 19px;
+}
+body.naxx-three-page-route .naxx-guide-nav a,
+body.naxx-three-page-route .naxx-guide-link {
+  display:inline-block;
+  color:#e6bf70;
+  text-decoration:none;
+  border-bottom:1px solid rgba(198,144,73,.58);
+}
+body.naxx-three-page-route .naxx-guide-nav a {
+  padding:6px 9px;
+  border:1px solid #4a3520;
+  border-radius:3px;
+  background:#17120e;
+  font-weight:700;
+  font-size:12px;
+}
+body.naxx-three-page-route .naxx-guide-nav a:hover,
+body.naxx-three-page-route .naxx-guide-link:hover {
+  color:#ffe5a5;
+  border-color:#b88a48;
+}
+body.naxx-three-page-route .naxx-guide-stack {
+  display:grid;
+  gap:11px;
+  width:100%;
+}
+body.naxx-three-page-route .naxx-guide-card {
+  padding:16px 18px;
+  background:linear-gradient(180deg,#1b1511,#110e0c);
+  border:1px solid #493728;
+  border-radius:3px;
+  box-shadow:0 6px 15px rgba(0,0,0,.16);
+  scroll-margin-top:180px;
+}
+body.naxx-three-page-route .naxx-guide-card h2 {
+  color:#e4b763;
+  font-size:18px;
+  margin:0 0 8px;
+  line-height:1.3;
+  font-weight:800;
+}
+body.naxx-three-page-route .naxx-guide-card h3 {
+  color:#e9d1a5;
+  font-size:14px;
+  margin:13px 0 5px;
+  line-height:1.35;
+}
+body.naxx-three-page-route .naxx-guide-card p,
+body.naxx-three-page-route .naxx-guide-card ul,
+body.naxx-three-page-route .naxx-guide-card ol {margin:0 0 9px;}
+body.naxx-three-page-route .naxx-guide-card p:last-child,
+body.naxx-three-page-route .naxx-guide-card ul:last-child,
+body.naxx-three-page-route .naxx-guide-card ol:last-child {margin-bottom:0;}
+body.naxx-three-page-route .naxx-guide-card li {margin:3px 0 3px 5px;}
+body.naxx-three-page-route .naxx-guide-card strong {color:#ecd0a0;}
+body.naxx-three-page-route .naxx-guide-card code {
+  background:#080807;
+  border:1px solid #43382d;
+  color:#e4c996;
+  padding:1px 4px;
+  font-size:.94em;
+  white-space:normal;
+}
+body.naxx-three-page-route .naxx-guide-card a:not(.naxx-guide-nav a) {
+  color:#dcb76f;
+  text-decoration:underline;
+  text-decoration-color:#88613a;
+  text-underline-offset:3px;
+}
+body.naxx-three-page-route .naxx-guide-card a:focus-visible,
+body.naxx-three-page-route .naxx-guide-nav a:focus-visible {
+  outline:2px solid #f1c777;
+  outline-offset:3px;
+}
+body.naxx-three-page-route .naxx-guide-rule {
+  border-left:3px solid #8f5d36;
+}
+body.naxx-three-page-route .naxx-guide-rule .naxx-guide-example {
+  padding:10px 12px;
+  background:#130d0c;
+  border-left:2px solid #7e5338;
+  color:#d9cbbb;
+}
+body.naxx-three-page-route .naxx-guide-faq {
+  margin-top:16px;
+  padding-top:12px;
+  border-top:1px solid #4e3928;
+}
+body.naxx-three-page-route .naxx-guide-faq h2 {
+  font-size:20px;
+  margin-bottom:5px;
+}
+body.naxx-three-page-route .naxx-guide-faq-note {
+  color:#a99b8c;
+  font-size:12px;
+  margin-bottom:10px;
+}
+body.naxx-three-page-route .naxx-guide-qa {
+  margin:0 0 11px;
+  padding:12px 14px;
+  background:#15110f;
+  border:1px solid #403124;
+  border-radius:3px;
+}
+body.naxx-three-page-route .naxx-guide-qa h3 {margin:0 0 5px;color:#f0ca86;}
+body.naxx-three-page-route .naxx-guide-qa p {margin:0;}
+body.naxx-three-page-route .naxx-guide-status {
+  padding:9px 11px;
+  border-left:3px solid #b17b46;
+  background:#271b12;
+  color:#f1cfa1;
+  margin:0 0 12px;
+}
+body.naxx-three-page-route .naxx-guide-steps {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+body.naxx-three-page-route .naxx-guide-step {
+  background:#17120e;
+  border:1px solid #4b3826;
+  padding:14px;
+}
+body.naxx-three-page-route .naxx-guide-step strong {
+  display:block;
+  margin-bottom:6px;
+  color:#f2cc83;
+}
+body.naxx-three-page-route .naxx-guide-disabled {
+  border:1px dashed #80623b;
+  padding:17px;
+  background:#15110d;
+  margin-top:10px;
+}
+body.naxx-three-page-route .naxx-guide-disabled button {
+  background:#27211a;
+  border:1px solid #67533e;
+  color:#a69a8d;
+  border-radius:3px;
+  padding:9px 13px;
+  cursor:not-allowed;
+}
+body.naxx-three-page-route .naxx-guide-disabled input[disabled] {max-width:100%;}
+body.naxx-three-page-route .naxx-guide-loading,
+body.naxx-three-page-route .naxx-guide-error {
+  border:1px solid #63452b;
+  padding:18px;
+}
+@media(max-width:690px) {
+  body.naxx-three-page-route .naxx-guide-card {padding:14px 12px;}
+  body.naxx-three-page-route .naxx-guide-steps {grid-template-columns:1fr;}
+  body.naxx-three-page-route .naxx-guide-body {font-size:13px;}
+}
