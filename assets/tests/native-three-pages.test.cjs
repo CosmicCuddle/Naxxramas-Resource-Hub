@@ -79,9 +79,10 @@ assert.ok(apply.includes("email")&&apply.includes("Discord"));
 const blob=Buffer.from(site);
 const hash=crypto.createHash("sha1").update(Buffer.concat([
  Buffer.from("blob "+blob.length+"\0"),blob])).digest("hex");
-assert.equal(hash,"3c10ed4829ed02a357ed6dc423b6e59d8344d188",
- "Source site must remain bit-for-bit intact in this draft");
+assert.equal(hash,"71ab9f2bf4cf12282fcbe135f7ec787805715b62",
+ "Source must match the owner-approved sanitized main branch without further alterations");
 console.log("PASS: original site source, root loader, three native routes and sidebar safety");
 console.log("PASS: all 12 visible rules, all 33 anticipated FAQ answers, closed application");
 console.log("PASS: no private connection file or upload receiver in new page assets");
-console.warn("RELEASE BLOCKER: pre-existing site-content.html contains old connection setup text; owner review/redaction required separately before merge.");
+console.log("PASS: approved public Game Clients privacy correction is incorporated from main.");
+console.warn("REVIEW GATES: confirm final Rules wording, real-browser behavior and disabled application process before merge.");
