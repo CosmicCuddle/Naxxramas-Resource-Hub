@@ -173,6 +173,11 @@ assert.ok(apply.includes("three-page editable Word (DOCX)")&&apply.includes("17 
  "Approved Word download and all original application questions must be described");
 assert.ok(apply.includes("Accounts are arranged manually after acceptance."),
  "Application must not imply automatic account creation");
+assert.ok(apply.includes("within <strong>one calendar month</strong>") &&
+ apply.includes("treated as withdrawn") && apply.includes("not a ban or a rejection"),
+ "Accepted nonresponders must have a clear, non-punitive one-month onboarding deadline");
+assert.ok(apply.includes("Without a reply, onboarding will be closed as withdrawn"),
+ "The existing FAQ must explain the acceptance follow-up without introducing another question");
 assert.ok(apply.includes("applications are not yet open"),
  "Document download must not imply applications can be submitted");
 

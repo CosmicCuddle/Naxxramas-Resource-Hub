@@ -55,6 +55,17 @@ Keep the **existing required acknowledgement**: “I have read the privacy infor
 
 **Owner follow-up before real applications:** the maximum pending-review period is now set at **90 days**; withdrawal handling, how applicants can request deletion and any applicable legal exceptions still need a final published privacy notice. Staff-only email alerts should contain no needless sensitive answers. For now, the form is CLOSED and untested.
 
+
+### Owner decision — no reply after acceptance (3 November 2026)
+
+**CONFIRMED, separate from initial review and data retention:** If the owner does not hear back from an accepted applicant **within one calendar month after the acceptance notification**, CosmicCuddle will assume the applicant has decided not to join. The onboarding request may be closed as **withdrawn / no response**. This is not a refusal of the initial application, a disciplinary ban, or an instruction to delete a player account that may already exist.
+
+**Applicant-facing draft:** "If your application is accepted, please reply to your acceptance email within one calendar month to confirm you still wish to join. If we do not hear from you by then, we will assume you no longer plan to proceed and close the onboarding request."
+
+**Preserve the existing data policy independently:** The application and owner-held copies are still due for deletion **within 30 days after the acceptance decision**, including manually clearing Tally Trash. Waiting one calendar month for a response **does not extend the application-document retention deadline**. Owner must be able to track the acceptance notification date and onboarding reply status privately, with minimal information and without retaining full applicant answers beyond the approved period.
+
+**Still unresolved:** A publicly accessible owner-approved route for privacy, withdrawal or deletion requests (the applicant may reply to the acceptance email for the ordinary acceptance follow-up, but this is not a substitute for a pre-acceptance privacy contact). Do not invent an email address, Discord handle, account auto-deletion, or automated server action.
+
 ## 2. Tally settings
 
 - Only the **owner/reviewer** should access submissions in the Tally dashboard. Do not grant edit, sharing, or export access to public collaborators.
