@@ -44,8 +44,8 @@ retained_patch_instructions = original[original.index(patch_marker):]
 replacement = (
     "Once your application has been accepted, you will receive the genuine "
     "Naxxramas connection file privately as an attachment to your acceptance "
-    "email. Follow the installation instructions included in that email. "
-    "The server address and connection file are not public downloads.\n\n"
+    "email. Follow the installation instructions in that email. "
+    "The server address and connection file are not available as public downloads.\n\n"
     + retained_patch_instructions
 )
 escaped = json.dumps(replacement, ensure_ascii=False)[1:-1]
