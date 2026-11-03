@@ -64,6 +64,21 @@ const rules=read("rules/content.html");
 for(let i=1;i<=12;i++)assert.ok(rules.includes('id="rule-'+i+'"'),"Rule "+i+" must be visible");
 assert.equal((rules.match(/class="naxx-guide-card naxx-guide-rule"/g)||[]).length,12);
 assert.ok(rules.includes("Free for All loot is prohibited"));
+for (const question of [
+ "How do I set up the game client?",
+ "What does Individual Progression (IP) do?",
+ "What do the Vanilla tiers mean?",
+ "How do I know which tier my character is in?",
+ "What are Playerbots, and how do they work?",
+ "Do Playerbots accept and finish their own quests?"
+]) assert.ok(rules.includes(question),"Missing owner-requested onboarding FAQ: "+question);
+assert.ok(rules.includes("normal-player tier display or command has not yet been confirmed"),
+ "Do not claim unverified player-facing IP tier commands exist");
+assert.ok(rules.includes("precise Naxxramas setup is being verified"),
+ "Do not claim unverified installed Playerbot quest automation");
+assert.ok(!rules.includes("May an all-human group farm an easier dungeon?"),
+ "Replace the repetitive rules FAQ with practical onboarding questions");
+
 assert.ok(rules.includes("ten-player dungeons"));
 const guide=read("new-players/content.html");
 assert.ok(guide.includes("tiers 1–7"));
