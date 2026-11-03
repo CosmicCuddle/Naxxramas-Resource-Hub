@@ -15,7 +15,7 @@ const bootstrap = read("assets/naxx-three-page-bootstrap.js");
 const css = read("assets/naxx-three-pages.css");
 const pages = ["new-players","rules","apply"];
 const titles = ["New Player Guide","Server Rules","Apply to Join Naxxramas"];
-const faqs = [14,9,10];
+const faqs = [14,35,10];
 assert.ok(index.length<6500,"Original root index loader must stay small");
 assert.ok(index.includes("site-content.html"),"Existing site content must remain bootstrapped");
 assert.ok(index.includes("naxx-three-pages.js?v=2"));
@@ -79,6 +79,22 @@ assert.ok(rules.includes("precise Naxxramas setup is being verified"),
 assert.ok(!rules.includes("May an all-human group farm an easier dungeon?"),
  "Replace the repetitive rules FAQ with practical onboarding questions");
 
+for(const topic of ["client","ip","bots","gameplay","help"]) {
+  assert.ok(rules.includes('id="faq-'+topic+'"'),"FAQ topic anchor missing: "+topic);
+}
+assert.equal((rules.match(/class="naxx-guide-faq-topic"/g)||[]).length,5,
+ "All five FAQ topic sections must be present");
+assert.equal((rules.match(/class="naxx-guide-qa"/g)||[]).length,35,
+ "All 35 onboarding FAQ questions must be present");
+assert.ok(rules.includes('aria-label="Jump to FAQ topic"'),"Readers need quick topic navigation");
+assert.ok(!/<details\b|<summary\b/i.test(rules),
+ "All twelve rules and FAQ answers must remain visible without accordions");
+assert.ok(rules.includes("Tier 0")&&rules.includes("Molten Core")&&rules.includes("Ahn'Qiraj"),
+ "The tier FAQ should explain Vanilla milestones");
+assert.ok(rules.includes("Will Playerbots finish my quests for me?")&&rules.includes("Will a new alt share my main character's tier?"),
+ "FAQ must cover bot quests and independent character progression");
+
+
 assert.ok(rules.includes("ten-player dungeons"));
 const guide=read("new-players/content.html");
 assert.ok(guide.includes("tiers 1–7"));
@@ -97,7 +113,7 @@ const hash=crypto.createHash("sha1").update(Buffer.concat([
 assert.equal(hash,"71ab9f2bf4cf12282fcbe135f7ec787805715b62",
  "Source must match the owner-approved sanitized main branch without further alterations");
 console.log("PASS: original site source, root loader, three native routes and sidebar safety");
-console.log("PASS: all 12 visible rules, all 33 anticipated FAQ answers, closed application");
+console.log("PASS: all 12 visible rules, 59 anticipated FAQ answers across three pages, closed application");
 console.log("PASS: no private connection file or upload receiver in new page assets");
 console.log("PASS: approved public Game Clients privacy correction is incorporated from main.");
 console.warn("REVIEW GATES: confirm final Rules wording, real-browser behavior and disabled application process before merge.");
