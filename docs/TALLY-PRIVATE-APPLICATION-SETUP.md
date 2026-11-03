@@ -17,7 +17,7 @@ Suggested form text for owner review (this is a draft, not a live privacy notice
 
 Use these blocks, in order:
 
-1. **Instructions / notice (text)** — clear upload-only purpose and link back to the approved blank Word file once the owner explicitly authorises publishing it.
+1. **Instructions / notice (text)** — clear upload-only purpose and link back to the owner-approved, unanswered Word application, now staged at `apply/naxxramas-application.docx` in the draft website. A download link does not mean applications are open.
 2. **File upload** — labelled `Completed Naxxramas Application (Word .docx)`, **required**, **single file**, allowed type **.docx only** for initial test, maximum **10 MB**. Check the actual file type control offers exact .docx; do not silently permit arbitrary file types.
 3. **Required privacy confirmation** — consent/acknowledgement text and deletion/contact notice **must be owner approved** before any real applications. Do not copy the three server rules acknowledgements already included in the DOCX.
 4. **Submit** — success message must say the file was submitted **only after Tally confirms a real submission**; submission does *not* mean acceptance or game-account creation.
@@ -53,7 +53,7 @@ Use these blocks, in order:
 
 Keep the **existing required acknowledgement**: “I have read the privacy information above and understand how my application will be used” → “I understand and agree.” Provide accessible links to the final privacy notice and Tally's privacy information before launch. Do not claim that uploads are never transferred to or stored by Tally.
 
-**Owner follow-up before real applications:** the maximum pending-review period is now set at **90 days**; withdrawal handling, how applicants can request deletion and any applicable legal exceptions still need a final published privacy notice. Staff-only email alerts should contain no needless sensitive answers. For now, the form is CLOSED and untested.
+**Owner follow-up before real applications:** the maximum pending-review period is now set at **90 days**; withdrawal handling, how applicants can request deletion and any applicable legal exceptions still need a final published privacy notice. Staff-only email alerts should contain no needless sensitive answers. The **website embed remains OFF**. CosmicCuddle reports a successful dummy-file test of the separate Tally form, but its current Close form setting, private dashboard receipt, email alert and permanent deletion remain independently unverified.
 
 
 ### Owner decision — recognised activity within one month after acceptance (3 November 2026, clarified)
@@ -95,7 +95,7 @@ CosmicCuddle supplied the public Tally share link **`https://tally.so/r/q5Lqr8`*
 
 The website **DRAFT PR #47** now stages a standard responsive iframe inside the existing native Apply to Join section, preserving the surrounding Resource Hub header, sidebar, approved three-step instructions and eight FAQs. Uses documented embed query options `alignLeft=1`, `hideTitle=1`, `transparentBackground=1`, `dynamicHeight=1`, framed by site-native CSS; a direct-link fallback is also present.
 
-**Double safety gate:** the HTML iframe has **no `src`** and lives inside an initially hidden section. The existing native page renderer sets `var APPLICATION_EMBED_APPROVED = false;` and **does not load Tally's widget script or set the iframe src while false**. The current disabled-demo upload stays visible instead. Only a future owner-approved **code release**, alongside other text changes and the approved blank Word download, should enable the switch. Merely publishing the separate Tally form does **not** open the application's embed on the Naxxramas Resource Hub. The draft code **contains the public Tally link** on a visible GitHub branch: don't treat obscurity of that link as privacy protection.
+**Double safety gate:** the HTML iframe has **no `src`** and lives inside an initially hidden section. The existing native page renderer sets `var APPLICATION_EMBED_APPROVED = false;` and **does not load Tally's widget script or set the iframe src while false**. The current disabled-demo upload stays visible instead. The approved blank Word download is **already staged in the draft**. Only a future owner-approved **website/application activation change**, with completed privacy and functional checks, may enable the Tally switch. Merely publishing the separate Tally form does **not** open the application's embed on the Naxxramas Resource Hub. The draft code **contains the public Tally link** on a visible GitHub branch: don't treat obscurity of that link as privacy protection.
 
 On authorised launch, separately confirm:
 - The owner-created Tally form has been end-to-end tested and intentionally opened.
