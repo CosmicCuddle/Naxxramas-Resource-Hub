@@ -1,7 +1,7 @@
 # Naxxramas — private application upload setup (DRAFT)
 
 **Owner:** CosmicCuddle  
-**Status:** configuration plan approved to prepare; **not implemented, not tested, not public, not activated**  
+**Status (3 November 2026):** owner-controlled Tally form URL and dummy-file test reported; **real end-to-end dashboard/email/deletion verification still pending**. The blank Word download and inert Tally iframe are staged in draft PR #47; the live website and embedded intake are **not activated**.  
 **Website:** Draft PR #47 on `draft/three-native-pages-faq-2026-11-03`  
 **Original form:** Owner's approved 3-page, 17-field Word application (DOCX). Retain exact owner-authored form; never recreate its 17 questions as an online Tally questionnaire.
 
@@ -32,6 +32,24 @@ Use these blocks, in order:
 
 > **Your Privacy**  
 > Your application is submitted through Tally and reviewed privately by the Naxxramas server owner, solely to assess your request and contact you about its outcome. I normally aim to reply within 1–2 days, although this is not guaranteed. Applications still awaiting a decision will be reviewed and closed or deleted within 90 days of submission. After an acceptance or decline decision, the application and owner-held copies will be manually deleted within 30 days. Tally may retain backup data temporarily under its own deletion procedures. Please do not include passwords or unnecessary sensitive information.
+
+### Applicant-facing privacy notice — improved working draft (NOT RELEASE-APPROVED)
+
+> **How your application is handled**
+>
+> When you apply to join Naxxramas, you submit your completed Word application through **Tally**. The application asks for a preferred account username, email address, optional Discord username, and answers about your interests and plans. You decide what to share in the optional questions.
+>
+> I use this information only to review your request, contact you with a decision, and arrange the next steps if you are accepted. Applications are reviewed privately by the Naxxramas server owner, not published as a public list. Please do not include passwords or unnecessary sensitive personal information.
+>
+> Pending applications will be reviewed and decided or closed/deleted within **90 days of submission**. I normally aim to reply within **one or two days**, but this is not a guaranteed response time. After a decision to accept or decline, I will manually delete the Tally submission and any copies I hold within **30 days of that decision**, including clearing Tally's Trash. Tally may retain backup information temporarily in line with its own procedures, so deletion is not necessarily immediate across all backups.
+>
+> If you would like to withdraw your application or ask about your information, please use **[OWNER-APPROVED CONTACT METHOD TO BE ADDED BEFORE LAUNCH]**.
+>
+> You can read Tally's own privacy information at https://tally.so/help/gdpr.
+
+**Not yet approved for public use:** The bracketed contact method is intentionally unfilled. CosmicCuddle must confirm a working, applicant-accessible email address or approved contact route before this notice is copied into the actual Tally form or public Apply page. Legal/privacy completeness and any exceptions to deletion promises require further owner review; don't present this text as a legal compliance guarantee. This is intended to replace the shorter proposed privacy text above **after final approval**, not to appear alongside it as a duplicate notice.
+
+**Approval boundary:** This repository is public. Do not add private email addresses, applicant names, submitted documents or direct private download links to this file or GitHub Issues.
 
 Keep the **existing required acknowledgement**: “I have read the privacy information above and understand how my application will be used” → “I understand and agree.” Provide accessible links to the final privacy notice and Tally's privacy information before launch. Do not claim that uploads are never transferred to or stored by Tally.
 
@@ -79,7 +97,7 @@ On authorised launch, separately confirm:
 
 ## 4. Website integration — separate approval gate
 
-1. Owner approves the exact public blank DOCX and gives explicit permission to commit/publish that **blank template**. The private DOCX supplied in chat must not be uploaded to the public repository without this approval.
+1. **DONE (draft only, 3 Nov 2026):** Owner authorised public distribution of the blank DOCX; the checked, unanswered template is committed as `apply/naxxramas-application.docx` and linked in the draft Apply page. This is **not** permission to merge the website or open applications. No applicant-completed document is committed.
 2. Owner approves the privacy notice, retention schedule, and final submit/confirmation wording.
 3. After successful private dummy-file testing, use the **exact verified Tally form embed/link** from the owner. Embed in the existing **native Resource Hub** layout with standard/transparent Tally options as needed and an **external direct-link fallback**.
 4. Before any website launch, run desktop/mobile/keyboard tests, test submission success/failure, and check no personal application data is in GitHub Pages, source commits, GitHub Issues or public previews.
