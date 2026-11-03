@@ -6,13 +6,16 @@
   var currentScript = document.currentScript;
   if (!currentScript || !currentScript.src) return;
   var root = new URL("../", currentScript.src);
+  // Use existing, proven Warcraft icon assets already used by the REAL hub's
+  // Database, Updates and Admin controls. Same image element / class, native
+  // 16-20px chip sizing; not the Unicode symbols from the offline mockup.
   var pages = [
     {slug:"new-players",label:"New Players",title:"New Player Guide",group:"General",
-     icon:"inv_misc_spyglass_03.jpg",intro:"Getting started with Individual Progression, the client, addons and group play."},
+     icon:"inv_misc_book_09.jpg",intro:"Getting started with Individual Progression, the client, addons and group play."},
     {slug:"rules",label:"Server Rules",title:"Server Rules",group:"General",
      icon:"inv_misc_note_05.jpg",intro:"Community expectations, fair play, loot rules and enforcement."},
     {slug:"apply",label:"Apply to Join",title:"Apply to Join Naxxramas",group:"General",
-     icon:"inv_inscription_scroll.jpg",intro:"The planned application process. Submissions are not currently open."}
+     icon:"inv_misc_key_03.jpg",intro:"The planned application process. Submissions are not currently open."}
   ];
   var path = location.pathname.replace(/\/+$/,"/"), active = pages.find(function(p){
     return path === new URL(p.slug+"/",root).pathname;
