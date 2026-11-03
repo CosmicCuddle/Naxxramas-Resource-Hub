@@ -68,7 +68,14 @@
         }
         last=item;
       });
-      if(active)home.classList.remove("active");
+      // The original HTML snapshot may mark Change Notes active by default.
+      // Only the current new-page link should be selected on a guide URL.
+      if(active){
+        nav.querySelectorAll("button.active").forEach(function(button){
+          if(button.getAttribute("data-naxx-guide-link")!==active.slug)
+            button.classList.remove("active");
+        });
+      }
     });
   }
   function mountContent(){
