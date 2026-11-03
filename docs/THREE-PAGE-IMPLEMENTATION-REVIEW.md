@@ -1,0 +1,58 @@
+# Three Native Resource Hub Pages — DRAFT Implementation Review
+
+**Owner:** CosmicCuddle — final approval required.
+**Planning:** https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/issues/46
+**Status:** Scoped review branch only. No merge, deployment, application uploads or player accounts activated.
+
+## Included for review
+
+- `new-players/` — detailed New Player Guide, character-based Individual Progression, client build 12340, verified patch release links, private post-acceptance configuration, Playerbots, altbots, Auction House, loot and 14 anticipated FAQ questions.
+- `rules/` — twelve full, permanently visible rule cards, examples, group etiquette, ticket help, enforcement and nine clarification FAQ questions.
+- `apply/` — short Download → Complete and Save → Upload and Submit flow, disabled uploader, manual owner-review/reply explanation and ten anticipated FAQ questions.
+- `assets/naxx-three-pages.js` — adds exactly three native-styled links immediately after Home in both original sidebar and mobile drawer; leaves all original groups, search, breadcrumbs, existing Admin controls and resources intact.
+- `assets/naxx-three-page-bootstrap.js` — loads the **same native ~31MB source** and the exact existing root overlay scripts for the new permanent URLs. Does not use the visual preview as code.
+- `assets/naxx-three-pages.css` — new-page-card-only styles, matching native black/deep-red/gold; avoids modifying sitewide sidebar dimensions, search, breadcrumbs and general site CSS.
+
+The root `index.html` remains a lightweight loader with only two new asset references. `site-content.html` must remain bit-for-bit unchanged during this feature draft. Existing talent fixes, raids timers, patch notes, Change Notes, modules, other menus and Admin are not replaced.
+
+## Critical publication blocker: existing source needs private-connection review
+
+The pre-existing massive `site-content.html` contains legacy player onboarding prose with a connection-setting line and a reference to the realm configuration file. **These were already public before this PR** and are not copied into any newly created page. The line's accuracy/current status is not confirmed. The owner explicitly requires these details to be absent from all public website/repository sources and previews.
+
+**Do not merge or publish these three new pages until a separate, carefully reviewed sanitisation removes this material from the existing source as well**, without losing current gameplay data or other custom modifications. Do not paste the original line, filename or private address into GitHub issues, PRs, comments, acceptance templates or public screenshots. This draft does not pretend that the entire existing repository has been sanitised.
+
+## Publication gates — owner decisions needed
+
+- Confirm final Rules Draft 1.0 wording, especially the separate raid-only Master Looter setup; the exact approved raid workflow and automation status have **not** been independently verified.
+- Confirm any final player account onboarding/registration sequence, application access model and how future tier access is actually enabled in game. No assumed race restrictions, automatic whitelist or paid expansion services are claimed.
+- Verify required patch releases remain current immediately before publication (checked 3 Nov 2026: main v1.0.6.8.4 includes `patch-V.mpq`; v1.0.6.7 supplies `patch-Z.mpq`).
+- Pick the official blank application format (fillable PDF, editable DOCX or both). The attached design-review samples are **not published** or offered as final files.
+- Approve a privacy notice, retention/deletion schedule, contact email handling, reviewer access, spam/rate limits and permitted reapplications/withdrawals.
+- Review desktop/mobile visual QA, header/footer, three new links, keyboard navigation, original site content and all anticipated FAQ answers.
+- Confirm the only publicly displayed application state is **closed** until genuine end-to-end tests and explicit owner activation approval.
+
+## Tally Free integration plan — not connected
+
+Tally Free is the preferred option **subject to owner-controlled setup and private testing**. Current official references:
+- https://tally.so/help/file-uploads — free file upload supports max **10 MB per file**, with allowed file types.
+- https://tally.so/help/embed-your-form — embed with transparent background, dynamic sizing and direct-form fallback link once an owner-controlled test form exists.
+- https://tally.so/help/self-email-notifications — notifications are supported on Free. Uploaded files are linked rather than attached to emails.
+- https://tally.so/help/submissions-data-retention — scheduled automatic retention requires **Business**, not Free; Free needs a **manual deletion policy**, with deleted submissions otherwise retained in Trash for up to 90 days unless permanently emptied.
+
+**Owner must create/control the form account personally; do not request credentials.** Configure a private test form accepting exactly one PDF or DOCX max 10 MB, applicant email, optional Discord name, community nickname and minimal approved questionnaire. Restrict submissions to the owner/reviewer; verify that uploaded file links do not expose data to unauthenticated third parties. Validate mobile and keyboard file selection, wrong extension, large file, missing file, lost connection, duplicate submit and real server-confirmed success. Use dummy documents only.
+
+After the owner approves the form and supplies its exact embed URL, add the native-framed iframe and a plainly worded external **Open upload form** fallback link to the Apply page. A real success message must appear only after Tally confirms persistence; a failure must not claim successful delivery. Owner email notification is separate from an acceptance decision. Never put uploaded applications, contact details or secrets in GitHub Pages, repository commits, Issues or public previews.
+
+## Regression and manual checks
+
+Run `node assets/tests/native-three-pages.test.cjs`. It checks the exact three routes, preserved lightweight loader, unchanged original source SHA, native nav integration, all 12 visible rules, the 14/9/10 FAQ groups, no accordions and inactive application receiver.
+
+On desktop and mobile:
+1. Verify Home → New Players → Server Rules → Apply to Join appears **under Home** with the existing navigation icon sizing; Class Handbooks and every other native item remain in place.
+2. Verify the search bar, native breadcrumb strip, original banner/card styling, Admin access and native site footer.
+3. Verify the 12 rule blocks all show fully, and FAQs display question/answer text without click-to-expand.
+4. Verify original Home, Class and Dungeon Handbooks, Talent Sets, Talent Calculator, Module Information, Game Clients, Temporary Banned, Patches and Change Notes still work.
+5. Verify Apply has **no working submit**, no upload endpoint, no live embed and no false confirmation.
+6. Inspect at desktop around 1440×900 and mobile 390×844 for overflow, clipped labels and tab navigation.
+
+**Rollback:** Revert this draft PR if later merged; it adds a small set of files and two root loader references. Do not reset `main`; retain the original large content asset. This PR is deliberately not approved for merge.
