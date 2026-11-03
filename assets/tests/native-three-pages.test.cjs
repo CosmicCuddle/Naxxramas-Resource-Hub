@@ -28,6 +28,15 @@ assert.ok(nav.includes('insertAdjacentElement("afterend",item)'),"Preserve nativ
 assert.ok(nav.includes('data-naxx-guide-link'),"New navigation needs unique identity");
 assert.ok(nav.includes('aria-current'),"Current route should be identified accessibly");
 assert.ok(bootstrap.includes("site-content.html")&&bootstrap.includes("naxx-three-pages.js"));
+// All existing feature scripts/styles must load identically under nested URLs.
+// A missing item here would silently break original addons, talent cards or
+// countdowns on only the three new pages.
+function assetRefs(text) {
+  return [...new Set((text.match(/assets\/[a-zA-Z0-9_.-]+(?:\?v=\d+)?/g)||[]))].sort();
+}
+assert.deepEqual(assetRefs(bootstrap),assetRefs(index),
+ "Nested page bootstrap must match root site asset versions and features");
+
 assert.ok(css.includes("body.naxx-three-page-route"),"All style overrides must be route-scoped");
 assert.ok(css.includes(".naxx-guide-qa")&&!css.includes("accordion"),"FAQs must be visible cards");
 assert.ok(css.includes("grid-template-columns:minmax(0,1fr)!important"),
