@@ -116,6 +116,12 @@ CosmicCuddle agreed to proceed with a private **Tally Free** upload flow after a
 
 **Privacy caution:** Tally Free does not offer automated submission retention; a manual policy and deletion/Trash check are required. File links exported via integrations can become accessible without Tally login if the recipient has the tokenised URL. Avoid applicant-data exports and public links. No live applicant submissions until approved.
 
+### Owner-approved application retention (3 November 2026)
+
+CosmicCuddle expressly approved **manual deletion of completed applications within 30 days after an acceptance or decline decision**. This is **not** a 30-day-after-submission deadline. On Tally Free the owner must manually delete the submission, also empty the relevant Tally Trash, and delete any locally downloaded copies. Tally Trash normally keeps deleted submissions recoverable for up to 90 days unless permanently emptied; provider backups may have a different deletion lag. Guidance, concise proposed privacy notice and a test checklist are in [`TALLY-PRIVATE-APPLICATION-SETUP.md`](TALLY-PRIVATE-APPLICATION-SETUP.md). The retention limit for *undecided* or withdrawn applications is not decided yet and needs a separate policy before release.
+
+The owner is currently building the Tally form manually; screenshots confirm a draft with a required single DOCX upload (10 MB), a required privacy acknowledgement, a custom thank-you page, and self-email notifications switched on and reportedly saved. User reports **Close form enabled and saved**; no independent account-side inspection or actual submission test has been completed. No website activation/merge is approved. Keep the distinction between **user-reported settings**, a visual preview, and **verified test delivery**.
+
 ## Tally Free integration plan — not connected
 
 Tally Free is the preferred option **subject to owner-controlled setup and private testing**. Current official references:
