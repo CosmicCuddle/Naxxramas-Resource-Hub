@@ -24,6 +24,19 @@ After viewing the offline screenshot, the owner confirmed the overall layout was
 
 The root `index.html` remains a lightweight loader with only two new asset references. `site-content.html` must remain bit-for-bit unchanged during this feature draft. Existing talent fixes, raids timers, patch notes, Change Notes, modules, other menus and Admin are not replaced.
 
+## Native runtime regression work — 3 November 2026
+
+The initial screenshots showed only the intended design. An additional source-level review of the original site's JavaScript revealed that the native Resource Hub may **re-render `#resourceGrid` after the new page is mounted**. The initial one-time data attribute would have prevented remounting, and a displayed guide could disappear.
+
+- `assets/naxx-three-pages.js` now caches each route's fetched HTML once and observes **only the content grid** for native redraws. When the native page renderer replaces the guide content, the new-page article is restored from memory without another network request or a repeated mutation loop.
+- The original Resource Hub's other pages are not intercepted; the observer is installed only for these new guide routes. Any handbook-only height/grid classes are cleared on these routes.
+- The page's native heading, breadcrumb and contextual banner text are reapplied when remounted. The Apply demo remains disabled.
+- `assets/tests/native-three-pages-behavior.test.cjs` provides a dependency-free mock DOM test for all three page load/re-render paths, one fetch per route, a disabled Apply upload, and a genuine error state when a page cannot be fetched.
+- `assets/tests/native-three-pages-navigation.test.cjs` tests native desktop/mobile buttons, placement after Home, link activation, route-selected state, native rebuild recovery and no duplicates.
+- `assets/tests/native-three-pages.test.cjs` additionally checks **root and subpage JS/CSS asset parity** so future site features are not accidentally left out on nested guide URLs.
+- In-session execution of the production navigation and mounting logic with isolated DOM simulations passed for Home and Rules navigation/rebuild and for New Players, Rules and Apply guide redraw/recovery. These are **simulated checks**, not proof of actual deployed browser integration.
+- Full connected-browser QA and screenshots that show the real CDN icons are still required; do not portray earlier mock screenshots as final browser evidence.
+
 ## Critical publication blocker: existing source needs private-connection review
 
 The pre-existing massive `site-content.html` contains legacy player onboarding prose with a connection-setting line and a reference to the realm configuration file. **These were already public before this PR** and are not copied into any newly created page. The line's accuracy/current status is not confirmed. The owner explicitly requires these details to be absent from all public website/repository sources and previews.
