@@ -169,8 +169,8 @@ assert.equal(crypto.createHash("sha256").update(formBytes).digest("hex"),
  "f6617c8a4da6e9b75b56b020361f8aab57a8cca47921a9225685b0c0cddfa695",
  "Public file must match owner-approved blank DOCX, with website-upload closing instruction");
 assert.ok(apply.includes('href="naxxramas-application.docx"')&&apply.includes('download="Naxxramas-Application.docx"'),"Apply page must have direct native download link");
-assert.ok(apply.includes("three-page editable Word (DOCX)")&&apply.includes("17 questions and fields"),
- "Working document and original application content must remain identified");
+assert.ok(apply.includes("three-page editable Word (DOCX)")&&apply.includes("17 numbered questions"),
+ "Approved Word download and all original application questions must be described");
 assert.ok(apply.includes("Accounts are arranged manually after acceptance."),
  "Application must not imply automatic account creation");
 assert.ok(apply.includes("applications are not yet open"),
