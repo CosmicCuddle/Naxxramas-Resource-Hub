@@ -19,11 +19,11 @@ const text=JSON.parse('"' + setup[1] + '"');
 assert.ok(text.includes("acceptance email"),"Must explain private email delivery");
 assert.ok(text.includes("patch-V"),"Main patch guide must be retained");
 assert.ok(text.includes("patch-Z"),"Supporting patch guide must be retained");
-assert.ok(!/\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b/.test(text),
+assert.ok(!/\b(?:\d{1,3}\.){3}\d{1,3}\b/.test(text),
  "Client setup must not contain an IPv4 address");
 const bytes=Buffer.from(source,"utf8");
 const blobSha=crypto.createHash("sha1").update(Buffer.concat([
-  Buffer.from("blob "+bytes.length+"\\0"),bytes
+  Buffer.from("blob "+bytes.length+"\0"),bytes
 ])).digest("hex");
 assert.equal(blobSha,"71ab9f2bf4cf12282fcbe135f7ec787805715b62",
  "Original website data changed outside the approved single-field edit");
