@@ -1,0 +1,35 @@
+name: One-time private client instructions cleanup
+on:
+  push:
+    branches:
+      - fix/remove-public-client-connection-instructions-2026-11-03
+    paths:
+      - .github/workflows/sanitize-public-client-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  sanitize:
+    if: github.repository == 'CosmicCuddle/Naxxramas-Resource-Hub'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Replace only the legacy client connection field
+        run: python3 scripts/sanitize_public_client_instructions.py
+      - name: Run redaction regression
+        run: node assets/tests/no-public-connection-details.test.cjs
+      - name: Commit safe source and retire one-shot workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/sanitize-public-client-once.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site-content.html .github/workflows/sanitize-public-client-once.yml
+          git diff --cached --quiet && { echo "Expected sanitised change missing"; exit 1; }
+          git -c user.useConfigOnly=true commit -m "security(client): remove public connection settings from site content"
+          git push origin HEAD:refs/heads/fix/remove-public-client-connection-instructions-2026-11-03
