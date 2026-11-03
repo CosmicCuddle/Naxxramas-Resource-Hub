@@ -18,8 +18,8 @@ const titles = ["New Player Guide","Server Rules","Apply to Join Naxxramas"];
 const faqs = [14,9,10];
 assert.ok(index.length<6500,"Original root index loader must stay small");
 assert.ok(index.includes("site-content.html"),"Existing site content must remain bootstrapped");
-assert.ok(index.includes("naxx-three-pages.js?v=1"));
-assert.ok(index.includes("naxx-three-pages.css?v=1"));
+assert.ok(index.includes("naxx-three-pages.js?v=2"));
+assert.ok(index.includes("naxx-three-pages.css?v=2"));
 assert.ok(index.includes("naxx-talent-sets-full-sync.js?v=3"),
   "Newest Talent Sets regression fix must be preserved");
 assert.ok(nav.includes('["mainNav","mobileNav"]'),"Both native menus must be extended");
@@ -30,6 +30,15 @@ assert.ok(nav.includes('aria-current'),"Current route should be identified acces
 assert.ok(bootstrap.includes("site-content.html")&&bootstrap.includes("naxx-three-pages.js"));
 assert.ok(css.includes("body.naxx-three-page-route"),"All style overrides must be route-scoped");
 assert.ok(css.includes(".naxx-guide-qa")&&!css.includes("accordion"),"FAQs must be visible cards");
+assert.ok(css.includes("grid-template-columns:minmax(0,1fr)!important"),
+  "Blank 170px hero artwork column must be removed from new pages only");
+assert.ok(css.includes('body.naxx-three-page-route #contextArtworkPanel .wh-context-media'),
+  "Hide unused banner artwork container only on new guide routes");
+for(const nativeIcon of ["inv_misc_book_09.jpg","inv_misc_note_05.jpg","inv_misc_key_03.jpg"]) {
+  assert.ok(site.includes(nativeIcon),"New page icon must reuse proven original website artwork: "+nativeIcon);
+  assert.ok(nav.includes(nativeIcon),"New sidebar link should use same native artwork style: "+nativeIcon);
+}
+assert.ok(nav.includes('img.className="nav-icon-image"'),"Native sidebar artwork sizing must be retained");
 pages.forEach((slug,i)=>{
  const route=read(slug+"/index.html"),body=read(slug+"/content.html");
  assert.ok(route.includes(titles[i]),slug+" heading");
