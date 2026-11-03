@@ -44,6 +44,14 @@ CosmicCuddle asked for **many more questions and answers**, with useful detail t
 
 **Content status:** proposed for owner review; do not interpret this drafting action as approval of the FAQ or as authority to merge. The 12 individually approved rules, group etiquette, in-game ticket instructions, and ban enforcement sections are unchanged. The server-specific tier display and installed bot quest behaviour are still awaiting verification from Maintenance ([Issue #34](https://github.com/CosmicCuddle/Naxxramas-Server-Coordination/issues/34)).
 
+### Owner clarification: starting Individual Progression stage (3 November 2026)
+
+CosmicCuddle accepted the expanded onboarding FAQ direction and clarified: **most freshly created characters begin at Individual Progression Tier 0, except Blood Elf, Draenei and Death Knight characters**, which have separate starting progression rules. Both the Rules FAQ and New Player Guide now state this; the earlier overbroad claim that *all* characters start in Vanilla has been corrected.
+
+**Important technical boundary:** The owner’s other documented F14 requirement that **positively identified Blood Elf/Draenei random bots** have a Tier 8 TBC floor is **rndbot-specific** ([Coordination #10](https://github.com/CosmicCuddle/Naxxramas-Server-Coordination/issues/10)). It does not establish an identical numerical starting tier for all human Blood Elves/Draenei or player-controlled altbots. The fork's Death Knight starting behaviour is configurable. Therefore the public FAQ intentionally **does not invent numerical tiers** for those three exceptional categories. Installed effective settings still require verification.
+
+No change to the 12 approved rules, acceptance or application state, nor to the live website. No new owner approval to publish has been requested or implied.
+
 ## Native runtime regression work — 3 November 2026
 
 The initial screenshots showed only the intended design. An additional source-level review of the original site's JavaScript revealed that the native Resource Hub may **re-render `#resourceGrid` after the new page is mounted**. The initial one-time data attribute would have prevented remounting, and a displayed guide could disappear.
