@@ -15,7 +15,7 @@ const bootstrap = read("assets/naxx-three-page-bootstrap.js");
 const css = read("assets/naxx-three-pages.css");
 const pages = ["new-players","rules","apply"];
 const titles = ["New Player Guide","Server Rules","Apply to Join Naxxramas"];
-const faqs = [14,35,10];
+const faqs = [38,35,10];
 assert.ok(index.length<6500,"Original root index loader must stay small");
 assert.ok(index.includes("site-content.html"),"Existing site content must remain bootstrapped");
 assert.ok(index.includes("naxx-three-pages.js?v=2"));
@@ -97,6 +97,28 @@ assert.ok(rules.includes("Will Playerbots finish my quests for me?")&&rules.incl
 
 assert.ok(rules.includes("ten-player dungeons"));
 const guide=read("new-players/content.html");
+// New guide FAQ covers all three eras with manageable topical navigation.
+for(const topic of ["client","ip","vanilla","tbc","wotlk","bots","help"])
+ assert.ok(guide.includes('id="faq-'+topic+'"'),"Guide FAQ topic missing: "+topic);
+assert.equal((guide.match(/class="naxx-guide-faq-topic"/g)||[]).length,7);
+assert.ok(guide.includes("Vanilla — Tier 0 to Tier 7"));
+assert.ok(guide.includes("The Burning Crusade — Outland & Tiers"));
+assert.ok(guide.includes("Wrath of the Lich King — Northrend & Tiers"));
+for(const question of [
+ "What do Vanilla Tiers 4, 5, 6 and 7 represent?",
+ "What do early TBC stages 8 and 9 represent?",
+ "What do later TBC stages 10, 11 and 12 represent?",
+ "What do Wrath stages 14, 15 and 16 represent?",
+ "What do Wrath stages 17 and 18 represent?",
+ "Why is the TBC-to-Wrath boundary sometimes called stage 13?",
+ "Do roaming Playerbots accept and complete their own quests?"
+]) assert.ok(guide.includes(question),"Guide FAQ missing: "+question);
+assert.ok(guide.includes("still being developed")&&guide.includes("not yet verified"),
+ "Future era purchase and installed tier/bot claims must not be treated as live");
+assert.ok(guide.includes("Jump to New Player Guide FAQ topic"),
+ "Long FAQ needs jump links");
+assert.ok(!/<details\b|<summary\b/i.test(guide),"All guide FAQ answers remain visible");
+
 assert.ok(guide.includes("tiers 1–7"));
 assert.ok(guide.includes("Vanilla Tier 0") && rules.includes("Tier 0"),
  "Most fresh characters should be explained as starting at Tier 0");
@@ -121,7 +143,7 @@ const hash=crypto.createHash("sha1").update(Buffer.concat([
 assert.equal(hash,"71ab9f2bf4cf12282fcbe135f7ec787805715b62",
  "Source must match the owner-approved sanitized main branch without further alterations");
 console.log("PASS: original site source, root loader, three native routes and sidebar safety");
-console.log("PASS: all 12 visible rules, 59 anticipated FAQ answers across three pages, closed application");
+console.log("PASS: 12 visible rules, 83 FAQ answers across three pages, closed application");
 console.log("PASS: no private connection file or upload receiver in new page assets");
 console.log("PASS: approved public Game Clients privacy correction is incorporated from main.");
 console.warn("REVIEW GATES: confirm final Rules wording, real-browser behavior and disabled application process before merge.");
