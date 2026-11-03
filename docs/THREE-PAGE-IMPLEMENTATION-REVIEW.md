@@ -15,7 +15,7 @@ After viewing the offline screenshot, the owner confirmed the overall layout was
 
 ## Included for review
 
-- `new-players/` — detailed New Player Guide, character-based Individual Progression, client build 12340, verified patch release links, private post-acceptance configuration, Playerbots, altbots, Auction House, loot and 14 anticipated FAQ questions.
+- `new-players/` — detailed New Player Guide, character-based Individual Progression, client build 12340, verified patch release links, private post-acceptance configuration, Playerbots, altbots, Auction House, loot and 38 detailed FAQ answers balanced across Vanilla, TBC and Wrath.
 - `rules/` — twelve full, permanently visible rule cards, examples, group etiquette, ticket help, enforcement and 35 practical Getting Started FAQ questions grouped into five topic sections about client setup, IP tiers, Playerbots and altbots.
 - `apply/` — short Download → Complete and Save → Upload and Submit flow, disabled uploader, manual owner-review/reply explanation and ten anticipated FAQ questions.
 - `assets/naxx-three-pages.js` — adds exactly three native-styled links immediately after Home in both original sidebar and mobile drawer; leaves all original groups, search, breadcrumbs, existing Admin controls and resources intact.
@@ -51,6 +51,19 @@ CosmicCuddle accepted the expanded onboarding FAQ direction and clarified: **mos
 **Important technical boundary:** The owner’s other documented F14 requirement that **positively identified Blood Elf/Draenei random bots** have a Tier 8 TBC floor is **rndbot-specific** ([Coordination #10](https://github.com/CosmicCuddle/Naxxramas-Server-Coordination/issues/10)). It does not establish an identical numerical starting tier for all human Blood Elves/Draenei or player-controlled altbots. The fork's Death Knight starting behaviour is configurable. Therefore the public FAQ intentionally **does not invent numerical tiers** for those three exceptional categories. Installed effective settings still require verification.
 
 No change to the 12 approved rules, acceptance or application state, nor to the live website. No new owner approval to publish has been requested or implied.
+
+### New Player Guide FAQ — owner-requested expansion coverage (3 November 2026)
+
+CosmicCuddle approved all **six main New Player Guide sections**, then requested that its FAQ be **more detailed and give TBC and WotLK comparable coverage to Vanilla**. Draft `new-players/content.html` now includes **38 questions in seven visible topic groups**: Getting Started & Client Setup (5), Understanding Individual Progression (5), Vanilla (5), The Burning Crusade (6), Wrath of the Lich King (6), Playerbots (6), and Loot/Trading/Help (5). The answers average **44 words** (range 36–53), with short source-grounded explanations and topic jump links; nothing is hidden behind expand/collapse UI. **The six approved main sections are unchanged**.
+
+Source qualification:
+- Owner [IP fork enum](https://github.com/CosmicCuddle/mod-individual-progression/blob/master/src/IndividualProgression.h): Vanilla 0–7; principal TBC stages 8–12 with stage 11 skipped/commented; stage 13 is a historical boundary; Wrath content milestones 14–18. These are **module/source references**, not confirmed current live permissions for a specific character.
+- [Coordination #18](https://github.com/CosmicCuddle/Naxxramas-Server-Coordination/issues/18): the owner's **earned final boss → eligible to purchase → paid expansion passage** rule for Chronomancer Vezrath is a confirmed *design requirement*, **not yet proof of a deployed purchase gate**. FAQ labels this planned, not active. Vanilla ending relates to original level-60 Kel'Thuzad; TBC ending to Kil'jaeden. Do not tell players stage 13 alone confers Wrath entitlement.
+- [Maintenance read-only reply in #34](https://github.com/CosmicCuddle/Naxxramas-Server-Coordination/issues/34): published `.ip get` is GM-only; normal-player tier interface and actual installed config are not verified. Playerbots has underlying real quest actions, but deployed autonomous questing and group sync are not validated. FAQ distinguishes these source capabilities from unverified live behaviour.
+- The owner clarified that fresh characters **generally** start at Tier 0, with Blood Elf, Draenei and Death Knight exceptions. No numeric default is asserted for those exceptional cases.
+- The client connection remains private to the acceptance email; no credentials or realm address added to the guide.
+
+**Approval status:** New Player Guide main sections 1–6 owner-approved; **expanded 38-answer FAQ is a draft awaiting exact text review**. Rules page has its own separate 35-answer FAQ and 12 owner-approved rules. Application remains disabled, and Draft PR #47 has **no merge/publication permission**.
 
 ## Native runtime regression work — 3 November 2026
 
@@ -99,7 +112,7 @@ After the owner approves the form and supplies its exact embed URL, add the nati
 
 ## Regression and manual checks
 
-Run `node assets/tests/native-three-pages.test.cjs`. It checks the exact three routes, preserved lightweight loader, unchanged original source SHA, native nav integration, all 12 visible rules, the 14/9/10 FAQ groups, no accordions and inactive application receiver.
+Run `node assets/tests/native-three-pages.test.cjs`. It checks the exact three routes, preserved lightweight loader, unchanged original source SHA, native nav integration, all 12 visible rules, the 38/35/10 FAQ groups, no accordions and inactive application receiver.
 
 On desktop and mobile:
 1. Verify Home → New Players → Server Rules → Apply to Join appears **under Home** with the existing navigation icon sizing; Class Handbooks and every other native item remain in place.
