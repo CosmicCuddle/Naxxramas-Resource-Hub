@@ -137,6 +137,15 @@ assert.ok(apply.includes("Applications are not currently open"));
 assert.ok(!/<form\b/i.test(apply),"No live form endpoint");
 assert.ok(!/<iframe\b/i.test(apply),"No unapproved upload embed");
 assert.ok(apply.includes("email")&&apply.includes("Discord"));
+assert.ok(apply.includes("preferred account username"),"Website must match original owner Word application, not community nickname");
+assert.ok(!apply.includes("community nickname"),"Outdated applicant identity wording must not reappear");
+assert.ok(apply.includes("three-page editable Word (DOCX)")&&apply.includes("17 questions and fields"),
+ "Working document and original application content must remain identified");
+assert.ok(apply.includes("Accounts are arranged manually after acceptance."),
+ "Application must not imply automatic account creation");
+assert.ok(apply.includes("No live download is offered in this preview."),
+ "Do not offer the private review copy as a published official form");
+
 const blob=Buffer.from(site);
 const hash=crypto.createHash("sha1").update(Buffer.concat([
  Buffer.from("blob "+blob.length+"\0"),blob])).digest("hex");
