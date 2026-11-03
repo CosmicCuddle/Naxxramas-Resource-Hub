@@ -85,6 +85,11 @@
   // (including delayed handbook/search hooks). Keep new route content mounted
   // even when a native refresh replaces the grid after this script loads.
   // Observe only the one content grid, never the 31 MB document body.
+  // Release gate: the Tally URL is prepared in the draft HTML, but is NEVER
+  // loaded or displayed until the owner separately approves the public website
+  // application opening and the approved Word template is available.
+  // Tally's own Close form setting remains an independent safety control.
+  var APPLICATION_EMBED_APPROVED = false;
   var pageMarkup = null;
   var requestStarted = false;
   var requestFailed = false;
@@ -127,7 +132,45 @@
       active.slug+'">'+markup+'</article>';
     if(active.slug==="apply"){
       var area=grid.querySelector("#naxx-application-demo");
-      if(area) area.setAttribute("aria-disabled","true");
+      var tallyPanel=grid.querySelector("#naxx-tally-live-application");
+      if(!APPLICATION_EMBED_APPROVED){
+        // Never fetch or initialize a Tally iframe during drafting or review.
+        if(area){area.hidden=false;area.setAttribute("aria-disabled","true");}
+        if(tallyPanel)tallyPanel.hidden=true;
+      }else if(tallyPanel){
+        if(area)area.hidden=true;
+        tallyPanel.hidden=false;
+        var frame=tallyPanel.querySelector("iframe[data-tally-src]");
+        if(frame){
+          var tallySrc=frame.getAttribute("data-tally-src");
+          // The source URL must be the exact owner-supplied Tally form.
+          if(tallySrc && tallySrc.indexOf("https://tally.so/embed/q5Lqr8?")===0){
+            function loadTallyEmbed(){
+              if(window.Tally && typeof window.Tally.loadEmbeds==="function")
+                window.Tally.loadEmbeds();
+              else if(!frame.getAttribute("src"))
+                frame.setAttribute("src",tallySrc);
+            }
+            if(window.Tally && typeof window.Tally.loadEmbeds==="function"){
+              loadTallyEmbed();
+            }else{
+              var existing=document.querySelector('script[data-naxx-tally-widget="1"]');
+              if(!existing){
+                var widget=document.createElement("script");
+                widget.src="https://tally.so/widgets/embed.js";
+                widget.async=true;
+                widget.setAttribute("data-naxx-tally-widget","1");
+                widget.addEventListener("load",loadTallyEmbed,{once:true});
+                widget.addEventListener("error",loadTallyEmbed,{once:true});
+                document.head.appendChild(widget);
+              }else{
+                existing.addEventListener("load",loadTallyEmbed,{once:true});
+                // The iframe remains without src until a widget load or error.
+              }
+            }
+          }
+        }
+      }
     }
   }
 
