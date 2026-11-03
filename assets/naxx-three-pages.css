@@ -9,9 +9,30 @@ body.naxx-three-page-route #resourceGrid {
   max-width:var(--pro-content-max,1320px);
   margin:0 auto;
 }
-body.naxx-three-page-route #contextArtworkPanel .wh-context-thumb {
-  display:none!important; /* no extra enlarged page-banner emblems */
+/* The native context banner normally reserves a 170px artwork column.
+ * New pages intentionally have no oversized banner emblem; collapse the
+ * EMPTY column instead of leaving an awkward blank area beside the title. */
+body.naxx-three-page-route #contextArtworkPanel.wh-context-panel {
+  grid-template-columns:minmax(0,1fr)!important;
+  gap:0!important;
+  padding:12px 16px!important;
+  margin-bottom:9px!important;
 }
+body.naxx-three-page-route #contextArtworkPanel .wh-context-media {
+  display:none!important;
+}
+body.naxx-three-page-route #contextArtworkPanel .wh-context-copy {
+  width:100%;
+  min-width:0;
+}
+body.naxx-three-page-route #contextArtworkPanel .wh-context-heading {
+  font-size:21px;
+}
+body.naxx-three-page-route #contextArtworkPanel .wh-context-summary {
+  margin-top:5px;
+}
+/* Do not repeat the introductory paragraph and waste more vertical space. */
+body.naxx-three-page-route #sectionSubheading { margin-bottom:0; }
 body.naxx-three-page-route .naxx-guide-body {
   width:100%;
   min-width:0;
