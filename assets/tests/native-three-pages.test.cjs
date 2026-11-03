@@ -173,11 +173,21 @@ assert.ok(apply.includes("three-page editable Word (DOCX)")&&apply.includes("17 
  "Approved Word download and all original application questions must be described");
 assert.ok(apply.includes("Accounts are arranged manually after acceptance."),
  "Application must not imply automatic account creation");
-assert.ok(apply.includes("within <strong>one calendar month</strong>") &&
+assert.ok(apply.includes("<strong>one calendar month</strong>") &&
  apply.includes("treated as withdrawn") && apply.includes("not a ban or a rejection"),
- "Accepted nonresponders must have a clear, non-punitive one-month onboarding deadline");
-assert.ok(apply.includes("Without a reply, onboarding will be closed as withdrawn"),
- "The existing FAQ must explain the acceptance follow-up without introducing another question");
+ "Accepted nonresponders must have a non-punitive one-month onboarding deadline");
+for (const channel of [
+ "reply to your acceptance email",
+ "send the owner a Discord message",
+ "join the Naxxramas Discord server",
+ "log in to the WoW server"
+]) assert.ok(apply.includes(channel),"Missing accepted joining channel: "+channel);
+assert.ok(apply.includes("Any one of these is enough") &&
+ apply.includes("the owner can identify you as the accepted applicant"),
+ "A single recognisable channel must count; avoid treating anonymous activity as proof");
+assert.ok(apply.includes("You do not need to do all four") &&
+ apply.includes("no recognisable contact or joining activity"),
+ "The existing FAQ should explain all alternatives without adding another question");
 assert.ok(apply.includes("applications are not yet open"),
  "Document download must not imply applications can be submitted");
 

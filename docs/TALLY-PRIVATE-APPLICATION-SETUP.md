@@ -56,15 +56,17 @@ Keep the **existing required acknowledgement**: “I have read the privacy infor
 **Owner follow-up before real applications:** the maximum pending-review period is now set at **90 days**; withdrawal handling, how applicants can request deletion and any applicable legal exceptions still need a final published privacy notice. Staff-only email alerts should contain no needless sensitive answers. For now, the form is CLOSED and untested.
 
 
-### Owner decision — no reply after acceptance (3 November 2026)
+### Owner decision — recognised activity within one month after acceptance (3 November 2026, clarified)
 
-**CONFIRMED, separate from initial review and data retention:** If the owner does not hear back from an accepted applicant **within one calendar month after the acceptance notification**, CosmicCuddle will assume the applicant has decided not to join. The onboarding request may be closed as **withdrawn / no response**. This is not a refusal of the initial application, a disciplinary ban, or an instruction to delete a player account that may already exist.
+**CONFIRMED by CosmicCuddle:** An accepted applicant does **not** have to reply to the acceptance email specifically. Any **one** of these can demonstrate that they intend to join: (1) replying to the acceptance email, (2) messaging the owner on Discord, (3) joining the Naxxramas Discord server, or (4) connecting to the WoW server. Only **if none of these occurs in a recognisable way within one calendar month after acceptance notification**, the owner may treat the onboarding request as **withdrawn / no response**. This is not an application refusal, ban or instruction to delete a character/account.
 
-**Applicant-facing draft:** "If your application is accepted, please reply to your acceptance email within one calendar month to confirm you still wish to join. If we do not hear from you by then, we will assume you no longer plan to proceed and close the onboarding request."
+**Applicant-facing wording:** "If accepted, you have one calendar month to show you intend to join. You can reply to your acceptance email, message me on Discord, join the Naxxramas Discord server, or log in to the game server. Any one is enough as long as I can tell it's you. If I receive no contact and see no sign you've joined within that month, I'll assume you've changed your mind and close the onboarding request."
 
-**Preserve the existing data policy independently:** The application and owner-held copies are still due for deletion **within 30 days after the acceptance decision**, including manually clearing Tally Trash. Waiting one calendar month for a response **does not extend the application-document retention deadline**. Owner must be able to track the acceptance notification date and onboarding reply status privately, with minimal information and without retaining full applicant answers beyond the approved period.
+**Manual verification and privacy:** Do not assume Discord joins or game logins are automatically linked to Tally applications, or promise automatic recognition, monitoring or email reminders. When the owner cannot reasonably match a Discord/game account to the accepted applicant, manual confirmation may be needed. A record of acceptance notification and confirmed onboarding status can be kept privately with minimum necessary details.
 
-**Still unresolved:** A publicly accessible owner-approved route for privacy, withdrawal or deletion requests (the applicant may reply to the acceptance email for the ordinary acceptance follow-up, but this is not a substitute for a pre-acceptance privacy contact). Do not invent an email address, Discord handle, account auto-deletion, or automated server action.
+**Preserve the existing data policy independently:** The application and owner-held copies are still due for deletion **within 30 days after the acceptance decision**, including manually clearing Tally Trash. One month to demonstrate joining **does not extend the document retention deadline**.
+
+**Still unresolved:** A publicly accessible, owner-approved route for requests to withdraw an application or delete personal data **before acceptance**. An acceptance-email reply remains one possible way to confirm joining, but it is not a substitute for publicly stated privacy contact instructions. Do not invent an email address, Discord handle, account auto-deletion or automated server action.
 
 ## 2. Tally settings
 
