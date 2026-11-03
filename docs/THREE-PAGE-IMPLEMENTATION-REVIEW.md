@@ -93,10 +93,20 @@ The public site no longer gives new applicants the old connection-setting line; 
 - Confirm final Rules Draft 1.0 wording, especially the separate raid-only Master Looter setup; the exact approved raid workflow and automation status have **not** been independently verified.
 - Confirm any final player account onboarding/registration sequence, application access model and how future tier access is actually enabled in game. No assumed race restrictions, automatic whitelist or paid expansion services are claimed.
 - Verify required patch releases remain current immediately before publication (checked 3 Nov 2026: main v1.0.6.8.4 includes `patch-V.mpq`; v1.0.6.7 supplies `patch-Z.mpq`).
-- Pick the official blank application format (fillable PDF, editable DOCX or both). The attached design-review samples are **not published** or offered as final files.
+- Review and explicitly approve the **owner's existing three-page editable DOCX application** as the primary download; a separate PDF is optional and not selected. A minimally revised local review copy preserves all 17 existing questions/fields and three pages, changing only the closing instruction to refer to the future private website upload area. **Do not publish or upload that private review file to the repository without owner approval.**
 - Approve a privacy notice, retention/deletion schedule, contact email handling, reviewer access, spam/rate limits and permitted reapplications/withdrawals.
 - Review desktop/mobile visual QA, header/footer, three new links, keyboard navigation, original site content and all anticipated FAQ answers.
 - Confirm the only publicly displayed application state is **closed** until genuine end-to-end tests and explicit owner activation approval.
+
+## Existing owner application DOCX — preserved as source of truth (3 November 2026)
+
+**Owner-provided private source:** `Naxxramas Application.docx`, **three pages**, **17 numbered questions/fields**, 3 final agreement boxes, owner welcome and detailed server overview. Page 1 requests preferred future **account username**, email and optional Discord username; Page 2 covers WoW experience, expansion progression, play style, faction and Playerbots; Page 3 covers interests, feedback, available play times, questions and agreement to rules.
+
+CosmicCuddle asked us to continue from that existing form, not replace it with an assistant-invented seven-question form. A separate **working review copy** `Naxxramas-Application-Website-Review.docx` was created locally from the user's private upload with **one text-only instruction change**: save the Word document, and when applications open, submit it through the website's private upload area. The owner document's 17 fields, layout and rules acknowledgements were preserved. All three pages rendered and were visually inspected; no overflow or lost fields were observed. The copy is available to the owner in the current chat, but **is not in this public GitHub repository**.
+
+Draft `apply/content.html` was aligned with the **preferred account username** wording (instead of the earlier invented community nickname) and clarifies that the owner creates accounts manually after acceptance. The already approved three-step **download → complete/save → private upload** workflow is unchanged. The website's official form download remains disabled/not offered; no private upload receiver has been activated. Do not create a fake public form or leak private applications.
+
+**Remaining choice:** owner approval to publish the revised DOCX as the official downloadable blank form and whether to offer a separately validated PDF; verify any real private upload service before enabling. The draft website remains unmerged.
 
 ## Tally Free integration plan — not connected
 
@@ -106,7 +116,7 @@ Tally Free is the preferred option **subject to owner-controlled setup and priva
 - https://tally.so/help/self-email-notifications — notifications are supported on Free. Uploaded files are linked rather than attached to emails.
 - https://tally.so/help/submissions-data-retention — scheduled automatic retention requires **Business**, not Free; Free needs a **manual deletion policy**, with deleted submissions otherwise retained in Trash for up to 90 days unless permanently emptied.
 
-**Owner must create/control the form account personally; do not request credentials.** Configure a private test form accepting exactly one PDF or DOCX max 10 MB, applicant email, optional Discord name, community nickname and minimal approved questionnaire. Restrict submissions to the owner/reviewer; verify that uploaded file links do not expose data to unauthenticated third parties. Validate mobile and keyboard file selection, wrong extension, large file, missing file, lost connection, duplicate submit and real server-confirmed success. Use dummy documents only.
+**Owner must create/control the form account personally; do not request credentials.** Configure a private test form accepting exactly one PDF or DOCX max 10 MB, applicant email plus minimal routing metadata, with any preferred account username already supplied inside the uploaded DOCX. Do not request an unnecessary duplicate questionnaire or public account credentials. Restrict submissions to the owner/reviewer; verify that uploaded file links do not expose data to unauthenticated third parties. Validate mobile and keyboard file selection, wrong extension, large file, missing file, lost connection, duplicate submit and real server-confirmed success. Use dummy documents only.
 
 After the owner approves the form and supplies its exact embed URL, add the native-framed iframe and a plainly worded external **Open upload form** fallback link to the Apply page. A real success message must appear only after Tally confirms persistence; a failure must not claim successful delivery. Owner email notification is separate from an acceptance decision. Never put uploaded applications, contact details or secrets in GitHub Pages, repository commits, Issues or public previews.
 
