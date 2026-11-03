@@ -1,4 +1,5 @@
 name: One-time private client instructions cleanup
+# Rerun with exact locally verified replacement wording.
 on:
   push:
     branches:
