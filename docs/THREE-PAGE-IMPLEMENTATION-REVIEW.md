@@ -122,6 +122,14 @@ CosmicCuddle expressly approved **manual deletion of completed applications with
 
 The owner is currently building the Tally form manually; screenshots confirm a draft with a required single DOCX upload (10 MB), a required privacy acknowledgement, a custom thank-you page, and self-email notifications switched on and reportedly saved. User reports **Close form enabled and saved**; no independent account-side inspection or actual submission test has been completed. No website activation/merge is approved. Keep the distinction between **user-reported settings**, a visual preview, and **verified test delivery**.
 
+### Owner-supplied Tally link and release-gated embed (3 November 2026)
+
+The owner supplied **https://tally.so/r/q5Lqr8** for the published Tally test form and reported that a dummy Word upload worked. The form is still an independently accessible public Tally URL whenever its own *Close form* option is OFF. Do **not** confuse this with approved public applications on the Naxxramas website.
+
+In Draft PR #47, the existing `apply/content.html` now holds a **hidden/inert Standard Tally iframe** for that exact form and an equally hidden direct-link fallback. The native page JS includes **`var APPLICATION_EMBED_APPROVED = false;`**, so **the iframe has no `src`**, the external widget library does not load, and the public page continues to show the disabled closed-application preview. Scoped CSS maintains the Resource Hub style and accessible mobile width. Activation is a **separate later owner approval and code change**; do not flip this flag until the official blank DOCX, full privacy notice, actual Tally submission/notification/deletion checks, and visual QA pass.
+
+Owner reported success of the dummy upload; **the dashboard receipt, email notification, Thank You view, Trash clearing and actual current Close form setting have not been independently verified**. The exact Tally form ID is stored on the **public draft branch**, so treat the link as publicly discoverable, not a secret. See [`TALLY-PRIVATE-APPLICATION-SETUP.md`](TALLY-PRIVATE-APPLICATION-SETUP.md) for the separate provider and website release checklist.
+
 ## Tally Free integration plan — not connected
 
 Tally Free is the preferred option **subject to owner-controlled setup and private testing**. Current official references:
