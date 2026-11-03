@@ -135,13 +135,13 @@ const apply=read("apply/content.html");
 assert.ok(apply.includes('type="file"')&&apply.includes("disabled"),"Upload must be inert");
 assert.ok(apply.includes("Applications are not currently open"));
 assert.ok(!/<form\b/i.test(apply),"No live form endpoint");
-assert.equal((apply.match(/<iframe\\b/g)||[]).length,1,
+assert.equal((apply.match(/<iframe\b/g)||[]).length,1,
  "Exactly one prepared Tally iframe may exist in the draft");
 assert.ok(apply.includes('id="naxx-tally-live-application"')&&apply.includes('hidden aria-label='),
  "Prepared embed must be hidden while applications are not approved");
 assert.ok(apply.includes('data-tally-src="https://tally.so/embed/q5Lqr8?'),
  "Use only the exact owner-supplied Tally form ID");
-assert.ok(!/<iframe\\b[^>]*\\ssrc=/i.test(apply),
+assert.ok(!/<iframe\b[^>]*\ssrc=/i.test(apply),
  "Never fetch Tally from the static HTML while applications are closed");
 assert.ok(apply.includes('href="https://tally.so/r/q5Lqr8"'),
  "Include a same-form direct fallback for when applications are later opened");
