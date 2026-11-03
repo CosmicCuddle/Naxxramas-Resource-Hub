@@ -108,6 +108,14 @@ Draft `apply/content.html` was aligned with the **preferred account username** w
 
 **Owner document approval:** CosmicCuddle confirmed on 3 November 2026 that the revised DOCX is satisfactory. A subsequent direct OOXML check confirmed that all **26 checkboxes are already genuine Word checkbox controls**, with **12 editable text content controls**; no checkbox redesign was necessary. **Remaining release decisions:** whether to offer an optional PDF, authorisation to publish the approved blank DOCX on the website, and verification/activation of a real private upload service. The draft website remains unmerged and applications closed.
 
+### Tally Free owner approval to prepare (3 November 2026)
+
+CosmicCuddle agreed to proceed with a private **Tally Free** upload flow after approving the existing 3-page DOCX. The exact setup and dummy-file acceptance checklist are now tracked in [`docs/TALLY-PRIVATE-APPLICATION-SETUP.md`](TALLY-PRIVATE-APPLICATION-SETUP.md), based on Tally's current help documentation.
+
+**Decision scope:** Prepare an **upload-only** test form; collect a single **DOCX, up to 10 MB**, using the already-approved application with all 17 fields and no duplicated online questionnaire. Owner creates/manages the Tally account; no credentials supplied here. The public Apply page now labels Tally as planned and keeps its example field disabled. Exact form URL/embed, privacy notice, retention/delete policy, test results and release decision are still missing. Never claim submissions are working before real private testing.
+
+**Privacy caution:** Tally Free does not offer automated submission retention; a manual policy and deletion/Trash check are required. File links exported via integrations can become accessible without Tally login if the recipient has the tokenised URL. Avoid applicant-data exports and public links. No live applicant submissions until approved.
+
 ## Tally Free integration plan — not connected
 
 Tally Free is the preferred option **subject to owner-controlled setup and private testing**. Current official references:
