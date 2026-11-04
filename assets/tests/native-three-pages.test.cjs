@@ -245,6 +245,10 @@ assert.ok(clientScript.includes("naxx-client-explainer-title") &&
  clientScript.includes("Naxxramas acceptance email") &&
  clientCss.includes(".naxx-client-guide .naxx-client-explainer"),
  "The first Game Clients banner must explain the client/server distinction before showing downloads");
+assert.ok(clientScript.includes("if (!selected) {") &&
+ clientScript.includes("if (previousGuide) previousGuide.remove()") &&
+ !clientScript.includes('!grid.querySelector(".game-client-card")'),
+ "Guide must mount independently of legacy cards and clean itself up when another section is selected");
 assert.ok(clientScript.includes("You use the same game client throughout Vanilla") &&
  clientScript.includes("Individual Progression") &&
  clientScript.includes("do not need a separate client for each era"),
