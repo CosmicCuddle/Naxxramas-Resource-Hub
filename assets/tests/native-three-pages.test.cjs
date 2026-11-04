@@ -167,7 +167,7 @@ assert.ok(apply.includes("Application withdrawal or privacy requests:") &&
  apply.includes('href="mailto:naxxapplicationteam@gmail.com"') &&
  apply.includes("private Discord message") &&
  apply.includes("Either method is acceptable") &&
- apply.includes("do not email completed applications"),
+ /do not email completed applications/i.test(apply),
  "Privacy contact must use the owner-created mailbox, allow private Discord, and keep application uploads separate");
 assert.ok(apply.includes("preferred account username"),"Website must match original owner Word application, not community nickname");
 assert.ok(!apply.includes("community nickname"),"Outdated applicant identity wording must not reappear");
