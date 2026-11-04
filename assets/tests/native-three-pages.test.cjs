@@ -15,7 +15,7 @@ const bootstrap = read("assets/naxx-three-page-bootstrap.js");
 const css = read("assets/naxx-three-pages.css");
 const pages = ["new-players","rules","apply"];
 const titles = ["New Player Guide","Server Rules","Apply to Join Naxxramas"];
-const faqs = [38,35,8];
+const faqs = [24,0,0];
 assert.ok(index.length<6500,"Original root index loader must stay small");
 assert.ok(index.includes("site-content.html"),"Existing site content must remain bootstrapped");
 assert.ok(index.includes("naxx-three-pages.js?v=2"));
@@ -52,7 +52,11 @@ pages.forEach((slug,i)=>{
  const route=read(slug+"/index.html"),body=read(slug+"/content.html");
  assert.ok(route.includes(titles[i]),slug+" heading");
  assert.ok(route.includes("naxx-three-page-bootstrap.js"),slug+" must boot native site");
- assert.ok(body.includes('id="faq"'),slug+" FAQ section");
+ if (slug === "new-players") {
+   assert.ok(body.includes('id="faq"'),"New Player FAQ section must remain");
+ } else {
+   assert.ok(!body.includes('id="faq"'),slug+" duplicate FAQ must be removed");
+ }
  assert.equal((body.match(/class="naxx-guide-qa"/g)||[]).length,faqs[i],slug+" full FAQ");
  assert.ok(!/<details\b|<summary\b/i.test(body),slug+" must not collapse content");
  assert.ok(body.includes('href="../')||body.includes("naxx-guide-steps"));
@@ -64,36 +68,17 @@ const rules=read("rules/content.html");
 for(let i=1;i<=12;i++)assert.ok(rules.includes('id="rule-'+i+'"'),"Rule "+i+" must be visible");
 assert.equal((rules.match(/class="naxx-guide-card naxx-guide-rule"/g)||[]).length,12);
 assert.ok(rules.includes("Free for All loot is prohibited"));
-for (const question of [
- "How do I set up the game client?",
- "What does Individual Progression (IP) do?",
- "What do the Vanilla tiers mean?",
- "How do I know which tier my character is in?",
- "What are Playerbots, and how do they work?",
- "Do Playerbots accept and finish their own quests?"
-]) assert.ok(rules.includes(question),"Missing owner-requested onboarding FAQ: "+question);
-assert.ok(rules.includes("normal-player tier display or command has not yet been confirmed"),
- "Do not claim unverified player-facing IP tier commands exist");
-assert.ok(rules.includes("precise Naxxramas setup is being verified"),
- "Do not claim unverified installed Playerbot quest automation");
-assert.ok(!rules.includes("May an all-human group farm an easier dungeon?"),
- "Replace the repetitive rules FAQ with practical onboarding questions");
-
-for(const topic of ["client","ip","bots","gameplay","help"]) {
-  assert.ok(rules.includes('id="faq-'+topic+'"'),"FAQ topic anchor missing: "+topic);
-}
-assert.equal((rules.match(/class="naxx-guide-faq-topic"/g)||[]).length,5,
- "All five FAQ topic sections must be present");
-assert.equal((rules.match(/class="naxx-guide-qa"/g)||[]).length,35,
- "All 35 onboarding FAQ questions must be present");
-assert.ok(rules.includes('aria-label="Jump to FAQ topic"'),"Readers need quick topic navigation");
-assert.ok(!/<details\b|<summary\b/i.test(rules),
- "All twelve rules and FAQ answers must remain visible without accordions");
-assert.ok(rules.includes("Tier 0")&&rules.includes("Molten Core")&&rules.includes("Ahn'Qiraj"),
- "The tier FAQ should explain Vanilla milestones");
-assert.ok(rules.includes("Will Playerbots finish my quests for me?")&&rules.includes("Will a new alt share my main character's tier?"),
- "FAQ must cover bot quests and independent character progression");
-
+// The 35-question onboarding FAQ was intentionally removed: these topics
+// remain in New Players and are not repeated on the Rules page.
+assert.ok(!rules.includes('id="faq"'),"Rules must not duplicate the new-player FAQ");
+assert.ok(rules.includes("How to Submit an In-Game Support Ticket"),
+ "The original 3.3.5a support ticket guide must remain");
+assert.ok(rules.includes("Rule Enforcement and Bans"),
+ "Moderation details must remain");
+assert.ok(rules.includes("Vanilla Group Etiquette"),
+ "The approved short etiquette guide must remain");
+assert.ok(rules.includes("Free for All loot is prohibited"),
+ "Preserve the approved loot restrictions");
 
 assert.ok(rules.includes("ten-player dungeons"));
 const guide=read("new-players/content.html");
@@ -120,13 +105,13 @@ assert.ok(guide.includes("Jump to New Player Guide FAQ topic"),
 assert.ok(!/<details\b|<summary\b/i.test(guide),"All guide FAQ answers remain visible");
 
 assert.ok(guide.includes("tiers 1–7"));
-assert.ok(guide.includes("Vanilla Tier 0") && rules.includes("Tier 0"),
+assert.ok(guide.includes("Vanilla Tier 0"),
  "Most fresh characters should be explained as starting at Tier 0");
 for(const exception of ["Blood Elves","Draenei","Death Knights"]) {
- assert.ok(guide.includes(exception) && rules.includes(exception),
+ assert.ok(guide.includes(exception),
   "Starting progression exception must be explained in guide and FAQ: "+exception);
 }
-assert.ok(rules.includes("exact starting stage depends on the character type and server configuration"),
+assert.ok(guide.includes("their exact starting stages depend on the server's effective configuration"),
  "Do not invent a blanket starting tier for special race/class cases");
 assert.ok(guide.includes("no permanent server-wide level-60 cap"));
 assert.ok(guide.includes("patch-V.mpq")&&guide.includes("patch-Z.mpq"));
@@ -160,9 +145,10 @@ assert.ok(apply.includes("transparentBackground=1"),
  "Tally embed transparency must be preserved alongside its dark iframe backing");
 assert.ok(apply.includes('accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"'),
  "Private test form must reflect the approved Word DOCX template, not a premature PDF offer");
-assert.ok(apply.includes("owner-controlled <strong>Tally upload</strong>") &&
- apply.includes("GitHub Pages does not collect application files"),
- "Real application uploads must go to the owner-controlled Tally form, never GitHub Pages");
+assert.ok(apply.includes("third-party form service") &&
+ apply.includes('href="https://tally.so/help/gdpr"') &&
+ !/\bTally\b/i.test(apply.replace(/<!--[\s\S]*?-->/g,"").replace(/<[^>]*>/g," ")),
+ "Visible text must omit the provider brand while privacy notice discloses external processing");
 assert.ok(apply.includes("one .docx file, up to 10 MB") ||
  apply.includes("one .docx file (up to 10 MB)"),
  "Keep the approved single-DOCX 10-MB limit visible on the open page");
@@ -181,7 +167,7 @@ assert.ok(apply.includes('href="#privacy"') &&
  apply.includes("legitimate interests") &&
  apply.includes("90 days of submission") &&
  apply.includes("30 days of the decision") &&
- apply.includes("Tally's Trash") &&
+ apply.includes("form provider's deleted-submissions area") &&
  apply.includes("UK Information Commissioner's Office") &&
  apply.includes('href="https://tally.so/help/gdpr"'),
  "Privacy notice must be visible, linked and preserve retention/contact and legal review boundaries");
@@ -206,8 +192,9 @@ assert.equal(crypto.createHash("sha256").update(formBytes).digest("hex"),
  "f6617c8a4da6e9b75b56b020361f8aab57a8cca47921a9225685b0c0cddfa695",
  "Public file must match owner-approved blank DOCX, with website-upload closing instruction");
 assert.ok(apply.includes('href="naxxramas-application.docx"')&&apply.includes('download="Naxxramas-Application.docx"'),"Apply page must have direct native download link");
-assert.ok(apply.includes("three-page editable Word (DOCX)")&&apply.includes("17 numbered questions"),
- "Approved Word download and all original application questions must be described");
+assert.ok(apply.includes('href="naxxramas-application.docx"') &&
+ apply.includes("naxx-guide-step"),
+ "Approved application download and short step-by-step instructions must remain");
 assert.ok(apply.includes("Accounts are arranged manually after acceptance."),
  "Application must not imply automatic account creation");
 assert.ok(apply.includes("<strong>one calendar month</strong>") &&
@@ -222,11 +209,11 @@ for (const channel of [
 assert.ok(apply.includes("Any one of these is enough") &&
  apply.includes("the owner can identify you as the accepted applicant"),
  "A single recognisable channel must count; avoid treating anonymous activity as proof");
-assert.ok(apply.includes("You do not need to do all four") &&
- apply.includes("no recognisable contact or joining activity"),
- "The existing FAQ should explain all alternatives without adding another question");
+assert.ok(apply.includes("Any one of these is enough") &&
+ apply.includes("treated as withdrawn"),
+ "A recognised joining channel must be sufficient and nonresponse non-punitive");
 assert.ok(apply.includes("Applications are open.") &&
- apply.includes("upload your finished application privately"),
+ apply.includes("submit it securely through the private upload area"),
  "Opened website must give truthful, actionable submission instructions");
 
 const blob=Buffer.from(site);
@@ -235,7 +222,7 @@ const hash=crypto.createHash("sha1").update(Buffer.concat([
 assert.equal(hash,"71ab9f2bf4cf12282fcbe135f7ec787805715b62",
  "Source must match the owner-approved sanitized main branch without further alterations");
 console.log("PASS: original site source, root loader, three native routes and sidebar safety");
-console.log("PASS: 12 visible rules, 81 FAQ answers and approved open Tally release integration");
+console.log("PASS: 12 visible rules, 24 focused New Player FAQ answers and approved open application integration");
 console.log("PASS: no private connection file or upload receiver in new page assets");
 console.log("PASS: approved public Game Clients privacy correction is incorporated from main.");
-console.warn("RELEASE GATE: still a draft. Do not merge until Tally account privacy text is aligned with owner-approved email-only contact.");
+console.warn("RELEASE GATE: verify the form provider privacy disclosure and owner-approved email-only contact before release.");
