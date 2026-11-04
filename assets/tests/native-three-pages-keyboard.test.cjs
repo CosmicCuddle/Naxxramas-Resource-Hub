@@ -54,7 +54,7 @@ async function connect(browser,url,width){
 async function desktop(browser,base){
  const s=await connect(browser,base+"apply/",1440);
  try{
-  await s.until('document.querySelectorAll(".naxx-guide-qa").length===8',"Apply page ready");
+  await s.until('document.querySelectorAll("#steps .naxx-guide-step").length===3&&!!document.querySelector("#naxx-tally-live-application")',"Apply page ready");
   const focused=await s.evaluate('(()=>{const b=document.querySelector("#mainNav button[data-naxx-guide-link=rules]");if(!b)return false;b.focus();return document.activeElement===b;})()');
   if(!focused)throw Error("Desktop Rules control cannot receive focus");
   await s.enter();
