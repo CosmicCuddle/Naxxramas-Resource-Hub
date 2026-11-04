@@ -13,6 +13,7 @@ body.visual-admin-active #resourceGrid.naxx-game-client-guide-grid > #naxx-game-
 .naxx-client-section h3 { color:#f1d7ad; font-size:clamp(17px,2vw,21px); margin:0 0 13px; }
 .naxx-client-downloads { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:16px 0 12px; }
 .naxx-client-download-card { display:flex; flex-direction:column; min-width:0; padding:16px; border:1px solid #67504b; border-radius:7px; background:#251b24; gap:9px; }
+.naxx-client-service-note { align-self:flex-start; padding:4px 8px; font-size:11px; line-height:1.35; font-weight:700; letter-spacing:.02em; border-radius:4px; border:1px solid #8a6647; background:#3c2c24; color:#f6d09b; }
 .naxx-client-download-card h4 { margin:0; font-size:18px; color:#f0d8b3; }
 .naxx-client-download-card p { margin:0 0 9px; }
 .naxx-client-download-card .game-client-external-button,.naxx-client-unavailable { margin-top:auto; align-self:flex-start; max-width:100%; font-size:12px; }
