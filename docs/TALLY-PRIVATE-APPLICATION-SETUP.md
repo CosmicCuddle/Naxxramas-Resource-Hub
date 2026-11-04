@@ -53,7 +53,7 @@ Use these blocks, in order:
 
 Keep the **existing required acknowledgement**: “I have read the privacy information above and understand how my application will be used” → “I understand and agree.” Provide accessible links to the final privacy notice and Tally's privacy information before launch. Do not claim that uploads are never transferred to or stored by Tally.
 
-**Owner follow-up before real applications:** the maximum pending-review period is now set at **90 days**; email/Discord request channels are approved and the owner has supplied **naxxapplicationteam@gmail.com** as the public email destination. Confirm inbound delivery, withdrawal handling and any applicable legal exceptions in the final published privacy notice. Staff-only email alerts should contain no needless sensitive answers. The **website embed remains OFF**. CosmicCuddle reports a successful dummy-file test of the separate Tally form, but its current Close form setting, private dashboard receipt, email alert and permanent deletion remain independently unverified.
+**Owner follow-up before real applications:** the maximum pending-review period is now set at **90 days**; email/Discord request channels are approved and the owner has supplied **naxxapplicationteam@gmail.com** as the public email destination. Owner reports inbound/outbound email delivery already tested. Finalise withdrawal handling and any applicable legal exceptions in the published privacy notice. Staff-only email alerts should contain no needless sensitive answers. The **website embed remains OFF**. CosmicCuddle reports a successful dummy-file test of the separate Tally form, but its current Close form setting, private dashboard receipt, email alert and permanent deletion remain independently unverified.
 
 
 ### Owner decision — recognised activity within one month after acceptance (3 November 2026, clarified)
@@ -66,7 +66,7 @@ Keep the **existing required acknowledgement**: “I have read the privacy infor
 
 **Preserve the existing data policy independently:** The application and owner-held copies are still due for deletion **within 30 days after the acceptance decision**, including manually clearing Tally Trash. One month to demonstrate joining **does not extend the document retention deadline**.
 
-**Channels and published email identified:** Email or private Discord are both approved methods for withdrawal/deletion requests, and **naxxapplicationteam@gmail.com** is the owner-supplied pre-acceptance email contact. Test the mailbox before opening submissions; no specific Discord destination has been confirmed. An acceptance-email reply remains one possible way to confirm joining, but it is not a substitute for public pre-acceptance privacy contact instructions. Do not invent a Discord handle, account auto-deletion or automated server action.
+**Channels and published email identified:** Email or private Discord are both approved methods for withdrawal/deletion requests, and **naxxapplicationteam@gmail.com** is the owner-supplied pre-acceptance email contact. The owner has tested receiving and replying from the mailbox; no specific Discord destination has been confirmed. An acceptance-email reply remains one possible way to confirm joining, but it is not a substitute for public pre-acceptance privacy contact instructions. Do not invent a Discord handle, account auto-deletion or automated server action.
 
 ## 2. Tally settings
 
@@ -103,7 +103,7 @@ On authorised launch, separately confirm:
 - The site removes its **Applications closed** text and disabled-demo control and enables the iframe only once all requirements pass.
 - Tally's theme and the iframe's transparent-background option are checked on desktop/mobile for contrast; current default Tally colours could clash with the dark Warcraft theme.
 - The external direct-link fallback works and opens **the same form**.
-- The Tally form's *actual* privacy notice includes the owner-supplied email **naxxapplicationteam@gmail.com** for privacy/withdrawal requests, the 30-day post-decision deletion and 90-day maximum pending period; verify inbound email delivery and final privacy/compliance wording before activation.
+- The Tally form's *actual* privacy notice includes the owner-supplied email **naxxapplicationteam@gmail.com** for privacy/withdrawal requests, the 30-day post-decision deletion and 90-day maximum pending period; the owner's inbound/outbound email test is recorded; verify Tally notification delivery separately and finalise privacy/compliance wording before activation.
 - No application claim of success occurs unless Tally confirms actual submission.
 
 **Evidence boundary:** CosmicCuddle reported the dummy Word test “worked”, but receipt visibility in the Tally owner dashboard, email notification arrival, the Thank You message, permanent deletion/Trash clearing and the current Close form status are **not independently verified here**.
