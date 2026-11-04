@@ -151,6 +151,14 @@ function probe(slug,viewportWidth){
      !!candidate.querySelector('a[href="https://eternion-wow.net/download"]')&&
      !!candidate.querySelector(".naxx-client-unavailable")&&
      !candidate.querySelector(".game-client-external-button"),
+    providerPlainArchiveInstructions:!!candidate&&
+     candidate.textContent.includes("scroll past the launcher")&&
+     candidate.textContent.includes("Full client — 3.3.5a (build 12340)")&&
+     candidate.textContent.includes("16.5 GB")&&
+     candidate.textContent.includes("Their separate setup instructions are for Eternion"),
+    correctLoginVersionExplained:!!guide.querySelector("#naxx-client-prepare")&&
+     guide.querySelector("#naxx-client-prepare").textContent.includes("Version 3.3.5 (12340)")&&
+     guide.querySelector("#naxx-client-prepare").textContent.includes("this is normal for the 3.3.5a client"),
     simulatedAdminKeepsOriginalCard:adminKeepsOriginalCard,
     simulatedAdminKeepsOriginalGrid:adminRestoresGridLayout,
     visitorModeRestoresGuide:visitorGuideRestores,
