@@ -245,6 +245,12 @@ assert.ok(clientScript.includes("naxx-client-explainer-title") &&
  clientScript.includes("Naxxramas acceptance email") &&
  clientCss.includes(".naxx-client-guide .naxx-client-explainer"),
  "The first Game Clients banner must explain the client/server distinction before showing downloads");
+assert.ok(clientScript.includes("do not currently host the base game files ourselves") &&
+ clientScript.includes("Wrath of the Lich King (WotLK)") &&
+ clientScript.includes("patch 3.3.5a (build 12340)") &&
+ clientScript.includes("If a download website asks for the expansion or patch") &&
+ !clientScript.includes("we do not host those base game files ourselves"),
+ "Hosting must be described as current, and WotLK / 3.3.5a / build 12340 made explicit for provider selection");
 assert.ok(clientScript.includes("Eternion (plain 3.3.5a client)") &&
  clientScript.includes("https://eternion-wow.net/download") &&
  clientScript.includes("Client file not yet verified") &&
