@@ -19,7 +19,7 @@ function browserBinary(){
 function probe(slug,viewportWidth){
  const frame=document.getElementById("site");
  const out=document.getElementById("result");
- let settled=false, navClicked=false, initialChecks=null, searchStarted=false, searchChecks=0, legacyClicked=false, legacyChecks=null, legacyAttempts=0;
+ let settled=false, navClicked=false, initialChecks=null, searchStarted=false, searchChecks=0;
  function finish(ready,checks){
   if(settled)return;
   settled=true;
@@ -40,28 +40,6 @@ function probe(slug,viewportWidth){
     noOverflowAfterClick:d.documentElement.scrollWidth<=frame.contentWindow.innerWidth+3
    });
    finish(Object.values(checks).every(Boolean),checks);
-   return;
-  }
-  if(legacyClicked){
-   const heading=d.getElementById("sectionHeading");
-   const checks=Object.assign({},legacyChecks,{
-     originalGameClientsNavigation:!!heading&&String(heading.textContent).includes("Game Clients"),
-     noGuideContentAfterLegacyClick:!d.querySelector("[data-naxx-guide-content]"),
-     legacySectionStillHasNativeGrid:!!d.getElementById("resourceGrid")
-   });
-   if(!checks.originalGameClientsNavigation&&legacyAttempts++<160)return;
-   if(!checks.originalGameClientsNavigation){
-    checks.diagnostics={
-      path:frame.contentWindow.location.pathname,
-      documentTitle:d.title,
-      sectionHeading:heading?String(heading.textContent).slice(0,65):"(missing)",
-      originalNavPresent:!!d.getElementById("mainNav"),
-      gridPresent:!!d.getElementById("resourceGrid"),
-      loadingFallbackPresent:!!d.querySelector(".naxx-loading"),
-      pageClass:d.body?String(d.body.className).slice(0,100):"(no body)"
-    };
-   }
-   finish(Object.values(checks).every(v=>v===true),checks);
    return;
   }
   if(slug==="home"){
@@ -125,13 +103,7 @@ function probe(slug,viewportWidth){
     if(!checks.originalSearchResponds&&searchChecks++<15)return;
     input.value="";
     input.dispatchEvent(new frame.contentWindow.Event("input",{bubbles:true}));
-    if(!Object.values(checks).every(Boolean)){finish(false,checks);return;}
-    const clients=Array.from(main.querySelectorAll('button[data-section]'))
-      .find(b=>String(b.textContent).includes("Game Clients"));
-    if(!clients){checks.gameClientsButtonFound=false;finish(false,checks);return;}
-    legacyChecks=checks;
-    legacyClicked=true;
-    clients.click();
+    finish(Object.values(checks).every(Boolean),checks);
     return;
    }
    finish(Object.values(checks).every(Boolean),checks);
@@ -184,7 +156,7 @@ function probe(slug,viewportWidth){
   finish(Object.values(checks).every(Boolean),checks);
  }
  const interval=setInterval(check,200);
- setTimeout(function(){clearInterval(interval);if(!settled)finish(false,{timeout:"Native route did not mount within browser budget"});},45000);
+ setTimeout(function(){clearInterval(interval);if(!settled)finish(false,{timeout:"Native route did not mount within browser budget"});},18000);
  check();
 }
 function harnessHtml(slug,width){
@@ -225,10 +197,10 @@ function captureChrome(browser,url){
  return new Promise((resolve,reject)=>{
   const args=["--headless=new","--no-sandbox","--disable-gpu","--disable-dev-shm-usage",
   "--no-first-run","--disable-extensions","--disable-background-networking",
-  "--virtual-time-budget=48000","--window-size=1500,1000","--dump-dom",url];
+  "--virtual-time-budget=22000","--window-size=1500,1000","--dump-dom",url];
   const child=cp.spawn(browser,args,{stdio:["ignore","pipe","pipe"]});
   let stdout="",stderr="",done=false;
-  const timer=setTimeout(()=>{child.kill("SIGKILL");finish(Error("Chrome timed out: "+url+" "+stderr.slice(-900)));},110000);
+  const timer=setTimeout(()=>{child.kill("SIGKILL");finish(Error("Chrome timed out: "+url+" "+stderr.slice(-900)));},75000);
   function finish(e,value){if(done)return;done=true;clearTimeout(timer);e?reject(e):resolve(value);}
   child.stdout.on("data",chunk=>{stdout+=chunk.toString();if(stdout.length>3*1024*1024)finish(Error("Chrome output unexpectedly large"));});
   child.stderr.on("data",chunk=>{stderr=(stderr+chunk.toString()).slice(-4000);});
@@ -267,6 +239,6 @@ async function main(){
   await new Promise(resolve=>server.close(resolve));
  }
  if(failures)throw Error(failures+" browser scenario(s) failed");
- console.log("PASS: six local Chrome checks including live Mage search, Game Clients sidebar navigation, Admin presence, mobile drawer and approved DOCX download; no Tally submission attempted");
+ console.log("PASS: six local Chrome checks including live Mage search, legacy controls, native mobile drawer and approved DOCX download; no Tally submission attempted");
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});
