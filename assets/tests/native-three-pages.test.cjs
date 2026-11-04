@@ -158,6 +158,11 @@ assert.ok(apply.includes("private Tally upload")&&apply.includes("not connected 
 assert.ok(apply.includes("one Word DOCX file, up to 10 MB"),
  "Keep planned Free-tier upload limit visible during review");
 assert.ok(apply.includes("email")&&apply.includes("Discord"));
+assert.ok(apply.includes("general <strong>Naxxramas contact email</strong>") &&
+ apply.includes("application questions, other enquiries, player support") &&
+ guide.includes('mailto:naxxapplicationteam@gmail.com') &&
+ rules.includes('mailto:naxxapplicationteam@gmail.com'),
+ "Owner-created email must also be displayed for general enquiries and player support");
 assert.ok(apply.includes("Application withdrawal or privacy requests:") &&
  apply.includes('href="mailto:naxxapplicationteam@gmail.com"') &&
  apply.includes("private Discord message") &&
