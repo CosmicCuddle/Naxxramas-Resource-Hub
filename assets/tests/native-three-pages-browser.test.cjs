@@ -19,7 +19,7 @@ function browserBinary(){
 function probe(slug,viewportWidth){
  const frame=document.getElementById("site");
  const out=document.getElementById("result");
- let settled=false, navClicked=false, initialChecks=null, searchStarted=false, searchChecks=0;
+ let settled=false, navClicked=false, initialChecks=null, searchStarted=false, searchChecks=0, clientRemovalInProgress=false;
  function finish(ready,checks){
   if(settled)return;
   settled=true;
@@ -110,6 +110,7 @@ function probe(slug,viewportWidth){
    return;
   }
   if(slug==="clients"){
+   if(clientRemovalInProgress)return;
    const guide=d.getElementById("naxx-game-client-guide");
    if(!guide)return;
    const cards=Array.from(guide.querySelectorAll(".naxx-client-download-card"));
@@ -178,7 +179,19 @@ function probe(slug,viewportWidth){
      Math.abs(positions[0].top-positions[1].top)<3,
     noHorizontalOverflow:d.documentElement.scrollWidth<=frame.contentWindow.innerWidth+3
    };
-   finish(Object.values(checks).every(Boolean),checks);
+   // Local-only DOM mutation: emulate the owner removing the old editable
+   // ChromieCraft card. The new guide must remount without that legacy card.
+   clientRemovalInProgress=true;
+   if(!legacy){checks.guideSurvivesLegacyRemoval=false;finish(false,checks);return;}
+   legacy.remove();
+   guide.remove();
+   frame.contentWindow.setTimeout(function(){
+    const replacement=d.getElementById("naxx-game-client-guide");
+    checks.guideSurvivesLegacyRemoval=!!replacement&&
+      replacement.querySelectorAll(".naxx-client-download-card").length===2&&
+      d.getElementById("resourceGrid").querySelectorAll(".game-client-card").length===0;
+    finish(Object.values(checks).every(Boolean),checks);
+   },100);
    return;
   }
   const article=d.querySelector('[data-naxx-guide-content="'+slug+'"]');
