@@ -163,6 +163,20 @@ assert.ok(apply.includes("general <strong>Naxxramas contact email</strong>") &&
  guide.includes('mailto:naxxapplicationteam@gmail.com') &&
  rules.includes('mailto:naxxapplicationteam@gmail.com'),
  "Owner-created email must also be displayed for general enquiries and player support");
+assert.ok(apply.includes('href="#privacy"') &&
+ apply.includes('id="privacy" class="naxx-guide-card"') &&
+ apply.includes('aria-labelledby="application-privacy-heading"') &&
+ apply.includes("What we collect and why") &&
+ apply.includes("How long we keep it") &&
+ apply.includes("Our proposed lawful basis") &&
+ apply.includes("legitimate interests") &&
+ apply.includes("final review before applications open") &&
+ apply.includes("90 days of submission") &&
+ apply.includes("30 days of the decision") &&
+ apply.includes("Tally's Trash") &&
+ apply.includes("UK Information Commissioner's Office") &&
+ apply.includes('href="https://tally.so/help/gdpr"'),
+ "Privacy notice must be visible, linked and preserve retention/contact and legal review boundaries");
 assert.ok(apply.includes("Application withdrawal or privacy requests:") &&
  apply.includes('href="mailto:naxxapplicationteam@gmail.com"') &&
  apply.includes("private Discord message") &&
