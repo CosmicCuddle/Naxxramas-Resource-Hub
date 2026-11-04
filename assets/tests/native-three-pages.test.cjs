@@ -257,6 +257,12 @@ assert.ok(clientScript.includes("Eternion (plain 3.3.5a client)") &&
  clientScript.includes("Do not use the Eternion Launcher") &&
  clientScript.includes("Eternion install pack"),
  "Eternion must remain a plain-full-client candidate, with separate launcher/patch warning and no tested-download claim");
+assert.ok(clientScript.includes("scroll past the launcher") &&
+ clientScript.includes("Full client — 3.3.5a (build 12340)") &&
+ clientScript.includes("about 16.5 GB") &&
+ clientScript.includes("Version 3.3.5 (12340)") &&
+ clientScript.includes("this is normal for the 3.3.5a client"),
+ "Provider navigation and in-game version wording must prevent selecting the launcher or wrongly rejecting 3.3.5a");
 assert.ok(!clientScript.includes("naxx-client-note"),
  "The old redundant client-connection note must not repeat the new introductory banner");
 
