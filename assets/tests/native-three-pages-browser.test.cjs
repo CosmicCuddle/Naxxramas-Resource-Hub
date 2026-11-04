@@ -50,7 +50,18 @@ function probe(slug,viewportWidth){
      legacySectionStillHasNativeGrid:!!d.getElementById("resourceGrid")
    });
    if(!checks.originalGameClientsNavigation&&legacyAttempts++<16)return;
-   finish(Object.values(checks).every(Boolean),checks);
+   if(!checks.originalGameClientsNavigation){
+    checks.diagnostics={
+      path:frame.contentWindow.location.pathname,
+      documentTitle:d.title,
+      sectionHeading:heading?String(heading.textContent).slice(0,65):"(missing)",
+      originalNavPresent:!!d.getElementById("mainNav"),
+      gridPresent:!!d.getElementById("resourceGrid"),
+      loadingFallbackPresent:!!d.querySelector(".naxx-loading"),
+      pageClass:d.body?String(d.body.className).slice(0,100):"(no body)"
+    };
+   }
+   finish(Object.values(checks).every(v=>v===true),checks);
    return;
   }
   if(slug==="home"){
