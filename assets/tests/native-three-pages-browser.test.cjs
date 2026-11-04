@@ -113,6 +113,8 @@ function probe(slug,viewportWidth){
    const guide=d.getElementById("naxx-game-client-guide");
    if(!guide)return;
    const cards=Array.from(guide.querySelectorAll(".naxx-client-download-card"));
+   const explainer=guide.querySelector(".naxx-client-explainer");
+   const candidate=cards.find(card=>card.querySelector("h4")?.textContent.includes("Eternion"));
    const warmane=cards.find(card=>card.querySelector("h4")?.textContent.trim()==="Warmane");
    const note=warmane?.querySelector(".naxx-client-service-note");
    const positions=cards.map(card=>card.getBoundingClientRect());
@@ -129,6 +131,19 @@ function probe(slug,viewportWidth){
    const visitorGuideRestores=frame.contentWindow.getComputedStyle(guide).display!=="none"&&
      !!legacy&&frame.contentWindow.getComputedStyle(legacy).display==="none";
    const checks={
+    firstBannerBeforeHeading:!!explainer&&guide.firstElementChild===explainer&&
+     !!explainer.querySelector("#naxx-client-explainer-title"),
+    bannerExplainsClientVsServer:!!explainer&&
+     explainer.textContent.includes("game client")&&
+     explainer.textContent.includes("game server")&&
+     explainer.textContent.includes("Downloading their client does not mean you will play on their server")&&
+     explainer.textContent.includes("acceptance email"),
+    eternionCandidateSafe:!!candidate&&
+     candidate.textContent.includes("Full client")&&
+     candidate.textContent.includes("Eternion Launcher")&&
+     !!candidate.querySelector('a[href="https://eternion-wow.net/download"]')&&
+     !!candidate.querySelector(".naxx-client-unavailable")&&
+     !candidate.querySelector(".game-client-external-button"),
     simulatedAdminKeepsOriginalCard:adminKeepsOriginalCard,
     simulatedAdminKeepsOriginalGrid:adminRestoresGridLayout,
     visitorModeRestoresGuide:visitorGuideRestores,
