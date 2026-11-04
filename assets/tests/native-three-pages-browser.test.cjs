@@ -23,7 +23,22 @@ function probe(slug,viewportWidth){
  function finish(ready,checks){
   if(settled)return;
   settled=true;
-  out.textContent="QA_RESULT:"+JSON.stringify({page:slug,width:viewportWidth,ready,checks:checks});
+  const d=frame.contentDocument;
+  let mobileMenuProbe;
+  if(d&&viewportWidth===390&&slug==="home"){
+   const mini=function(el){return {tag:el.tagName,id:el.id||"",className:String(el.className||"").slice(0,110),
+    label:(el.getAttribute("aria-label")||"").slice(0,90),
+    controls:(el.getAttribute("aria-controls")||"").slice(0,90),
+    expanded:el.getAttribute("aria-expanded"),
+    text:String(el.textContent||"").trim().replace(/\\s+/g," ").slice(0,55)};};
+   const mobile=d.getElementById("mobileNav"),parents=[];
+   for(let e=mobile,i=0;e&&i<6;e=e.parentElement,i++)parents.push(mini(e));
+   const toggles=Array.from(d.querySelectorAll("button,[role=button]"))
+    .filter(e=>/menu|sidebar|nav|hamburger/i.test([e.id,e.className,e.getAttribute("aria-label"),e.getAttribute("title"),e.getAttribute("aria-controls")].join(" ")))
+    .slice(0,20).map(mini);
+   mobileMenuProbe={parents,toggles};
+  }
+  out.textContent="QA_RESULT:"+JSON.stringify({page:slug,width:viewportWidth,ready,checks:checks,mobileMenuProbe});
  }
  function check(){
   if(settled)return;
