@@ -216,6 +216,32 @@ assert.ok(apply.includes("Applications are open.") &&
  apply.includes("submit it securely through the private upload area"),
  "Opened website must give truthful, actionable submission instructions");
 
+// Game Clients draft: retain existing admin resources and the private connection boundary.
+const clientScript=read("assets/naxx-game-clients-guide.js");
+const clientCss=read("assets/naxx-game-clients-guide.css");
+assert.ok(index.includes("naxx-game-clients-guide.js?v=1") &&
+ index.includes("naxx-game-clients-guide.css?v=1") &&
+ bootstrap.includes("naxx-game-clients-guide.js?v=1") &&
+ bootstrap.includes("naxx-game-clients-guide.css?v=1"),
+ "Native and nested routes must load the same Game Clients assets");
+assert.ok(clientScript.includes('currentSection === "Game Clients"') &&
+ clientScript.includes(".game-client-card") &&
+ clientScript.includes("naxx-legacy-client-card"),
+ "New guide must activate only on Game Clients and retain editable native resource cards");
+assert.ok(clientCss.includes(".game-client-card.naxx-legacy-client-card") &&
+ clientCss.includes("body.visual-admin-active"),
+ "Only the duplicate legacy card is hidden from visitors, never the admin editor or future client cards");
+assert.ok(clientScript.includes("patch-V.mpq") && clientScript.includes("patch-Z.mpq") &&
+ clientScript.includes("3.3.5a") && clientScript.includes("12340"),
+ "Complete guide must explain the exact client and both required patches");
+assert.ok(clientScript.includes("https://chromiecraft.com/en/downloads/") &&
+ clientScript.includes("https://www.warmane.com/download"),
+ "Existing and alternative download pages must remain visible");
+assert.ok(!/\b(?:\d{1,3}\.){3}\d{1,3}\b/.test(clientScript) &&
+ !/\bset\s+real(?:m)?list\s+/i.test(clientScript),
+ "Client guide must contain no realm address or ready-made connection line");
+console.log("PASS: Game Clients guide preserves native admin resources, required patches and private connection boundaries.");
+
 const blob=Buffer.from(site);
 const hash=crypto.createHash("sha1").update(Buffer.concat([
  Buffer.from("blob "+blob.length+"\0"),blob])).digest("hex");
