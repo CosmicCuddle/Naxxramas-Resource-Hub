@@ -233,6 +233,8 @@ body.naxx-three-page-route .naxx-guide-download-row > a.naxx-guide-download:hove
 body.naxx-three-page-route .naxx-guide-download-row > span {
   font-size:12px;color:#b6a797;
 }
+/* Keep the closed-state fallback invisible while the approved Tally form is active. */
+body.naxx-three-page-route .naxx-guide-disabled[hidden] {display:none!important;}
 body.naxx-three-page-route .naxx-guide-disabled {
   border:1px dashed #80623b;
   padding:17px;
@@ -249,7 +251,7 @@ body.naxx-three-page-route .naxx-guide-disabled button {
 }
 body.naxx-three-page-route .naxx-guide-disabled input[disabled] {max-width:100%;}
 
-/* Owner-supplied Tally application. Inert while native renderer approval gate is OFF. */
+/* Owner-supplied Tally application, controlled by the native release switch. */
 body.naxx-three-page-route .naxx-tally-live-application[hidden] {display:none!important;}
 body.naxx-three-page-route .naxx-tally-live-application {
   margin-top:12px;
