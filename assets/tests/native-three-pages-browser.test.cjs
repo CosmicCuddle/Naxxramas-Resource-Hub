@@ -114,7 +114,7 @@ function probe(slug,viewportWidth){
    if(!guide)return;
    const cards=Array.from(guide.querySelectorAll(".naxx-client-download-card"));
    const explainer=guide.querySelector(".naxx-client-explainer");
-   const candidate=cards.find(card=>card.querySelector("h4")?.textContent.includes("Eternion"));
+   const chromie=cards.find(card=>card.querySelector("h4")?.textContent.trim()==="ChromieCraft");
    const warmane=cards.find(card=>card.querySelector("h4")?.textContent.trim()==="Warmane");
    const note=warmane?.querySelector(".naxx-client-service-note");
    const positions=cards.map(card=>card.getBoundingClientRect());
@@ -145,17 +145,11 @@ function probe(slug,viewportWidth){
     downloadSelectorGuidance:!!guide.querySelector("#naxx-client-download")&&
      guide.querySelector("#naxx-client-download").textContent.includes("If a download website asks for the expansion or patch")&&
      guide.querySelector("#naxx-client-download").textContent.includes("Wrath of the Lich King (WotLK)"),
-    eternionCandidateSafe:!!candidate&&
-     candidate.textContent.includes("Full client")&&
-     candidate.textContent.includes("Eternion Launcher")&&
-     !!candidate.querySelector('a[href="https://eternion-wow.net/download"]')&&
-     !!candidate.querySelector(".naxx-client-unavailable")&&
-     !candidate.querySelector(".game-client-external-button"),
-    providerPlainArchiveInstructions:!!candidate&&
-     candidate.textContent.includes("scroll past the launcher")&&
-     candidate.textContent.includes("Full client — 3.3.5a (build 12340)")&&
-     candidate.textContent.includes("16.5 GB")&&
-     candidate.textContent.includes("Their separate setup instructions are for Eternion"),
+    onlyCurrentSourcesShown:cards.length===2&&
+     cards[0]===chromie&&cards[1]===warmane&&
+     !!chromie?.querySelector('a[href="https://chromiecraft.com/en/downloads/"]')&&
+     !guide.textContent.includes("Eternion")&&
+     !guide.innerHTML.includes("eternion-wow.net"),
     correctLoginVersionExplained:!!guide.querySelector("#naxx-client-prepare")&&
      guide.querySelector("#naxx-client-prepare").textContent.includes("Version 3.3.5 (12340)")&&
      guide.querySelector("#naxx-client-prepare").textContent.includes("this is normal for the 3.3.5a client"),
@@ -164,7 +158,7 @@ function probe(slug,viewportWidth){
     visitorModeRestoresGuide:visitorGuideRestores,
     directLinkOpensGameClients:(d.getElementById("sectionHeading")||{}).textContent?.includes("Game Clients")===true,
     completeGuideRendered:guide.getBoundingClientRect().height>0,
-    threeDownloadCards:cards.length===3,
+    twoDownloadCards:cards.length===2,
     warmaneNoteAtTop:!!warmane&&warmane.firstElementChild===note&&
      note.textContent.trim()==="Currently out of order",
     warmaneUsesOfficialLink:!!warmane?.querySelector('a[href="https://www.warmane.com/download"]'),
@@ -178,10 +172,10 @@ function probe(slug,viewportWidth){
      !!guide.querySelector('a[href="https://github.com/CosmicCuddle/Naxxramas-Server-Patches/blob/main/OPTIONAL-PATCHES.md"]'),
     privacyPreserved:guide.textContent.includes("acceptance email")&&
      !/\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b/.test(guide.innerHTML),
-    mobileCardsStack:viewportWidth!==390||positions.length===3&&
-     positions[0].top<positions[1].top&&positions[1].top<positions[2].top,
-    desktopCardsInRow:viewportWidth!==1440||positions.length===3&&
-     Math.abs(positions[0].top-positions[1].top)<3&&Math.abs(positions[1].top-positions[2].top)<3,
+    mobileCardsStack:viewportWidth!==390||positions.length===2&&
+     positions[0].top<positions[1].top,
+    desktopCardsInRow:viewportWidth!==1440||positions.length===2&&
+     Math.abs(positions[0].top-positions[1].top)<3,
     noHorizontalOverflow:d.documentElement.scrollWidth<=frame.contentWindow.innerWidth+3
    };
    finish(Object.values(checks).every(Boolean),checks);
