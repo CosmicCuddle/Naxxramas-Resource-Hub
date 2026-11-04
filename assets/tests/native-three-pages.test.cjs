@@ -235,8 +235,13 @@ assert.ok(clientScript.includes("patch-V.mpq") && clientScript.includes("patch-Z
  clientScript.includes("3.3.5a") && clientScript.includes("12340"),
  "Complete guide must explain the exact client and both required patches");
 assert.ok(clientScript.includes("https://chromiecraft.com/en/downloads/") &&
- clientScript.includes("https://web.archive.org/web/20260228080116/https://www.warmane.com/download"),
+ clientScript.includes("https://www.warmane.com/download"),
  "Existing and alternative download pages must remain visible");
+assert.ok(clientScript.includes("naxx-client-service-note") &&
+ clientScript.includes("Currently out of order") &&
+ clientCss.includes(".naxx-client-service-note") &&
+ !clientScript.includes("web.archive.org/web/20260228080116/https://www.warmane.com/download"),
+ "Warmane card must show an out-of-order notice above its normal link, not an archived link");
 assert.ok(!/\b(?:\d{1,3}\.){3}\d{1,3}\b/.test(clientScript) &&
  !/\bset\s+real(?:m)?list\s+/i.test(clientScript),
  "Client guide must contain no realm address or ready-made connection line");
