@@ -11,11 +11,11 @@ const origin = "https://cosmiccuddle.github.io/Naxxramas-Resource-Hub/";
 const fixtures = {
   "new-players": '<section class="naxx-guide-card" id="progression">The guide remains visible.</section>',
   "rules": '<section class="naxx-guide-card" id="rule-12">All rules remain visible.</section>',
-  "apply": '<div id="naxx-application-demo"><input type="file" disabled></div>'
+  "apply": '<div id="naxx-application-demo" hidden><input type="file" disabled></div><div id="naxx-tally-live-application" hidden><iframe data-tally-src="https://tally.so/embed/q5Lqr8?alignLeft=1"></iframe></div>'
 };
 
 function createHarness(slug,fail) {
-  let currentHTML = "", gridObserver = null, fetchCount = 0, disabled = false;
+  let currentHTML = "", gridObserver = null, fetchCount = 0, closedFallbackHidden = false, livePanelVisible = false, tallyEmbedsLoaded = 0;
   const fields = new Map();
   for (const id of ["sectionHeading","sectionSubheading","whProContextGroup",
     "whProContextTitle","contextArtworkKicker","contextArtworkTitle","contextArtworkSummary"]) {
@@ -32,8 +32,18 @@ function createHarness(slug,fail) {
       if(selector === ".naxx-guide-error")
         return currentHTML.includes("naxx-guide-error") ? {} : null;
       if(selector === "#naxx-application-demo")
-        return currentHTML.includes('id="naxx-application-demo"')
-          ? {setAttribute(key,value){if(key==="aria-disabled"&&value==="true")disabled=true;}} : null;
+        return currentHTML.includes('id="naxx-application-demo"') ?
+          {set hidden(value){closedFallbackHidden=!!value;},setAttribute(){}} : null;
+      if(selector === "#naxx-tally-live-application")
+        return currentHTML.includes('id="naxx-tally-live-application"') ? {
+          set hidden(value){livePanelVisible=!value;},
+          querySelector(selector){
+            return selector==="iframe[data-tally-src]" ? {
+              getAttribute(key){return key==="data-tally-src" ?
+               "https://tally.so/embed/q5Lqr8?alignLeft=1" : null;}
+            } : null;
+          }
+        } : null;
       if(selector.startsWith("[data-naxx-guide-content"))
         return currentHTML.includes('data-naxx-guide-content="'+slug+'"') ? {} : null;
       return null;
@@ -70,13 +80,18 @@ function createHarness(slug,fail) {
       if(fail)return Promise.resolve({ok:false});
       return Promise.resolve({ok:true,text(){return Promise.resolve(fixtures[slug]);}});
     },
-    window:{addEventListener(event){assert.equal(event,"pageshow");}},
+    window:{
+      Tally:{loadEmbeds(){tallyEmbedsLoaded++;}},
+      addEventListener(event){assert.equal(event,"pageshow");}
+    },
     console:{error(){}}
   };
   vm.runInNewContext(source,context,{filename:"naxx-three-pages.js"});
   return {grid,fields,classes,attrs,
     get fetchCount(){return fetchCount;},
-    get disabled(){return disabled;},
+    get closedFallbackHidden(){return closedFallbackHidden;},
+    get livePanelVisible(){return livePanelVisible;},
+    get tallyEmbedsLoaded(){return tallyEmbedsLoaded;},
     rerender(){grid.innerHTML="<div>Native Resource Hub content redraw</div>";}
   };
 }
@@ -93,7 +108,11 @@ function flush(){return new Promise(resolve=>setImmediate(resolve));}
     assert.ok(app.classes.has("naxx-three-page-route"));
     assert.equal(app.attrs["data-naxx-guide-page"],slug);
     assert.notEqual(app.fields.get("sectionHeading").textContent,"Home");
-    if(slug==="apply")assert.equal(app.disabled,true,"Application must remain disabled");
+    if(slug==="apply"){
+      assert.equal(app.closedFallbackHidden,true,"Closed fallback must be hidden");
+      assert.equal(app.livePanelVisible,true,"Owner-approved application panel must be visible");
+      assert.ok(app.tallyEmbedsLoaded>0,"Native renderer should initialise the owner-controlled Tally embed");
+    }
     app.rerender();
     await flush();
     assert.ok(app.grid.innerHTML.includes(fixtures[slug]),
@@ -110,5 +129,5 @@ function flush(){return new Promise(resolve=>setImmediate(resolve));}
   assert.ok(failed.grid.innerHTML.includes("naxx-guide-error"),"Error persists after native render");
   assert.equal(failed.fetchCount,1,"No request storm on unavailable guide content");
   console.log("PASS: native guide routes survive later grid re-render with one fetch.");
-  console.log("PASS: active metadata, disabled application and honest loading failure.");
+  console.log("PASS: active metadata, owner-approved application panel and honest loading failure.");
 })().catch(err=>{console.error(err);process.exitCode=1;});
