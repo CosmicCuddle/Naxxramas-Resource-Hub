@@ -1,5 +1,5 @@
 /* Scoped Game Clients enhancement. Native Resource Hub cards and controls remain intact. */
-#resourceGrid.naxx-game-client-guide-grid { display:block !important; width:100%; max-width:var(--pro-content-max,1320px); margin:0 auto; }
+body:not(.visual-admin-active) #resourceGrid.naxx-game-client-guide-grid { display:block !important; width:100%; max-width:var(--pro-content-max,1320px); margin:0 auto; }
 body:not(.visual-admin-active) #resourceGrid.naxx-game-client-guide-grid > .game-client-card.naxx-legacy-client-card { display:none !important; }
 body.visual-admin-active #resourceGrid.naxx-game-client-guide-grid > #naxx-game-client-guide { display:none !important; }
 #resourceGrid.naxx-game-client-guide-grid .naxx-client-guide { display:block; padding:clamp(16px,2.5vw,30px); height:auto; overflow:visible; }
