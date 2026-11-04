@@ -1,0 +1,31 @@
+name: Draft Resource Hub pages — read-only tests
+
+on:
+  push:
+    branches:
+      - draft/three-native-pages-faq-2026-11-03
+
+permissions:
+  contents: read
+
+jobs:
+  verify-draft:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out draft branch
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Select Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Protect existing public connection details
+        run: node assets/tests/no-public-connection-details.test.cjs
+      - name: Check new pages, Word download and closed Tally
+        run: node assets/tests/native-three-pages.test.cjs
+      - name: Verify desktop and mobile navigation
+        run: node assets/tests/native-three-pages-navigation.test.cjs
+      - name: Verify rendering recovery and error states
+        run: node assets/tests/native-three-pages-behavior.test.cjs
