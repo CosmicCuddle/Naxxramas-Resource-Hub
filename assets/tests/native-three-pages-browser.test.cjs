@@ -123,6 +123,8 @@ function probe(slug,viewportWidth){
     warmaneNoteAtTop:!!warmane&&warmane.firstElementChild===note&&
      note.textContent.trim()==="Currently out of order",
     warmaneUsesOfficialLink:!!warmane?.querySelector('a[href="https://www.warmane.com/download"]'),
+    warmaneDescriptionIsNormal:!!warmane?.querySelector("p")&&
+     !/out of order|unavailable|service returns/i.test(warmane.querySelector("p").textContent),
     requiredPatchesListed:guide.textContent.includes("patch-V.mpq")&&guide.textContent.includes("patch-Z.mpq"),
     privacyPreserved:guide.textContent.includes("acceptance email")&&
      !/\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b/.test(guide.innerHTML),
