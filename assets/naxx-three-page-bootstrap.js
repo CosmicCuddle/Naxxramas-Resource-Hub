@@ -12,7 +12,8 @@
     "assets/naxx-theme-v3.css?v=2",
     "assets/naxx-countdowns-compact.css?v=4",
     "assets/naxx-home-class-selector.css?v=1",
-    "assets/naxx-three-pages.css?v=3"
+    "assets/naxx-three-pages.css?v=3",
+    "assets/naxx-game-clients-guide.css?v=1"
   ];
   var scripts=[
     "assets/naxx-countdowns.js?v=7",
@@ -24,7 +25,8 @@
     "assets/naxx-talent-sets-full-sync.js?v=3",
     "assets/naxx-warrior-talent-sets.js?v=1",
     "assets/naxx-final-vanilla-talent-sets.js?v=1",
-    "assets/naxx-three-pages.js?v=2"
+    "assets/naxx-three-pages.js?v=2",
+    "assets/naxx-game-clients-guide.js?v=1"
   ];
   fetch(new URL("site-content.html",root),{cache:"default"})
     .then(function(response){
