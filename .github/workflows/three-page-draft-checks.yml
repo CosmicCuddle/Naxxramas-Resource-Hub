@@ -1,0 +1,66 @@
+name: Draft Resource Hub pages — read-only tests
+
+on:
+  push:
+    branches:
+      - draft/three-native-pages-faq-2026-11-03
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/three-page-draft-checks.yml'
+      - 'assets/tests/**'
+      - 'assets/naxx-three-*'
+      - 'apply/**'
+      - 'new-players/**'
+      - 'rules/**'
+      - 'index.html'
+      - 'site-content.html'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-draft:
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out draft branch
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Select Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check out unchanged main branch for read-only A/B comparison
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: baseline
+          persist-credentials: false
+      - name: Protect existing public connection details
+        run: node assets/tests/no-public-connection-details.test.cjs
+      - name: Check new pages, Word download and open Tally integration
+        run: node assets/tests/native-three-pages.test.cjs
+      - name: Verify desktop and mobile navigation
+        run: node assets/tests/native-three-pages-navigation.test.cjs
+      - name: Verify rendering recovery and error states
+        run: node assets/tests/native-three-pages-behavior.test.cjs
+      - name: Test actual Enter-key navigation on desktop and mobile
+        run: node assets/tests/native-three-pages-keyboard.test.cjs
+      - name: Smoke-test rendered pages and capture visual review screenshots
+        run: node assets/tests/native-three-pages-browser.test.cjs
+        env:
+          NAXX_VISUAL_REVIEW: '1'
+      - name: Compare original Game Clients navigation against main baseline
+        run: node assets/tests/native-game-clients-baseline.test.cjs
+      - name: Save draft-only visual review screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: naxxramas-draft-visual-review
+          path: qa-screenshots/
+          if-no-files-found: ignore
+          retention-days: 7
