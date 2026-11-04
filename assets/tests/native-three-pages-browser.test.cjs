@@ -1,5 +1,5 @@
 // No dependencies, data uploads, deployment or external API calls.
-// Runs the REAL draft site in a local browser with the Tally gate kept OFF.
+// Runs the draft release site in a local browser. Checks web integration, not Tally submissions.
 "use strict";
 const fs=require("node:fs");
 const path=require("node:path");
@@ -138,12 +138,20 @@ function probe(slug,viewportWidth){
   if(slug==="apply"){
    const form=article.querySelector("#naxx-tally-live-application");
    const tally=article.querySelector('iframe[data-tally-src]');
-   const file=article.querySelector("#naxx-disabled-file");
+   const fallback=article.querySelector("#naxx-application-demo");
+   const privacy=article.querySelector("#privacy");
    checks.wordDownload=!!article.querySelector('a[href="naxxramas-application.docx"][download]');
-   checks.fileInputDisabled=!!file&&file.disabled;
-   checks.tallyPanelHidden=!!form&&form.hidden;
-   checks.tallyIframeInert=!!tally&&!tally.hasAttribute("src");
-   checks.closedStatus=article.textContent.includes("Applications are not currently open");
+   checks.closedFallbackHidden=!!fallback&&fallback.hidden;
+   checks.tallyPanelVisible=!!form&&!form.hidden;
+   checks.ownerTallyConfigured=!!tally&&
+    (tally.getAttribute("data-tally-src")||"").startsWith("https://tally.so/embed/q5Lqr8?");
+   checks.openStatus=article.textContent.includes("Applications are open.");
+   checks.privacyNoticeAvailable=!!privacy&&
+    !!privacy.querySelector('a[href="mailto:naxxapplicationteam@gmail.com"]')&&
+    privacy.textContent.includes("90 days of submission")&&
+    privacy.textContent.includes("30 days of the decision");
+   checks.privacyContactEmailOnly=!!privacy&&
+    !privacy.textContent.includes("privately message the owner on Discord");
   }
   if(slug==="apply"&&viewportWidth===1440&&Object.values(checks).every(Boolean)){
    const rulesLink=d.querySelector('#mainNav button[data-naxx-guide-link="rules"]');
@@ -261,7 +269,7 @@ async function captureVisualGallery(browser,port){
   '.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px}'+
   'section{border:1px solid #7b583b;background:#1c1510;padding:12px}img{width:100%;height:auto;display:block}'+
   'a:focus-visible{outline:3px solid #f6ca7d}p{color:#c4b4a0}</style></head><body>'+
-  '<h1>Naxxramas Resource Hub — Visual Review</h1><p>Unpublished draft #47. No applicant data or live Tally.</p>'+
+  '<h1>Naxxramas Resource Hub — Visual Review</h1><p>Unpublished application-open release preview #47. No test submissions or applicant data.</p>'+
   '<p>Compare the original and draft Home first, then review the three new pages. Click an image to enlarge.</p>'+
   '<div class="grid">'+cards+'</div></body></html>';
  fs.writeFileSync(path.join(output,"00-open-visual-review.html"),html);
@@ -300,6 +308,6 @@ async function main(){
   await new Promise(resolve=>server.close(resolve));
  }
  if(failures)throw Error(failures+" browser scenario(s) failed");
- console.log("PASS: six local Chrome checks including live Mage search, legacy controls, native mobile drawer and approved DOCX download; no Tally submission attempted");
+ console.log("PASS: six local Chrome checks including open Tally panel, email-only privacy notice, legacy navigation and approved DOCX; no Tally submission attempted");
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});
