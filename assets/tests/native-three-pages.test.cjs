@@ -245,6 +245,10 @@ assert.ok(clientScript.includes("naxx-client-explainer-title") &&
  clientScript.includes("Naxxramas acceptance email") &&
  clientCss.includes(".naxx-client-guide .naxx-client-explainer"),
  "The first Game Clients banner must explain the client/server distinction before showing downloads");
+assert.ok(clientScript.includes("You use the same game client throughout Vanilla") &&
+ clientScript.includes("Individual Progression") &&
+ clientScript.includes("do not need a separate client for each era"),
+ "Guide headline must explain that IP eras use one client without repeating technical patch information");
 assert.ok(clientScript.includes("do not currently host the base game files ourselves") &&
  clientScript.includes("Wrath of the Lich King (WotLK)") &&
  clientScript.includes("patch 3.3.5a (build 12340)") &&
