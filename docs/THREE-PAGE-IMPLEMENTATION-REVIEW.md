@@ -4,6 +4,22 @@
 **Planning:** https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/issues/46
 **Status:** Scoped review branch only. No merge, deployment, application uploads or player accounts activated.
 
+## Latest owner decisions and publication preparation — 4 November 2026
+
+**Step 1 — CONTENT ACCEPTED FOR THIS DRAFT:** CosmicCuddle said "I think 1. is done, so lets move onto 2. and then 3." in response to the final Rules, New Player Guide and FAQ review. Record this as approval of the **current page wording** for the planned website release: all 12 always-expanded rules, 38 New Player Guide FAQs, 35 Rules FAQs, and 8 Apply FAQs. Earlier notes below saying "FAQ awaiting exact wording approval" are historical, not current. This content sign-off is **not** approval to merge or activate applications, and does not independently establish unverified server configuration facts as deployed.
+
+**Step 2 — PRIVACY NOTICE DRAFT STAGED, OWNER REVIEW PENDING:** The native Apply page now has an always-visible, linked `#privacy` card **before the private upload**, explaining controller identity/contact, categories/purposes, manual decisions, proposed legitimate-interests basis, Tally/email processing, 90-day pending limit, 30-day after-decision deletion and clearing Trash, provider-backup caveats, rights and owner contact/ICO route. The earlier competing notice drafts were consolidated in `docs/TALLY-PRIVATE-APPLICATION-SETUP.md`. The **legal basis is a proposal requiring confirmation/assessment**, and this is **not an independent UK GDPR compliance certification**. Final owner wording/legal review is needed before intake opens. No privacy promises were altered without owner direction.
+
+**Step 3 — PUBLICATION PREPARED, NOT AUTHORISED:**
+
+- **Release A — pages only:** with separate explicit owner consent, merge PR #47 to add New Player Guide, Server Rules and Apply pages; **leave the application upload CLOSED** and Tally `APPLICATION_EMBED_APPROVED = false`. The approved empty DOCX remains downloadable, but no upload receiver is enabled by the website.
+- **Release B — applications open (separate decision):** only after privacy text/lawful basis and contact instructions are approved and available on the live page, intentionally open the owner-controlled Tally form and separately approve the site embed/status activation. Tally's own Close form state is independent of the website flag; the owner has asked us **not to repeat Tally functional tests**. Normal deletion/Trash handling remains a live operational obligation, not a request for more tests.
+- **Before Release A:** obtain a clean automated run for the latest commit; review the completed privacy page and the one remaining proposed legal-basis statement; check unchanged original website navigation/legacy routes; obtain the owner's explicit merge/publication approval. A local test or draft screenshot is **not** proof that production was deployed.
+- **After Release A (only if approved):** verify the actual website shows all 3 pages in native navigation, the blank DOCX downloads, the privacy section is readable and applications remain closed. If something breaks, revert the focused PR changes rather than replacing the original Resource Hub site.
+- **Information boundaries:** the current Tally workflow is owner-accepted based on successful dummy upload, correct attached Word file, notification email and Thank You screen. No claim is made that missing-file, file-size/type failure, deletion/Trash, provider Close form status, separate Admin sign-in or every legacy route was independently tested. Do not add private submissions, secrets or confidential connection files to GitHub.
+
+**Do not treat the headings "Step 1 complete" or "Release prepared" as permission to publish anything. CosmicCuddle remains the release approver.**
+
 ## Design feedback incorporated — 3 November 2026
 
 After viewing the offline screenshot, the owner confirmed the overall layout was acceptable but pointed out **non-native menu icons** and a **large empty gap** in the hero/header area.
