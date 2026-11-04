@@ -23,24 +23,7 @@ function probe(slug,viewportWidth){
  function finish(ready,checks){
   if(settled)return;
   settled=true;
-  const d=frame.contentDocument;
-  let mobileMenuProbe;
-  if(d&&viewportWidth===390&&slug==="home"){
-   const mini=function(el){return {tag:el.tagName,id:el.id||"",className:String(el.className||"").slice(0,110),
-    label:(el.getAttribute("aria-label")||"").slice(0,90),
-    controls:(el.getAttribute("aria-controls")||"").slice(0,90),
-    expanded:el.getAttribute("aria-expanded"),
-    text:String(el.textContent||"").trim().replace(/\\s+/g," ").slice(0,55)};};
-   const mobile=d.getElementById("mobileNav"),parents=[];
-   for(let e=mobile,i=0;e&&i<6;e=e.parentElement,i++)parents.push(mini(e));
-   const toggles=Array.from(d.querySelectorAll("button,[role=button]"))
-    .filter(e=>/menu|sidebar|nav|hamburger/i.test([e.id,e.className,e.getAttribute("aria-label"),e.getAttribute("title"),e.getAttribute("aria-controls")].join(" ")))
-    .slice(0,20).map(mini);
-   const mobileNodes=Array.from(d.querySelectorAll('[id*="mobile" i],[class*="mobile" i],[id*="toggle" i],[class*="toggle" i]'))
-    .slice(0,80).map(mini);
-   mobileMenuProbe={parents,toggles,mobileNodes};
-  }
-  out.textContent="QA_RESULT:"+JSON.stringify({page:slug,width:viewportWidth,ready,checks:checks,mobileMenuProbe});
+  out.textContent="QA_RESULT:"+JSON.stringify({page:slug,width:viewportWidth,ready,checks:checks});
  }
  function check(){
   if(settled)return;
@@ -227,7 +210,6 @@ async function main(){
    try{result=JSON.parse(match[1].replace(/&quot;/g,'"').replace(/&amp;/g,"&"));}catch(e){
     console.error("FAIL: unreadable browser result",e);failures++;continue;
    }
-   if(page==="home"&&width===390)console.log("MOBILE_MENU_PROBE",JSON.stringify(result.mobileMenuProbe||{}));
    if(result.ready)console.log("PASS: "+page+" "+width+"px",JSON.stringify(result.checks));
    else{console.error("FAIL: "+page+" "+width+"px",JSON.stringify(result.checks));failures++;}
   }
