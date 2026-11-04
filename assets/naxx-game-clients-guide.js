@@ -1,6 +1,6 @@
 /* Additive Game Clients guide for the existing native Resource Hub section.
  * The original 31 MB content and its admin-editable resources are never modified.
- * Pending verification of the preferred download source before deployment.
+ * External client archive contents and build numbers remain unverified.
  */
 (function () {
   "use strict";
