@@ -231,6 +231,8 @@ assert.ok(clientScript.includes('currentSection === "Game Clients"') &&
 assert.ok(clientCss.includes(".game-client-card.naxx-legacy-client-card") &&
  clientCss.includes("body.visual-admin-active"),
  "Only the duplicate legacy card is hidden from visitors, never the admin editor or future client cards");
+assert.ok(clientCss.includes("body:not(.visual-admin-active) #resourceGrid.naxx-game-client-guide-grid { display:block"),
+ "Visitor-only guide layout must never override the original admin editing grid");
 assert.ok(clientScript.includes("patch-V.mpq") && clientScript.includes("patch-Z.mpq") &&
  clientScript.includes("3.3.5a") && clientScript.includes("12340"),
  "Complete guide must explain the exact client and both required patches");
