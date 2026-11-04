@@ -19,7 +19,7 @@ function browserBinary(){
 function probe(slug,viewportWidth){
  const frame=document.getElementById("site");
  const out=document.getElementById("result");
- let settled=false;
+ let settled=false, navClicked=false, initialChecks=null;
  function finish(ready,checks){
   if(settled)return;
   settled=true;
@@ -30,6 +30,18 @@ function probe(slug,viewportWidth){
   let d;
   try{d=frame.contentDocument;}catch(e){finish(false,{sameOrigin:false});return;}
   if(!d)return;
+  if(navClicked){
+   const rules=d.querySelector('[data-naxx-guide-content="rules"]');
+   if(!rules)return;
+   const checks=Object.assign({},initialChecks,{
+    realClickNavigatedToRules:frame.contentWindow.location.pathname.endsWith("/rules/"),
+    rulesMountedAfterClick:rules.querySelectorAll(".naxx-guide-rule").length===12,
+    rulesHeadingAfterClick:(d.getElementById("sectionHeading")||{}).textContent?.includes("Server Rules")===true,
+    noOverflowAfterClick:d.documentElement.scrollWidth<=frame.contentWindow.innerWidth+3
+   });
+   finish(Object.values(checks).every(Boolean),checks);
+   return;
+  }
   const article=d.querySelector('[data-naxx-guide-content="'+slug+'"]');
   if(!article)return;
   const navCount=function(id){
@@ -60,6 +72,14 @@ function probe(slug,viewportWidth){
    checks.tallyPanelHidden=!!form&&form.hidden;
    checks.tallyIframeInert=!!tally&&!tally.hasAttribute("src");
    checks.closedStatus=article.textContent.includes("Applications are not currently open");
+  }
+  if(slug==="apply"&&viewportWidth===1440&&Object.values(checks).every(Boolean)){
+   const rulesLink=d.querySelector('#mainNav button[data-naxx-guide-link="rules"]');
+   if(!rulesLink){checks.rulesLinkClickable=false;finish(false,checks);return;}
+   initialChecks=checks;
+   navClicked=true;
+   rulesLink.click();
+   return;
   }
   finish(Object.values(checks).every(Boolean),checks);
  }
@@ -123,6 +143,14 @@ async function main(){
  const port=server.address().port;
  let failures=0;
  try{
+  const crypto=require("node:crypto");
+  const url="http://127.0.0.1:"+port+"/apply/naxxramas-application.docx";
+  const response=await fetch(url);
+  if(response.status!==200)throw Error("Approved Word download failed HTTP GET: "+response.status);
+  if(!response.headers.get("content-type")?.startsWith("application/vnd.openxmlformats-officedocument.wordprocessingml.document"))throw Error("Word download missing correct MIME type");
+  const actual=crypto.createHash("sha256").update(Buffer.from(await response.arrayBuffer())).digest("hex");
+  if(actual!=="f6617c8a4da6e9b75b56b020361f8aab57a8cca47921a9225685b0c0cddfa695")throw Error("Word download bytes changed");
+  console.log("PASS: application DOCX downloads by HTTP with correct type and exact approved SHA-256");
   for(const [page,width] of [["apply",1440],["apply",390],["rules",390],["new-players",1440]]){
    const target="http://127.0.0.1:"+port+"/__qa__?page="+page+"&width="+width;
    const html=await captureChrome(browser,target);
@@ -139,6 +167,6 @@ async function main(){
   await new Promise(resolve=>server.close(resolve));
  }
  if(failures)throw Error(failures+" browser scenario(s) failed");
- console.log("PASS: four local Chrome checks; no external Tally submission attempted");
+ console.log("PASS: four local Chrome checks including live sidebar click; no external Tally submission attempted");
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});
