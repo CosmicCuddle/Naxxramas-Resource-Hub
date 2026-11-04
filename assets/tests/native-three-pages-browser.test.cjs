@@ -8,7 +8,7 @@ const http=require("node:http");
 const cp=require("node:child_process");
 const {URL}=require("node:url");
 const root=path.resolve(__dirname,"../..");
-const expected={"apply":0,"rules":0,"new-players":24,"home":0};
+const expected={"apply":0,"rules":0,"new-players":24,"home":0,"clients":0};
 function browserBinary(){
  for(const name of ["google-chrome","google-chrome-stable","chromium","chromium-browser"]){
   const r=cp.spawnSync("which",[name],{encoding:"utf8"});
@@ -19,7 +19,7 @@ function browserBinary(){
 function probe(slug,viewportWidth){
  const frame=document.getElementById("site");
  const out=document.getElementById("result");
- let settled=false, navClicked=false, initialChecks=null, searchStarted=false, searchChecks=0;
+ let settled=false, navClicked=false, initialChecks=null, searchStarted=false, searchChecks=0, clientRemovalInProgress=false;
  function finish(ready,checks){
   if(settled)return;
   settled=true;
@@ -109,6 +109,91 @@ function probe(slug,viewportWidth){
    finish(Object.values(checks).every(Boolean),checks);
    return;
   }
+  if(slug==="clients"){
+   if(clientRemovalInProgress)return;
+   const guide=d.getElementById("naxx-game-client-guide");
+   if(!guide)return;
+   const cards=Array.from(guide.querySelectorAll(".naxx-client-download-card"));
+   const explainer=guide.querySelector(".naxx-client-explainer");
+   const chromie=cards.find(card=>card.querySelector("h4")?.textContent.trim()==="ChromieCraft");
+   const warmane=cards.find(card=>card.querySelector("h4")?.textContent.trim()==="Warmane");
+   const positions=cards.map(card=>card.getBoundingClientRect());
+   // Read-only simulation of the visual-admin CSS state. No login is attempted.
+   const legacy=d.querySelector("#resourceGrid > .game-client-card.naxx-legacy-client-card");
+   const originalAdminClass=d.body.classList.contains("visual-admin-active");
+   d.body.classList.add("visual-admin-active");
+   const adminKeepsOriginalCard=!!legacy&&
+     frame.contentWindow.getComputedStyle(legacy).display!=="none"&&
+     frame.contentWindow.getComputedStyle(guide).display==="none";
+   const adminRestoresGridLayout=frame.contentWindow.getComputedStyle(
+     d.getElementById("resourceGrid")).display==="grid";
+   if(!originalAdminClass)d.body.classList.remove("visual-admin-active");
+   const visitorGuideRestores=frame.contentWindow.getComputedStyle(guide).display!=="none"&&
+     !!legacy&&frame.contentWindow.getComputedStyle(legacy).display==="none";
+   const checks={
+    firstBannerBeforeHeading:!!explainer&&guide.firstElementChild===explainer&&
+     !!explainer.querySelector("#naxx-client-explainer-title"),
+    bannerExplainsClientVsServer:!!explainer&&
+     explainer.textContent.includes("game client")&&
+     explainer.textContent.includes("game server")&&
+     explainer.textContent.includes("Downloading their client does not mean you will play on their server")&&
+     explainer.textContent.includes("acceptance email"),
+    bannerHostingAndWotlkClear:!!explainer&&
+     explainer.textContent.includes("do not currently host the base game files ourselves")&&
+     explainer.textContent.includes("Wrath of the Lich King (WotLK)")&&
+     explainer.textContent.includes("patch 3.3.5a (build 12340)"),
+    downloadSelectorGuidance:!!guide.querySelector("#naxx-client-download")&&
+     guide.querySelector("#naxx-client-download").textContent.includes("If a download website asks for the expansion or patch")&&
+     guide.querySelector("#naxx-client-download").textContent.includes("Wrath of the Lich King (WotLK)"),
+    onlyCurrentSourcesShown:cards.length===2&&
+     cards[0]===chromie&&cards[1]===warmane&&
+     !!chromie?.querySelector('a[href="https://chromiecraft.com/en/downloads/"]')&&
+     !guide.textContent.includes("Eternion")&&
+     !guide.innerHTML.includes("eternion-wow.net"),
+    correctLoginVersionExplained:!!guide.querySelector("#naxx-client-prepare")&&
+     guide.querySelector("#naxx-client-prepare").textContent.includes("Version 3.3.5 (12340)")&&
+     guide.querySelector("#naxx-client-prepare").textContent.includes("this is normal for the 3.3.5a client"),
+    simulatedAdminKeepsOriginalCard:adminKeepsOriginalCard,
+    simulatedAdminKeepsOriginalGrid:adminRestoresGridLayout,
+    visitorModeRestoresGuide:visitorGuideRestores,
+    directLinkOpensGameClients:(d.getElementById("sectionHeading")||{}).textContent?.includes("Game Clients")===true,
+    completeGuideRendered:guide.getBoundingClientRect().height>0,
+    twoDownloadCards:cards.length===2,
+    warmaneOutageNoticeRemoved:!!warmane&&!warmane.querySelector(".naxx-client-service-note")&&
+     !warmane.textContent.includes("Currently out of order"),
+    warmaneUsesOwnerTestedArchive:!!warmane?.querySelector('a[href="https://web.archive.org/web/20260228080116/https://www.warmane.com/download"]')&&
+     warmane.textContent.includes("saved copy of Warmane's download page"),
+    warmaneDescriptionIsNormal:!!warmane?.querySelector("p")&&
+     !/out of order|unavailable|service returns/i.test(warmane.querySelector("p").textContent),
+    requiredPatchesListed:guide.textContent.includes("patch-V.mpq")&&guide.textContent.includes("patch-Z.mpq"),
+    optionalPatchesAreClear:guide.textContent.includes("patch-J.mpq")&&
+     guide.textContent.includes("patch-U.mpq")&&
+     guide.textContent.includes("patch-C.mpq")&&
+     guide.textContent.includes("Choose J or C, never both")&&
+     !!guide.querySelector('a[href="https://github.com/CosmicCuddle/Naxxramas-Server-Patches/blob/main/OPTIONAL-PATCHES.md"]'),
+    privacyPreserved:guide.textContent.includes("acceptance email")&&
+     !/\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b/.test(guide.innerHTML),
+    mobileCardsStack:viewportWidth!==390||positions.length===2&&
+     positions[0].top<positions[1].top,
+    desktopCardsInRow:viewportWidth!==1440||positions.length===2&&
+     Math.abs(positions[0].top-positions[1].top)<3,
+    noHorizontalOverflow:d.documentElement.scrollWidth<=frame.contentWindow.innerWidth+3
+   };
+   // Local-only DOM mutation: emulate the owner removing the old editable
+   // ChromieCraft card. The new guide must remount without that legacy card.
+   clientRemovalInProgress=true;
+   if(!legacy){checks.guideSurvivesLegacyRemoval=false;finish(false,checks);return;}
+   d.querySelectorAll("#resourceGrid > .game-client-card").forEach(function(card){card.remove();});
+   guide.remove();
+   frame.contentWindow.setTimeout(function(){
+    const replacement=d.getElementById("naxx-game-client-guide");
+    checks.guideSurvivesLegacyRemoval=!!replacement&&
+      replacement.querySelectorAll(".naxx-client-download-card").length===2&&
+      d.getElementById("resourceGrid").querySelectorAll(".game-client-card").length===0;
+    finish(Object.values(checks).every(Boolean),checks);
+   },100);
+   return;
+  }
   const article=d.querySelector('[data-naxx-guide-content="'+slug+'"]');
   if(!article)return;
   const navCount=function(id){
@@ -172,7 +257,7 @@ function harnessHtml(slug,width){
  return '<!doctype html><html><head><meta charset="utf-8"><title>Local draft QA</title>'+
   '<meta name="viewport" content="width=device-width,initial-scale=1"></head>'+
   '<body style="margin:0;background:#17100b"><iframe id="site" title="Naxxramas QA" '+
-  'style="display:block;border:0;width:'+Number(width)+'px;height:900px" src="/'+(slug==="home"?"":slug+"/")+'"></iframe>'+
+  'style="display:block;border:0;width:'+Number(width)+'px;height:900px" src="/'+(slug==="home"?"":slug==="clients"?"Naxxramas-Resource-Hub/?section=Game%20Clients":slug+"/")+'"></iframe>'+
   '<pre id="result">QA_PENDING</pre><script>'+code+'</'+'script></body></html>';
 }
 function contentType(file){
@@ -189,9 +274,11 @@ function serverHandler(req,res){
   res.setHeader("Content-Type","text/html; charset=utf-8");
   res.end(harnessHtml(slug,width));return;
  }
- const baseline=url.pathname.startsWith("/__baseline__/");
+ // Mirror the production GitHub Pages prefix; the native router expects this path.
+ const normalisedPath=url.pathname.replace(/^\/Naxxramas-Resource-Hub(?=\/|$)/,"");
+ const baseline=normalisedPath.startsWith("/__baseline__/");
  const base=baseline?path.resolve(root,"baseline"):root;
- const relative=decodeURIComponent(url.pathname).replace(/^\/+/,"").replace(/^__baseline__\/?/,"");
+ const relative=decodeURIComponent(normalisedPath).replace(/^\/+/,"").replace(/^__baseline__\/?/,"");
  let file=path.resolve(base,relative);
  if(file!==base&&!file.startsWith(base+path.sep)){res.writeHead(403);res.end();return;}
  try{
@@ -255,7 +342,11 @@ async function captureVisualGallery(browser,port){
   ["05-apply-desktop","Apply to Join — desktop","/apply/",1440,900],
   ["06-guide-mobile","New Player Guide — mobile","/new-players/",390,844],
   ["07-rules-mobile","Server Rules — mobile","/rules/",390,844],
-  ["08-apply-mobile","Apply to Join — mobile","/apply/",390,844]
+  ["08-apply-mobile","Apply to Join — mobile","/apply/",390,844],
+  ["09-clients-desktop","Game Clients — desktop","/Naxxramas-Resource-Hub/?section=Game%20Clients",1440,900],
+  ["10-clients-mobile","Game Clients — mobile","/Naxxramas-Resource-Hub/?section=Game%20Clients",390,844],
+  ["11-clients-desktop-long","Game Clients — extended desktop review","/Naxxramas-Resource-Hub/?section=Game%20Clients",1440,3500],
+  ["12-clients-mobile-long","Game Clients — extended mobile review","/Naxxramas-Resource-Hub/?section=Game%20Clients",390,5500]
  ];
  for(const [id,label,route,w,h] of shots){
   const url="http://127.0.0.1:"+port+route;
@@ -273,7 +364,7 @@ async function captureVisualGallery(browser,port){
   '<p>Compare the original and draft Home first, then review the three new pages. Click an image to enlarge.</p>'+
   '<div class="grid">'+cards+'</div></body></html>';
  fs.writeFileSync(path.join(output,"00-open-visual-review.html"),html);
- console.log("PASS: eight draft visual screenshots and local review gallery prepared; no deployment");
+ console.log("PASS: twelve draft visual screenshots, including extended Game Clients desktop/mobile views; no deployment");
 }
 
 async function main(){
@@ -291,7 +382,7 @@ async function main(){
   const actual=crypto.createHash("sha256").update(Buffer.from(await response.arrayBuffer())).digest("hex");
   if(actual!=="f6617c8a4da6e9b75b56b020361f8aab57a8cca47921a9225685b0c0cddfa695")throw Error("Word download bytes changed");
   console.log("PASS: application DOCX downloads by HTTP with correct type and exact approved SHA-256");
-  for(const [page,width] of [["home",1440],["home",390],["apply",1440],["apply",390],["rules",390],["new-players",1440]]){
+  for(const [page,width] of [["home",1440],["home",390],["apply",1440],["apply",390],["rules",390],["new-players",1440],["clients",1440],["clients",390]]){
    const target="http://127.0.0.1:"+port+"/__qa__?page="+page+"&width="+width;
    const html=await captureChrome(browser,target);
    const match=html.match(/<pre id="result">QA_RESULT:([^<]*)<\/pre>/);
@@ -308,6 +399,6 @@ async function main(){
   await new Promise(resolve=>server.close(resolve));
  }
  if(failures)throw Error(failures+" browser scenario(s) failed");
- console.log("PASS: six local Chrome checks including open Tally panel, email-only privacy notice, legacy navigation and approved DOCX; no Tally submission attempted");
+ console.log("PASS: eight local Chrome checks including Game Clients desktop/mobile, privacy, legacy navigation and approved DOCX; no application submission attempted");
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});

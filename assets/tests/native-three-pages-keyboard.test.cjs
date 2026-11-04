@@ -51,8 +51,20 @@ async function connect(browser,url,width){
   return {evaluate,until,enter,close};
  }catch(e){await close();throw e;}
 }
+// GitHub-hosted Chrome occasionally fails before creating DevToolsActivePort.
+// Retry only this browser-startup failure once; never hide a keyboard/assertion failure.
+async function connectWithStartupRetry(browser,url,width){
+ for(let attempt=1;attempt<=2;attempt++){
+  try{return await connect(browser,url,width);}catch(e){
+   if(attempt===2||!String(e.message||e).startsWith("DevTools unavailable:"))throw e;
+   console.warn("Chrome DevTools startup failed; retrying once with a fresh profile");
+   await pause(800);
+  }
+ }
+ throw Error("Chrome startup retry unexpectedly exhausted");
+}
 async function desktop(browser,base){
- const s=await connect(browser,base+"apply/",1440);
+ const s=await connectWithStartupRetry(browser,base+"apply/",1440);
  try{
   await s.until('document.querySelectorAll("#steps .naxx-guide-step").length===3&&!!document.querySelector("#naxx-tally-live-application")',"Apply page ready");
   const focused=await s.evaluate('(()=>{const b=document.querySelector("#mainNav button[data-naxx-guide-link=rules]");if(!b)return false;b.focus();return document.activeElement===b;})()');
@@ -64,7 +76,7 @@ async function desktop(browser,base){
  }finally{await s.close();}
 }
 async function mobile(browser,base){
- const s=await connect(browser,base,390);
+ const s=await connectWithStartupRetry(browser,base,390);
  try{
   await s.until('!!document.getElementById("resourceGrid")&&!!document.getElementById("mobileNav")',"mobile Home ready");
   const focused=await s.evaluate('(()=>{const b=Array.from(document.querySelectorAll(".mobile-top button")).find(x=>/Menu/i.test(x.textContent));if(!b)return false;b.focus();return document.activeElement===b;})()');

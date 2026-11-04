@@ -11,6 +11,9 @@ on:
       - '.github/workflows/three-page-draft-checks.yml'
       - 'assets/tests/**'
       - 'assets/naxx-three-*'
+      - 'assets/naxx-game-clients-guide*'
+      - 'tools/local-preview/**'
+      - 'docs/game-clients-page-draft.md'
       - 'apply/**'
       - 'new-players/**'
       - 'rules/**'
@@ -56,6 +59,43 @@ jobs:
           NAXX_VISUAL_REVIEW: '1'
       - name: Compare original Game Clients navigation against main baseline
         run: node assets/tests/native-game-clients-baseline.test.cjs
+      - name: Check offline preview helper syntax and local-only HTTP access
+        shell: bash
+        run: |
+          set -euo pipefail
+          pwsh -NoProfile -Command '$t=$null; $e=$null; [System.Management.Automation.Language.Parser]::ParseFile("tools/local-preview/Start-Preview.ps1",[ref]$t,[ref]$e) | Out-Null; if ($e.Count) { $e | Out-String | Write-Error; exit 1 }'
+          pwsh -NoProfile -File tools/local-preview/Start-Preview.ps1 -Port 18765 -NoBrowser > "$RUNNER_TEMP/naxx-local-preview.log" 2>&1 &
+          pid=$!
+          trap 'kill $pid 2>/dev/null || true' EXIT
+          success=false
+          for i in $(seq 1 30); do
+            if curl -fsS --max-time 2 -o /dev/null http://127.0.0.1:18765/; then success=true; break; fi
+            sleep 0.5
+          done
+          if [ "$success" != true ]; then cat "$RUNNER_TEMP/naxx-local-preview.log"; exit 1; fi
+          curl -fsS --max-time 5 -o /dev/null http://127.0.0.1:18765/site-content.html
+          curl -fsS --max-time 5 -o /dev/null http://127.0.0.1:18765/assets/naxx-game-clients-guide.js
+          test "$(curl -s --max-time 5 -o /dev/null -w '%{http_code}' -X POST http://127.0.0.1:18765/)" = "405"
+          echo 'PASS: local preview serves draft files on loopback; upload/write method denied'
+
+      - name: Assemble Windows local preview ZIP (no deployment)
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s index.html && test -s site-content.html
+          zip -q -r "$RUNNER_TEMP/naxxramas-game-clients-local-preview.zip" . \
+            -x './.git/*' './.github/*' './baseline/*' './docs/*' \
+               './assets/tests/*' './qa-screenshots/*' './.gitignore'
+          test -s "$RUNNER_TEMP/naxxramas-game-clients-local-preview.zip"
+          unzip -l "$RUNNER_TEMP/naxxramas-game-clients-local-preview.zip" | grep -q 'site-content.html'
+          unzip -l "$RUNNER_TEMP/naxxramas-game-clients-local-preview.zip" | grep -q 'tools/local-preview/Start-Preview.cmd'
+      - name: Upload local preview ZIP for owner's manual admin check
+        uses: actions/upload-artifact@v4
+        with:
+          name: naxxramas-game-clients-local-preview
+          path: ${{ runner.temp }}/naxxramas-game-clients-local-preview.zip
+          if-no-files-found: error
+          retention-days: 7
       - name: Save draft-only visual review screenshots
         if: always()
         uses: actions/upload-artifact@v4

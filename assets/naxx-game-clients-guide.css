@@ -1,0 +1,36 @@
+/* Scoped Game Clients enhancement. Native Resource Hub cards and controls remain intact. */
+body:not(.visual-admin-active) #resourceGrid.naxx-game-client-guide-grid { display:block !important; width:100%; max-width:var(--pro-content-max,1320px); margin:0 auto; }
+body:not(.visual-admin-active) #resourceGrid.naxx-game-client-guide-grid > .game-client-card.naxx-legacy-client-card { display:none !important; }
+body.visual-admin-active #resourceGrid.naxx-game-client-guide-grid > #naxx-game-client-guide { display:none !important; }
+#resourceGrid.naxx-game-client-guide-grid .naxx-client-guide { display:block; padding:clamp(16px,2.5vw,30px); height:auto; overflow:visible; }
+/* Introductory explanation comes before every download choice. */
+.naxx-client-guide .naxx-client-explainer { padding:clamp(14px,2vw,23px); border:1px solid #806747; border-left:4px solid #d4af79; border-radius:6px; background:#2b2223; margin:0 0 25px; }
+.naxx-client-guide .naxx-client-explainer h2 { color:#f4dbad; font-size:clamp(18px,2.1vw,23px); line-height:1.28; margin:0 0 11px; }
+.naxx-client-guide .naxx-client-explainer p { line-height:1.65; margin:0 0 10px; }
+.naxx-client-guide .naxx-client-explainer p:last-child { margin-bottom:0; }
+.naxx-client-head h2 { color:#efd3a2; font-size:clamp(22px,2.5vw,32px); margin:5px 0 14px; line-height:1.2; }
+.naxx-client-head p,.naxx-client-section p,.naxx-client-steps li { line-height:1.7; }
+.naxx-client-eyebrow,.naxx-client-source-label { color:#dab776; font-size:11px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; }
+.naxx-client-jump { display:flex; flex-wrap:wrap; gap:9px; padding:16px 0 4px; }
+.naxx-client-jump a { color:#f1d8ad; background:#2b2028; border:1px solid #705850; border-radius:5px; padding:8px 11px; text-decoration:none; font-weight:700; }
+.naxx-client-jump a:hover,.naxx-client-jump a:focus-visible { border-color:#e1bc7a; color:#ffe5af; outline-offset:3px; }
+.naxx-client-section { border-top:1px solid #604746; margin-top:25px; padding-top:21px; }
+.naxx-client-section h3 { color:#f1d7ad; font-size:clamp(17px,2vw,21px); margin:0 0 13px; }
+.naxx-client-downloads { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:16px 0 12px; }
+.naxx-client-download-card { display:flex; flex-direction:column; min-width:0; padding:16px; border:1px solid #67504b; border-radius:7px; background:#251b24; gap:9px; }
+.naxx-client-provider-note { font-size:12px; color:#c4b2a8; }
+.naxx-client-download-card h4 { margin:0; font-size:18px; color:#f0d8b3; }
+.naxx-client-download-card p { margin:0 0 9px; }
+.naxx-client-download-card .game-client-external-button,.naxx-client-unavailable { margin-top:auto; align-self:flex-start; max-width:100%; font-size:12px; }
+.naxx-client-unavailable { border:1px dashed #786764; border-radius:5px; padding:9px 10px; color:#bdb0af; cursor:not-allowed; }
+.naxx-client-steps { margin:12px 0 0; padding-left:23px; }
+.naxx-client-steps li { padding-left:4px; margin:0 0 13px; }
+.naxx-client-guide code { padding:1px 4px; border-radius:3px; background:#322630; color:#f3d7ad; overflow-wrap:anywhere; }
+.naxx-client-note { border-left:3px solid #d6ad72; background:#2d2229; padding:10px 12px; }
+.naxx-client-guide a:not(.game-client-external-button):not(.naxx-client-jump a) { color:#e7bf81; text-underline-offset:3px; }
+.naxx-client-issues { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:11px; }
+.naxx-client-issues > div { padding:15px; border:1px solid #5b4747; border-radius:6px; background:#271c25; }
+.naxx-client-issues h4 { margin:0 0 7px; color:#f0d6a7; font-size:14px; }
+.naxx-client-issues p { margin:0; }
+@media (max-width:900px) { .naxx-client-downloads { grid-template-columns:1fr; } }
+@media (max-width:700px) { .naxx-client-issues { grid-template-columns:1fr; } #resourceGrid.naxx-game-client-guide-grid .naxx-client-guide { padding:16px; } }

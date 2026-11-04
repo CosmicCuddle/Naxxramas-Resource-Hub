@@ -216,6 +216,82 @@ assert.ok(apply.includes("Applications are open.") &&
  apply.includes("submit it securely through the private upload area"),
  "Opened website must give truthful, actionable submission instructions");
 
+// Game Clients draft: retain existing admin resources and the private connection boundary.
+const clientScript=read("assets/naxx-game-clients-guide.js");
+const clientCss=read("assets/naxx-game-clients-guide.css");
+assert.ok(index.includes("naxx-game-clients-guide.js?v=1") &&
+ index.includes("naxx-game-clients-guide.css?v=1") &&
+ bootstrap.includes("naxx-game-clients-guide.js?v=1") &&
+ bootstrap.includes("naxx-game-clients-guide.css?v=1"),
+ "Native and nested routes must load the same Game Clients assets");
+assert.ok(clientScript.includes('currentSection === "Game Clients"') &&
+ clientScript.includes(".game-client-card") &&
+ clientScript.includes("naxx-legacy-client-card"),
+ "New guide must activate only on Game Clients and retain editable native resource cards");
+assert.ok(clientCss.includes(".game-client-card.naxx-legacy-client-card") &&
+ clientCss.includes("body.visual-admin-active"),
+ "Only the duplicate legacy card is hidden from visitors, never the admin editor or future client cards");
+assert.ok(clientCss.includes("body:not(.visual-admin-active) #resourceGrid.naxx-game-client-guide-grid { display:block"),
+ "Visitor-only guide layout must never override the original admin editing grid");
+assert.ok(site.includes("visual-admin-active"),
+ "Check the real original website uses the visual-admin-active class before relying on it");
+assert.ok(clientScript.includes("patch-V.mpq") && clientScript.includes("patch-Z.mpq") &&
+ clientScript.includes("3.3.5a") && clientScript.includes("12340"),
+ "Complete guide must explain the exact client and both required patches");
+assert.ok(clientScript.includes("naxx-client-explainer-title") &&
+ clientScript.includes("The <strong>game client</strong>") &&
+ clientScript.includes("The <strong>game server</strong>") &&
+ clientScript.includes("Downloading their client does not mean you will play on their server") &&
+ clientScript.includes("Naxxramas acceptance email") &&
+ clientCss.includes(".naxx-client-guide .naxx-client-explainer"),
+ "The first Game Clients banner must explain the client/server distinction before showing downloads");
+assert.ok(clientScript.includes("if (!selected) {") &&
+ clientScript.includes("if (previousGuide) previousGuide.remove()") &&
+ !clientScript.includes('!grid.querySelector(".game-client-card")'),
+ "Guide must mount independently of legacy cards and clean itself up when another section is selected");
+assert.ok(clientScript.includes("You use the same game client throughout Vanilla") &&
+ clientScript.includes("Individual Progression") &&
+ clientScript.includes("do not need a separate client for each era"),
+ "Guide headline must explain that IP eras use one client without repeating technical patch information");
+assert.ok(clientScript.includes("do not currently host the base game files ourselves") &&
+ clientScript.includes("Wrath of the Lich King (WotLK)") &&
+ clientScript.includes("patch 3.3.5a (build 12340)") &&
+ clientScript.includes("If a download website asks for the expansion or patch") &&
+ !clientScript.includes("we do not host those base game files ourselves"),
+ "Hosting must be described as current, and WotLK / 3.3.5a / build 12340 made explicit for provider selection");
+assert.ok(clientScript.includes("patch-J.mpq") &&
+ clientScript.includes("patch-U.mpq") &&
+ clientScript.includes("patch-C.mpq") &&
+ clientScript.includes("Choose J or C, never both") &&
+ clientScript.includes("/OPTIONAL-PATCHES.md") &&
+ !clientScript.includes("Patch-J.mpq") &&
+ !clientScript.includes("Patch-U.mpq"),
+ "Optional client patch names must match the official Naxxramas patch README; mutually exclusive login patches must be explained");
+assert.ok(!clientScript.includes("Eternion") &&
+ !clientScript.includes("eternion-wow.net") &&
+ !clientScript.includes("Preferred candidate") &&
+ clientScript.includes("Main download option") &&
+ clientScript.includes("Version 3.3.5 (12340)") &&
+ clientCss.includes(".naxx-client-downloads { display:grid; grid-template-columns:repeat(2,minmax(0,1fr))"),
+ "Deferred third-party source must not appear publicly; two current source cards and version guidance remain");
+assert.ok(!clientScript.includes("naxx-client-note"),
+ "The old redundant client-connection note must not repeat the new introductory banner");
+
+assert.ok(clientScript.includes("https://chromiecraft.com/en/downloads/") &&
+ clientScript.includes("https://web.archive.org/web/20260228080116/https://www.warmane.com/download") &&
+ clientScript.includes("Warmane provides a download page") &&
+ clientScript.includes("The link opens a saved copy of Warmane's download page"),
+ "ChromieCraft stays primary, while Warmane uses the owner-tested 28 February 2026 snapshot with a truthful archive note");
+assert.ok(!clientScript.includes("Currently out of order") &&
+ !clientScript.includes("naxx-client-service-note") &&
+ !clientCss.includes(".naxx-client-service-note") &&
+ clientCss.includes(".naxx-client-provider-note"),
+ "Warmane's outdated outage badge must be removed without changing the source's normal description");
+assert.ok(!/\b(?:\d{1,3}\.){3}\d{1,3}\b/.test(clientScript) &&
+ !/\bset\s+real(?:m)?list\s+/i.test(clientScript),
+ "Client guide must contain no realm address or ready-made connection line");
+console.log("PASS: Game Clients guide preserves native admin resources, required patches and private connection boundaries.");
+
 const blob=Buffer.from(site);
 const hash=crypto.createHash("sha1").update(Buffer.concat([
  Buffer.from("blob "+blob.length+"\0"),blob])).digest("hex");
