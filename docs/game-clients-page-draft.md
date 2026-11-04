@@ -8,7 +8,7 @@ Naxxramas uses **World of Warcraft: Wrath of the Lich King 3.3.5a, build 12340**
 
 ### First banner — why download a client from another website?
 
-> **Why download WoW from another website?** The **game client** is the World of Warcraft program on your computer. The **game server** is the online world it connects to. Naxxramas needs the **3.3.5a (build 12340)** client, but we do not host those base game files ourselves. Other WoW communities offer compatible downloads.
+> **Why download WoW from another website?** The **game client** is the World of Warcraft program on your computer. The **game server** is the online world it connects to. Naxxramas uses the **World of Warcraft: Wrath of the Lich King (WotLK)** client, **patch 3.3.5a (build 12340)**. We **do not currently host the base game files ourselves**, so for now we link to compatible downloads from other WoW communities.
 >
 > **Downloading their client does not mean you will play on their server.** You do not need to create a game account with them. After your application is accepted, use the private connection instructions from your Naxxramas acceptance email and install our required patches. Your client will then connect to **Naxxramas**, not the download provider's realm.
 >
@@ -17,6 +17,8 @@ Naxxramas uses **World of Warcraft: Wrath of the Lich King 3.3.5a, build 12340**
 This banner is rendered as the **first element** of the Game Clients guide, before the main page title and download links. The old repeated connection note underneath the download cards is removed.
 
 ### Step 1 — Choose a download source
+
+If a download website asks which **expansion** or **patch** you want, choose **Wrath of the Lich King (WotLK)**, **patch 3.3.5a (build 12340)**. Do not choose Vanilla, The Burning Crusade, Classic, or another patch. This is the client Naxxramas uses even during earlier progression stages.
 
 **Preferred candidate — Eternion:** https://eternion-wow.net/download . Its own download page advertises a **separate plain "Full client — 3.3.5a (build 12340)"** with no Eternion realm patches in that archive. Only this plain full-client download is under consideration; **do not install Eternion's launcher, `Eternion-WotLK-Complete.zip` pack, other realm-specific MPQs or connection file**, which would prepare the game for Eternion rather than Naxxramas. The draft card links to the provider's informational download page but deliberately keeps the **actual client-download button disabled** until the archive/build/safety checks have been completed. No Naxxramas-compatible installation has yet been verified.
 
