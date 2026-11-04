@@ -19,26 +19,11 @@ function browserBinary(){
 function probe(slug,viewportWidth){
  const frame=document.getElementById("site");
  const out=document.getElementById("result");
- let settled=false, navClicked=false, initialChecks=null;
+ let settled=false, navClicked=false, initialChecks=null, searchStarted=false, searchChecks=0;
  function finish(ready,checks){
   if(settled)return;
   settled=true;
-  let legacyProbe;
-  if(ready&&slug==="home"&&viewportWidth===1440){
-   const d=frame.contentDocument;
-   const trim=s=>String(s||"").trim().replace(/\\s+/g," ").slice(0,90);
-   const meta=e=>({tag:e.tagName,id:e.id||"",cl:trim(e.className).slice(0,60),
-    label:trim(e.getAttribute("aria-label")||e.getAttribute("title")||e.textContent),
-    placeholder:e.getAttribute("placeholder")||"",type:e.getAttribute("type")||""});
-   legacyProbe={
-    originalNav:Array.from(d.querySelectorAll('#mainNav button')).filter(e=>!e.hasAttribute("data-naxx-guide-link")).slice(0,55).map(meta),
-    searchFields:Array.from(d.querySelectorAll('input,[role="searchbox"],[id*="search" i]')).slice(0,36).map(meta),
-    adminControls:Array.from(d.querySelectorAll('button,a,[role="button"]'))
-       .filter(e=>/admin/i.test([e.id,e.className,e.getAttribute("aria-label"),e.getAttribute("title"),e.textContent].join(" "))).slice(0,12).map(meta),
-    footerCount:d.querySelectorAll('footer,[role="contentinfo"]').length
-   };
-  }
-  out.textContent="QA_RESULT:"+JSON.stringify({page:slug,width:viewportWidth,ready,checks:checks,legacyProbe});
+  out.textContent="QA_RESULT:"+JSON.stringify({page:slug,width:viewportWidth,ready,checks:checks});
  }
  function check(){
   if(settled)return;
@@ -80,6 +65,12 @@ function probe(slug,viewportWidth){
     desktopGuideButtonFocuses:viewportWidth===390||d.activeElement===focusButton,
     homeNotOverwrittenByGuide:!d.body.classList.contains("naxx-three-page-route"),
     noGuideContentOnHome:!d.querySelector("[data-naxx-guide-content]"),
+    originalSectionButtonsRemain:["Class Handbooks","Dungeon Handbooks","Game Clients","Change Notes","Patches","Temporary Banned"].every(
+      label=>Array.from(main.querySelectorAll('button[data-section]')).some(btn=>String(btn.textContent).includes(label))),
+    originalSearchAndResultsRemain:!!d.querySelector('#searchInput[type="search"]')&&!!d.getElementById("globalSearchResults"),
+    originalAdminControlsRemain:!!d.querySelector("button.wh-pro-admin")&&
+      d.querySelector("#adminPasswordInput")?.type==="password",
+    originalFooterRemains:!!d.querySelector("footer"),
     noHorizontalOverflow:d.documentElement.scrollWidth<=frame.contentWindow.innerWidth+3
    };
    if(viewportWidth===390&&Object.values(checks).every(Boolean)){
@@ -97,6 +88,22 @@ function probe(slug,viewportWidth){
     initialChecks=checks;
     navClicked=true;
     mobileRules.click();
+    return;
+   }
+   if(viewportWidth===1440&&Object.values(checks).every(Boolean)){
+    const input=d.getElementById("searchInput"),results=d.getElementById("globalSearchResults");
+    if(!searchStarted){
+     searchStarted=true;
+     input.value="Mage";
+     input.dispatchEvent(new frame.contentWindow.Event("input",{bubbles:true}));
+     return;
+    }
+    checks.originalSearchResponds=!!results&&!results.classList.contains("hidden");
+    checks.originalSearchFindsMage=!!results&&results.textContent.toLowerCase().includes("mage");
+    if(!checks.originalSearchResponds&&searchChecks++<15)return;
+    input.value="";
+    input.dispatchEvent(new frame.contentWindow.Event("input",{bubbles:true}));
+    finish(Object.values(checks).every(Boolean),checks);
     return;
    }
    finish(Object.values(checks).every(Boolean),checks);
@@ -225,7 +232,6 @@ async function main(){
    try{result=JSON.parse(match[1].replace(/&quot;/g,'"').replace(/&amp;/g,"&"));}catch(e){
     console.error("FAIL: unreadable browser result",e);failures++;continue;
    }
-   if(page==="home"&&width===1440&&result.legacyProbe)console.log("LEGACY_DOM_PROBE",JSON.stringify(result.legacyProbe));
    if(result.ready)console.log("PASS: "+page+" "+width+"px",JSON.stringify(result.checks));
    else{console.error("FAIL: "+page+" "+width+"px",JSON.stringify(result.checks));failures++;}
   }
@@ -233,6 +239,6 @@ async function main(){
   await new Promise(resolve=>server.close(resolve));
  }
  if(failures)throw Error(failures+" browser scenario(s) failed");
- console.log("PASS: six local Chrome checks, real desktop and mobile drawer navigation, and approved DOCX HTTP download; no Tally submission attempted");
+ console.log("PASS: six local Chrome checks including legacy search/Admin presence, native navigation and approved DOCX download; no Tally submission attempted");
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});
