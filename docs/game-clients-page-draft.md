@@ -6,9 +6,19 @@
 
 Naxxramas uses **World of Warcraft: Wrath of the Lich King 3.3.5a, build 12340** for every progression era. You continue using the same game client as your character moves from Vanilla through The Burning Crusade to Wrath of the Lich King.
 
+### First banner — why download a client from another website?
+
+> **Why download WoW from another website?** The **game client** is the World of Warcraft program on your computer. The **game server** is the online world it connects to. Naxxramas needs the **3.3.5a (build 12340)** client, but we do not host those base game files ourselves. Other WoW communities offer compatible downloads.
+>
+> **Downloading their client does not mean you will play on their server.** You do not need to create a game account with them. After your application is accepted, use the private connection instructions from your Naxxramas acceptance email and install our required patches. Your client will then connect to **Naxxramas**, not the download provider's realm.
+>
+> **Important:** Download the base game client only. Do not install another server's launcher, custom patch pack or connection settings.
+
+This banner is rendered as the **first element** of the Game Clients guide, before the main page title and download links. The old repeated connection note underneath the download cards is removed.
+
 ### Step 1 — Choose a download source
 
-**Preferred client:** awaiting the owner's tested URL. Do not publish a working-looking button until the download and version are checked.
+**Preferred candidate — Eternion:** https://eternion-wow.net/download . Its own download page advertises a **separate plain "Full client — 3.3.5a (build 12340)"** with no Eternion realm patches in that archive. Only this plain full-client download is under consideration; **do not install Eternion's launcher, `Eternion-WotLK-Complete.zip` pack, other realm-specific MPQs or connection file**, which would prepare the game for Eternion rather than Naxxramas. The draft card links to the provider's informational download page but deliberately keeps the **actual client-download button disabled** until the archive/build/safety checks have been completed. No Naxxramas-compatible installation has yet been verified.
 
 **Alternative — Warmane:** https://www.warmane.com/download . The owner requested its normal public URL, with a small **“Currently out of order”** note at the top of the Warmane download card. Keep the link for future use, but do not imply the client download works or has been tested.
 
@@ -81,7 +91,7 @@ Launch **Wow.exe**, not an automatic updater, and follow the privately supplied 
 
 ### Remaining release conditions
 
-1. Obtain the owner's chosen **preferred client download URL** and verify the offered game build before enabling its button or labelling the source tested.
+1. **Eternion is the owner's chosen preferred candidate, not yet an approved/tested download.** Verify its plain full-client archive, checksum and offered build, and ensure it contains no Eternion-specific patch pack, changed executable or unwanted connection settings before enabling any client-download button.
 2. Keep Warmane marked **“Currently out of order”** until the required download option has genuinely been confirmed working; the webpage loading alone is not enough.
 3. Obtain owner's review of the desktop/mobile guide, and confirm real visual-admin editing behaviour before publishing.
 4. Obtain explicit approval before merging or publishing PR #52. Do not release a realmlist, realm address, passwords or third-party client binaries.
