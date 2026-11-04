@@ -23,7 +23,22 @@ function probe(slug,viewportWidth){
  function finish(ready,checks){
   if(settled)return;
   settled=true;
-  out.textContent="QA_RESULT:"+JSON.stringify({page:slug,width:viewportWidth,ready,checks:checks});
+  let legacyProbe;
+  if(ready&&slug==="home"&&viewportWidth===1440){
+   const d=frame.contentDocument;
+   const trim=s=>String(s||"").trim().replace(/\\s+/g," ").slice(0,90);
+   const meta=e=>({tag:e.tagName,id:e.id||"",cl:trim(e.className).slice(0,60),
+    label:trim(e.getAttribute("aria-label")||e.getAttribute("title")||e.textContent),
+    placeholder:e.getAttribute("placeholder")||"",type:e.getAttribute("type")||""});
+   legacyProbe={
+    originalNav:Array.from(d.querySelectorAll('#mainNav button')).filter(e=>!e.hasAttribute("data-naxx-guide-link")).slice(0,55).map(meta),
+    searchFields:Array.from(d.querySelectorAll('input,[role="searchbox"],[id*="search" i]')).slice(0,36).map(meta),
+    adminControls:Array.from(d.querySelectorAll('button,a,[role="button"]'))
+       .filter(e=>/admin/i.test([e.id,e.className,e.getAttribute("aria-label"),e.getAttribute("title"),e.textContent].join(" "))).slice(0,12).map(meta),
+    footerCount:d.querySelectorAll('footer,[role="contentinfo"]').length
+   };
+  }
+  out.textContent="QA_RESULT:"+JSON.stringify({page:slug,width:viewportWidth,ready,checks:checks,legacyProbe});
  }
  function check(){
   if(settled)return;
@@ -210,6 +225,7 @@ async function main(){
    try{result=JSON.parse(match[1].replace(/&quot;/g,'"').replace(/&amp;/g,"&"));}catch(e){
     console.error("FAIL: unreadable browser result",e);failures++;continue;
    }
+   if(page==="home"&&width===1440&&result.legacyProbe)console.log("LEGACY_DOM_PROBE",JSON.stringify(result.legacyProbe));
    if(result.ready)console.log("PASS: "+page+" "+width+"px",JSON.stringify(result.checks));
    else{console.error("FAIL: "+page+" "+width+"px",JSON.stringify(result.checks));failures++;}
   }
