@@ -22,6 +22,17 @@ If a download website asks which **expansion** or **patch** you want, choose **W
 
 **Preferred candidate — Eternion:** https://eternion-wow.net/download . Its own download page advertises a **separate plain "Full client — 3.3.5a (build 12340)"** with no Eternion realm patches in that archive. Only this plain full-client download is under consideration; **do not install Eternion's launcher, `Eternion-WotLK-Complete.zip` pack, other realm-specific MPQs or connection file**, which would prepare the game for Eternion rather than Naxxramas. The draft card links to the provider's informational download page but deliberately keeps the **actual client-download button disabled** until the archive/build/safety checks have been completed. No Naxxramas-compatible installation has yet been verified.
 
+**Eternion provider-page selection:** Their page starts with a launcher promotion. Instead, scroll to the **Wrath of the Lich King 3.3.5a** section and choose **Full client — 3.3.5a (build 12340)**, about **16.5 GB**. Do not follow the provider's subsequent realm installation instructions. On the actual WoW login screen, a correct 3.3.5a installation can display **`Version 3.3.5 (12340)`** without the letter "a". This is expected.
+
+**Independent-download verification record — pending, not a website endorsement:**
+
+- Provider information: https://eternion-wow.net/download
+- Archive URL linked by the provider's *Full client* control: `https://eternion-wow.net/downloads/wotlk.zip`
+- Published archive size: approximately **16.5 GB**; this is the provider's figure, not a measured value.
+- Published SHA-256: `54ed5737cf9954e77c3e70050f35a045b17b882e6adc957e34fb5d417d132819`
+- **Not verified:** actual bytes downloaded, hash matching, actual extracted content, absence of realm customisations or altered executables, Naxxramas patch and account compatibility, or security of this external download.
+- **Before enabling direct download:** obtain the whole archive and compare its SHA-256 to the *currently published* value, inspect the extracted game files without running foreign executables, verify build 12340, check for provider-specific MPQs and executables, and test Naxxramas's two required patches and private connection process. Do not upload game files or publish private connection details.
+
 **Alternative — Warmane:** https://www.warmane.com/download . The owner requested its normal public URL, with a small **“Currently out of order”** note at the top of the Warmane download card. Keep the link for future use, but do not imply the client download works or has been tested.
 
 Naxxramas does not host or distribute the base game client through this page.
