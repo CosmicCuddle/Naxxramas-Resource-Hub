@@ -267,7 +267,8 @@ body.naxx-three-page-route .naxx-tally-live-application iframe {
   min-height:350px;
   border:1px solid #4b3826;
   border-radius:3px;
-  background:#fff;
+  /* Transparent Tally iframe content must reveal dark, not white, backing. */
+  background:#15110d;
 }
 body.naxx-three-page-route .naxx-tally-fallback {
   margin:10px 0 0;
