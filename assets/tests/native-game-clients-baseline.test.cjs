@@ -9,6 +9,7 @@ const cp=require("node:child_process");
 const {URL}=require("node:url");
 const draftRoot=path.resolve(__dirname,"../..");
 const baselineRoot=path.join(draftRoot,"baseline");
+let activeVariant="main"; // Only set between sequential browser subprocesses; no concurrency.
 function chromeExecutable(){
  for(const name of ["google-chrome","google-chrome-stable","chromium","chromium-browser"]){
   const out=cp.spawnSync("which",[name],{encoding:"utf8"});
@@ -102,7 +103,17 @@ function server(req,res){
   res.setHeader("Content-Type","text/html; charset=utf-8");
   res.end(pageHarness(variant));return;
  }
- const parts=pathname.split("/").filter(Boolean),which=parts.shift();
+ let parts,which;
+ if(pathname==="/Naxxramas-Resource-Hub"||pathname.startsWith("/Naxxramas-Resource-Hub/")){
+  // The original site uses its real GitHub Pages base URL for internal navigation.
+  // Re-route this local-only URL to the same checkout being tested; otherwise the
+  // test server would return a false 404 on BOTH main and draft.
+  which=activeVariant;
+  parts=pathname.replace(/^\/Naxxramas-Resource-Hub\/?/,"").split("/").filter(Boolean);
+ }else{
+  parts=pathname.split("/").filter(Boolean);
+  which=parts.shift();
+ }
  if(!["main","draft"].includes(which)){res.writeHead(404);res.end();return;}
  const root=which==="main"?baselineRoot:draftRoot;
  let target=path.resolve(root,decodeURIComponent(parts.join("/")));
@@ -137,6 +148,7 @@ async function main(){
  const port=serverInstance.address().port,results=[];
  try{
   for(const variant of ["main","draft"]){
+   activeVariant=variant;
    const url="http://127.0.0.1:"+port+"/probe/"+variant;
    const html=await browserDump(browser,url);
    const found=html.match(/<pre id="report">AB_RESULT:([^<]+)<\/pre>/);
@@ -153,7 +165,7 @@ async function main(){
  if(original.reached&&!draft.reached)
   throw Error("DRAFT REGRESSION: main reached Game Clients but draft did not");
  if(!original.reached&&!draft.reached)
-  console.warn("UNRESOLVED BASELINE MATCH: original main and draft both failed to reach Game Clients in this headless iframe scenario");
+  console.warn("UNRESOLVED BASELINE MATCH: main and draft both did not reach the Game Clients heading after the original click; inspect the reported destination before concluding anything");
  if(!original.reached&&draft.reached)
   console.log("BASELINE DIFFERENCE: draft reached Game Clients, original main did not");
  if(original.reached&&draft.reached)
