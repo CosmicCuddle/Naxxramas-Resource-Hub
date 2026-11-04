@@ -113,7 +113,7 @@ On authorised launch, separately confirm:
 1. **DONE (draft only, 3 Nov 2026):** Owner authorised public distribution of the blank DOCX; the checked, unanswered template is committed as `apply/naxxramas-application.docx` and linked in the draft Apply page. This is **not** permission to merge the website or open applications. No applicant-completed document is committed.
 2. Owner approves the privacy notice, retention schedule, and final submit/confirmation wording.
 3. After successful private dummy-file testing, use the **exact verified Tally form embed/link** from the owner. Embed in the existing **native Resource Hub** layout with standard/transparent Tally options as needed and an **external direct-link fallback**.
-4. Before any website launch, run desktop/mobile/keyboard tests, test submission success/failure, and check no personal application data is in GitHub Pages, source commits, GitHub Issues or public previews.
+4. **Partly verified (4 Nov 2026):** native Node tests and locally served Chrome smoke checks have passed at 1440 px desktop and 390 px mobile widths, including a sidebar navigation click, correct Word download bytes and disabled Tally embed ([Actions run #41804400239](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/41804400239)). **Still required before website launch:** real keyboard/legacy-section and screenshot QA, live Tally success/failure and dummy-data privacy/deletion checks, and confirmation no applicant data enters GitHub Pages, commits, Issues or public previews.
 5. Owner explicitly approves merge/publication **separately** from opening applications; only then change site status from **Applications closed** to open.
 
 ## Sources checked 3 November 2026

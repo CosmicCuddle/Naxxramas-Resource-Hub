@@ -159,7 +159,11 @@ This **does not extend the approved 30-day post-acceptance decision deadline** t
 
 **Confirmed in the draft source:** approved blank Word download, 12 always-visible rules, 38 New Player + 35 Rules + 8 Apply FAQs, existing native navigation reuse, and an OFF-gated Tally iframe. The root source remains unchanged; no production merge or application activation is approved.
 
-**Still to test in a real environment:** full Node test suite, desktop/mobile/keyboard site navigation and download in a browser, Tally dashboard receipt, owner notification email, Thank You display, invalid uploads, and deletion plus Trash emptying using dummy data. GitHub status checks are not evidence of success unless a real run reports success. The final Rules wording, applicant privacy/withdrawal contact and owner publication/activation decisions remain outstanding.
+**Native automation now verified (4 November 2026):** GitHub Actions [run #41804400239](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/41804400239) completed **successfully**, running four real Node test scripts (the restored Game Clients connection-safety regression, native page/content/hash and closed Tally checks, navigation rebuild checks, and render/error recovery checks). The workflow has read-only repository permissions and no deploy step.
+
+**Actual browser smoke checks also passed:** Chrome loaded the draft using a loopback-only static server: Apply at **1440 px and 390 px**, Rules at **390 px**, and New Player Guide at **1440 px**. It verified the new routes and original sidebar links, FAQ/rules counts, no horizontal overflow, disabled Tally iframe, and a **real desktop sidebar click from Apply to Rules**. The approved Word template was fetched by local HTTP and its bytes matched the exact expected SHA-256. These are **real executed checks**, not theoretical source inspections.
+
+**Not yet validated:** human screenshot/pixel-level comparison against the current homepage and original website theme; full keyboard, search, Admin and legacy-section regressions; live Tally dashboard receipt/notifications/Thank You/invalid files/deletion/Trash with dummy data; the final Rules copy, privacy/withdrawal contact and explicit website merge/application opening approval. A locally served draft browser test is **not** a deployment or a live Tally integration test.
 
 ## Regression and manual checks
 
