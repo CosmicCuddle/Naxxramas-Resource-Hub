@@ -86,7 +86,7 @@ function probe(slug,viewportWidth){
    };
    if(viewportWidth===390&&Object.values(checks).every(Boolean)){
     const menu=Array.from(d.querySelectorAll(".mobile-top button"))
-      .find(b=>/\\bMenu\\b/i.test(b.textContent));
+      .find(b=>/Menu/i.test(b.textContent));
     checks.mobileMenuControlPresent=!!menu;
     if(!menu){finish(false,checks);return;}
     menu.click();
