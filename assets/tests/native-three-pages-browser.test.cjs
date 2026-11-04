@@ -208,6 +208,7 @@ async function main(){
    try{result=JSON.parse(match[1].replace(/&quot;/g,'"').replace(/&amp;/g,"&"));}catch(e){
     console.error("FAIL: unreadable browser result",e);failures++;continue;
    }
+   if(page==="home"&&width===390)console.log("MOBILE_MENU_PROBE",JSON.stringify(result.mobileMenuProbe||{}));
    if(result.ready)console.log("PASS: "+page+" "+width+"px",JSON.stringify(result.checks));
    else{console.error("FAIL: "+page+" "+width+"px",JSON.stringify(result.checks));failures++;}
   }
