@@ -116,7 +116,22 @@ function probe(slug,viewportWidth){
    const warmane=cards.find(card=>card.querySelector("h4")?.textContent.trim()==="Warmane");
    const note=warmane?.querySelector(".naxx-client-service-note");
    const positions=cards.map(card=>card.getBoundingClientRect());
+   // Read-only simulation of the visual-admin CSS state. No login is attempted.
+   const legacy=d.querySelector("#resourceGrid > .game-client-card.naxx-legacy-client-card");
+   const originalAdminClass=d.body.classList.contains("visual-admin-active");
+   d.body.classList.add("visual-admin-active");
+   const adminKeepsOriginalCard=!!legacy&&
+     frame.contentWindow.getComputedStyle(legacy).display!=="none"&&
+     frame.contentWindow.getComputedStyle(guide).display==="none";
+   const adminRestoresGridLayout=frame.contentWindow.getComputedStyle(
+     d.getElementById("resourceGrid")).display==="grid";
+   if(!originalAdminClass)d.body.classList.remove("visual-admin-active");
+   const visitorGuideRestores=frame.contentWindow.getComputedStyle(guide).display!=="none"&&
+     !!legacy&&frame.contentWindow.getComputedStyle(legacy).display==="none";
    const checks={
+    simulatedAdminKeepsOriginalCard:adminKeepsOriginalCard,
+    simulatedAdminKeepsOriginalGrid:adminRestoresGridLayout,
+    visitorModeRestoresGuide:visitorGuideRestores,
     directLinkOpensGameClients:(d.getElementById("sectionHeading")||{}).textContent?.includes("Game Clients")===true,
     completeGuideRendered:guide.getBoundingClientRect().height>0,
     threeDownloadCards:cards.length===3,
@@ -287,7 +302,9 @@ async function captureVisualGallery(browser,port){
   ["07-rules-mobile","Server Rules — mobile","/rules/",390,844],
   ["08-apply-mobile","Apply to Join — mobile","/apply/",390,844],
   ["09-clients-desktop","Game Clients — desktop","/Naxxramas-Resource-Hub/?section=Game%20Clients",1440,900],
-  ["10-clients-mobile","Game Clients — mobile","/Naxxramas-Resource-Hub/?section=Game%20Clients",390,844]
+  ["10-clients-mobile","Game Clients — mobile","/Naxxramas-Resource-Hub/?section=Game%20Clients",390,844],
+  ["11-clients-desktop-long","Game Clients — extended desktop review","/Naxxramas-Resource-Hub/?section=Game%20Clients",1440,3500],
+  ["12-clients-mobile-long","Game Clients — extended mobile review","/Naxxramas-Resource-Hub/?section=Game%20Clients",390,5500]
  ];
  for(const [id,label,route,w,h] of shots){
   const url="http://127.0.0.1:"+port+route;
@@ -305,7 +322,7 @@ async function captureVisualGallery(browser,port){
   '<p>Compare the original and draft Home first, then review the three new pages. Click an image to enlarge.</p>'+
   '<div class="grid">'+cards+'</div></body></html>';
  fs.writeFileSync(path.join(output,"00-open-visual-review.html"),html);
- console.log("PASS: ten draft visual screenshots and local review gallery prepared; no deployment");
+ console.log("PASS: twelve draft visual screenshots, including extended Game Clients desktop/mobile views; no deployment");
 }
 
 async function main(){
