@@ -177,12 +177,16 @@ assert.ok(apply.includes('href="#privacy"') &&
  apply.includes("UK Information Commissioner's Office") &&
  apply.includes('href="https://tally.so/help/gdpr"'),
  "Privacy notice must be visible, linked and preserve retention/contact and legal review boundaries");
+const applicationPrivacy=apply.split('<section id="privacy"')[1]?.split('<section id="upload"')[0] || "";
 assert.ok(apply.includes("Application withdrawal or privacy requests:") &&
  apply.includes('href="mailto:naxxapplicationteam@gmail.com"') &&
- apply.includes("private Discord message") &&
- apply.includes("Either method is acceptable") &&
+ applicationPrivacy.includes("For privacy requests, please email") &&
+ applicationPrivacy.includes("optional Discord username") &&
+ !applicationPrivacy.includes("privately message the owner on Discord") &&
+ !apply.includes("or by private Discord message to the owner if you can reach them there") &&
+ !apply.includes("Either method is acceptable") &&
  /do not email completed applications/i.test(apply),
- "Privacy contact must use the owner-created mailbox, allow private Discord, and keep application uploads separate");
+ "Privacy and withdrawal contact must be email-only; retain honest disclosure of optional Discord field and no document email rule");
 assert.ok(apply.includes("preferred account username"),"Website must match original owner Word application, not community nickname");
 assert.ok(!apply.includes("community nickname"),"Outdated applicant identity wording must not reappear");
 const officialForm=path.join(root,"apply/naxxramas-application.docx");
