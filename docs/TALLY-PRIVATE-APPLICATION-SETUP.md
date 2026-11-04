@@ -1,7 +1,7 @@
 # Naxxramas — private application upload setup (DRAFT)
 
 **Owner:** CosmicCuddle  
-**Status (3 November 2026):** owner-controlled Tally form URL and dummy-file test reported; **two dummy submissions visible in the owner dashboard and one uploaded DOCX successfully opened and content-checked (owner-confirmed 4 November 2026); Tally notification, confirmation and deletion testing still pending**. The blank Word download and inert Tally iframe are staged in draft PR #47; the live website and embedded intake are **not activated**.  
+**Status (3 November 2026):** owner-controlled Tally form URL and dummy-file test reported; **two dummy submissions visible in the owner dashboard and one uploaded DOCX successfully opened and content-checked (owner-confirmed 4 November 2026); Tally automatic submission notification received (owner-confirmed 4 November 2026); confirmation and deletion testing still pending**. The blank Word download and inert Tally iframe are staged in draft PR #47; the live website and embedded intake are **not activated**.  
 **Website:** Draft PR #47 on `draft/three-native-pages-faq-2026-11-03`  
 **Original form:** Owner's approved 3-page, 17-field Word application (DOCX). Retain exact owner-authored form; never recreate its 17 questions as an online Tally questionnaire.
 
@@ -53,7 +53,7 @@ Use these blocks, in order:
 
 Keep the **existing required acknowledgement**: “I have read the privacy information above and understand how my application will be used” → “I understand and agree.” Provide accessible links to the final privacy notice and Tally's privacy information before launch. Do not claim that uploads are never transferred to or stored by Tally.
 
-**Owner follow-up before real applications:** the maximum pending-review period is now set at **90 days**; email/Discord request channels are approved and the owner has supplied **naxxapplicationteam@gmail.com** as the public email destination. Owner reports inbound/outbound email delivery already tested. Finalise withdrawal handling and any applicable legal exceptions in the published privacy notice. Staff-only email alerts should contain no needless sensitive answers. The **website embed remains OFF**. CosmicCuddle reports a successful dummy-file test of the separate Tally form, and has now confirmed **both dummy submissions are visible in the Tally Submissions dashboard**. CosmicCuddle has also confirmed **one submitted Word document opened/downloaded successfully and its contents were correct, with no issues**. This is owner-reported validation for one dummy file, not independent file integrity or acceptance of all document types. Tally self-email alerts, confirmation screen, current Close form setting and permanent deletion remain unverified.
+**Owner follow-up before real applications:** the maximum pending-review period is now set at **90 days**; email/Discord request channels are approved and the owner has supplied **naxxapplicationteam@gmail.com** as the public email destination. Owner reports inbound/outbound email delivery already tested. Finalise withdrawal handling and any applicable legal exceptions in the published privacy notice. Staff-only email alerts should contain no needless sensitive answers. The **website embed remains OFF**. CosmicCuddle reports a successful dummy-file test of the separate Tally form, and has now confirmed **both dummy submissions are visible in the Tally Submissions dashboard**. CosmicCuddle has also confirmed **one submitted Word document opened/downloaded successfully and its contents were correct, with no issues**. This is owner-reported validation for one dummy file, not independent file integrity or acceptance of all document types. **Tally's automatic submission-notification email was received (owner-confirmed 4 November 2026).** Confirmation screen, current Close form setting and permanent deletion remain unverified.
 
 
 ### Owner decision — recognised activity within one month after acceptance (3 November 2026, clarified)
@@ -85,7 +85,7 @@ Keep the **existing required acknowledgement**: “I have read the privacy infor
 - [ ] Reject a missing file, the wrong type (such as .jpg or .exe), a second file, and a file larger than 10 MB.
 - [ ] Check keyboard/mobile selection and accessible error messages.
 - [ ] Confirm confirmation text appears **only after** Tally records the submission.
-- [ ] Confirm owner email alert if enabled, without leaking applicant details via forwarding/exports.
+- [x] **Owner-confirmed (4 Nov 2026):** Tally's automatic new-submission notification email arrived. Do not forward applicant details or private file links to public channels.
 - [ ] Confirm an unauthenticated browser cannot access the private dashboard/file through ordinary account links; separately inspect any exported URL risks.
 - [ ] Test manual deletion and emptying Trash **with dummy data** only.
 - [ ] Return test form to CLOSED and record results. Do not put test form URL or submission data in public Issues.
@@ -104,10 +104,10 @@ On authorised launch, separately confirm:
 - The site removes its **Applications closed** text and disabled-demo control and enables the iframe only once all requirements pass.
 - Tally's theme and the iframe's transparent-background option are checked on desktop/mobile for contrast; current default Tally colours could clash with the dark Warcraft theme.
 - The external direct-link fallback works and opens **the same form**.
-- The Tally form's *actual* privacy notice includes the owner-supplied email **naxxapplicationteam@gmail.com** for privacy/withdrawal requests, the 30-day post-decision deletion and 90-day maximum pending period; the owner's inbound/outbound email test is recorded; verify Tally notification delivery separately and finalise privacy/compliance wording before activation.
+- The Tally form's *actual* privacy notice includes the owner-supplied email **naxxapplicationteam@gmail.com** for privacy/withdrawal requests, the 30-day post-decision deletion and 90-day maximum pending period; the owner's inbound/outbound email test is recorded; Tally automatic notification receipt is owner-confirmed; finalise privacy/compliance wording before activation.
 - No application claim of success occurs unless Tally confirms actual submission.
 
-**Evidence boundary — updated 4 November 2026:** CosmicCuddle confirmed **both dummy submissions are visible in their Tally Submissions dashboard**. This confirms dashboard receipt **as reported by the owner**, not by independent account access. **One dummy attached DOCX was successfully opened and its contents checked by CosmicCuddle**, so do not request a repeat of that specific test. Do not mark independently computed DOCX integrity, Tally self-email delivery, Thank You screen, wrong-file rejection, permanent deletion/Trash clearing, or the current Close form status as verified. Never post submission contents or private upload links to GitHub.
+**Evidence boundary — updated 4 November 2026:** CosmicCuddle confirmed **both dummy submissions are visible in their Tally Submissions dashboard**. This confirms dashboard receipt **as reported by the owner**, not by independent account access. **One dummy attached DOCX was successfully opened and its contents checked by CosmicCuddle**, so do not request a repeat of that specific test. CosmicCuddle also confirmed receipt of an **automatic Tally new-submission email** (not independently inspected). Do not mark independently computed DOCX integrity, Thank You screen, wrong-file rejection, permanent deletion/Trash clearing, or the current Close form status as verified. Never post submission contents or private upload links to GitHub.
 
 ## 4. Website integration — separate approval gate
 
