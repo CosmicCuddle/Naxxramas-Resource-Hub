@@ -251,6 +251,14 @@ assert.ok(clientScript.includes("do not currently host the base game files ourse
  clientScript.includes("If a download website asks for the expansion or patch") &&
  !clientScript.includes("we do not host those base game files ourselves"),
  "Hosting must be described as current, and WotLK / 3.3.5a / build 12340 made explicit for provider selection");
+assert.ok(clientScript.includes("patch-J.mpq") &&
+ clientScript.includes("patch-U.mpq") &&
+ clientScript.includes("patch-C.mpq") &&
+ clientScript.includes("Choose J or C, never both") &&
+ clientScript.includes("/OPTIONAL-PATCHES.md") &&
+ !clientScript.includes("Patch-J.mpq") &&
+ !clientScript.includes("Patch-U.mpq"),
+ "Optional client patch names must match the official Naxxramas patch README; mutually exclusive login patches must be explained");
 assert.ok(clientScript.includes("Eternion (plain 3.3.5a client)") &&
  clientScript.includes("https://eternion-wow.net/download") &&
  clientScript.includes("Client file not yet verified") &&
