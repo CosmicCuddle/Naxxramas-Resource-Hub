@@ -117,7 +117,6 @@ function probe(slug,viewportWidth){
    const explainer=guide.querySelector(".naxx-client-explainer");
    const chromie=cards.find(card=>card.querySelector("h4")?.textContent.trim()==="ChromieCraft");
    const warmane=cards.find(card=>card.querySelector("h4")?.textContent.trim()==="Warmane");
-   const note=warmane?.querySelector(".naxx-client-service-note");
    const positions=cards.map(card=>card.getBoundingClientRect());
    // Read-only simulation of the visual-admin CSS state. No login is attempted.
    const legacy=d.querySelector("#resourceGrid > .game-client-card.naxx-legacy-client-card");
@@ -160,9 +159,10 @@ function probe(slug,viewportWidth){
     directLinkOpensGameClients:(d.getElementById("sectionHeading")||{}).textContent?.includes("Game Clients")===true,
     completeGuideRendered:guide.getBoundingClientRect().height>0,
     twoDownloadCards:cards.length===2,
-    warmaneNoteAtTop:!!warmane&&warmane.firstElementChild===note&&
-     note.textContent.trim()==="Currently out of order",
-    warmaneUsesOfficialLink:!!warmane?.querySelector('a[href="https://www.warmane.com/download"]'),
+    warmaneOutageNoticeRemoved:!!warmane&&!warmane.querySelector(".naxx-client-service-note")&&
+     !warmane.textContent.includes("Currently out of order"),
+    warmaneUsesOwnerTestedArchive:!!warmane?.querySelector('a[href="https://web.archive.org/web/20260228080116/https://www.warmane.com/download"]')&&
+     warmane.textContent.includes("saved copy of Warmane's download page"),
     warmaneDescriptionIsNormal:!!warmane?.querySelector("p")&&
      !/out of order|unavailable|service returns/i.test(warmane.querySelector("p").textContent),
     requiredPatchesListed:guide.textContent.includes("patch-V.mpq")&&guide.textContent.includes("patch-Z.mpq"),
