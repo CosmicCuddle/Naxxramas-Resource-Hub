@@ -22,7 +22,7 @@ If a download website asks which **expansion** or **patch** you want, choose **W
 
 **Main download option — ChromieCraft:** https://chromiecraft.com/en/downloads/ . Look for the **Wrath of the Lich King (WotLK), patch 3.3.5a / build 12340** client. The download provider's own connection settings are not for Naxxramas; accepted applicants follow their private Naxxramas onboarding instructions. The actual archive has not been independently verified by this draft's tests.
 
-**Alternative — Warmane:** https://www.warmane.com/download . The owner requested its normal public URL, with a small **“Currently out of order”** note at the top of the Warmane download card. Keep the link for future use, but do not imply the client download works or has been tested.
+**Alternative — Warmane:** https://web.archive.org/web/20260228080116/https://www.warmane.com/download . This is a **saved 28 February 2026 copy** of Warmane's downloads page. On 4 November 2026, the owner successfully downloaded a file using this exact archived page on their PC. The former **“Currently out of order”** label has therefore been removed from the public Game Clients card. A successful download does **not yet** verify the file's actual WotLK 3.3.5a build 12340 version, contents or compatibility with Naxxramas. Keep the provider description neutral and identify the link as an archived page.
 
 Naxxramas does not host or distribute the base game client through this page.
 
@@ -85,7 +85,7 @@ Launch **Wow.exe**, not an automatic updater, and follow the privately supplied 
 ### Draft implementation and review — 4 November 2026
 
 - **Integrated into the existing Game Clients section in PR #52 only.** It uses scoped JS/CSS while leaving the original `site-content.html`, native navigation and editable resource card unchanged. The site has **not** been merged or published from this PR.
-- Both official external provider **pages** were reachable during review: [ChromieCraft downloads](https://chromiecraft.com/en/downloads/) listed its 3.3.5a client, and [Warmane downloads](https://www.warmane.com/download) showed its download form. This does **not** prove any particular download completed or the supplied file's build. Keep Warmane's **“Currently out of order”** notice until its relevant older-client option is actually verified.
+- **Earlier review (superseded by the owner's 4 November 2026 test):** the live [Warmane downloads page](https://www.warmane.com/download) displayed a form but was not verified for a working older-client download. The owner subsequently succeeded in downloading a file using the [28 February 2026 Wayback snapshot](https://web.archive.org/web/20260228080116/https://www.warmane.com/download). The resulting game's build and files remain unverified, so do not describe the client itself as approved or tested.
 - The [Naxxramas patch README](https://github.com/CosmicCuddle/Naxxramas-Server-Patches/blob/main/README.md) confirms that fresh players need **both** `patch-V.mpq` and `patch-Z.mpq`, potentially from different releases.
 - [Draft-only Actions run #41890147802](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/41890147802) **passed** source integrity, original Home/Game Clients A/B checks, desktop/mobile Chrome layout and keyboard navigation, and privacy-boundary tests.
 - The Game Clients layout passed **1440px desktop** and **390px mobile** browser checks. The run captured extended 3500px/5500px-high screenshots, reviewed for full-guide presentation. It also simulated the actual CSS `visual-admin-active` mode: the old card and native grid remain visible there, while the visitor guide returns after the simulation. **This is not a real administrator sign-in or editing test.**
@@ -94,7 +94,7 @@ Launch **Wow.exe**, not an automatic updater, and follow the privately supplied 
 ### Remaining release conditions
 
 1. **ChromieCraft is the main listed download option.** Confirm the actual 3.3.5a build 12340 archive and Naxxramas patch compatibility before labelling any downloaded client tested. **Eternion is deferred by the owner and must not appear as a public choice.**
-2. Keep Warmane marked **“Currently out of order”** until the required download option has genuinely been confirmed working; the webpage loading alone is not enough.
+2. **Warmane archive page download succeeded in the owner's hands.** The outdated outage badge is removed. Before marking the downloaded client as confirmed for Naxxramas, check the actual client build is **WotLK 3.3.5a (12340)**, its contents, and patch compatibility. The Wayback copy may become unavailable independently of Warmane.
 3. Obtain owner's review of the desktop/mobile guide, and confirm real visual-admin editing behaviour before publishing.
 4. Obtain explicit approval before merging or publishing PR #52. Do not release a realmlist, realm address, passwords or third-party client binaries.
 
