@@ -122,9 +122,10 @@ function pageHarness(variant){
         cards[0].querySelector("h4")?.textContent.trim()==="ChromieCraft"&&
         cards[1].querySelector("h4")?.textContent.trim()==="Warmane"&&
         !article.textContent.includes("Eternion"),
-       warmaneOutageNoticeFirst:!!warmane&&warmane.firstElementChild?.classList.contains("naxx-client-service-note")&&
-        warmane.firstElementChild.textContent.includes("Currently out of order"),
-       warmaneOfficialLink:!!warmane?.querySelector('a[href="https://www.warmane.com/download"]'),
+       warmaneOutageNoticeRemoved:!!warmane&&!warmane.querySelector(".naxx-client-service-note")&&
+        !warmane.textContent.includes("Currently out of order"),
+       warmaneOwnerTestedArchive:!!warmane?.querySelector('a[href="https://web.archive.org/web/20260228080116/https://www.warmane.com/download"]')&&
+        warmane.textContent.includes("saved copy of Warmane's download page"),
        correctGameVersion:article.textContent.includes("3.3.5a")&&article.textContent.includes("12340"),
        bothPatchesExplained:article.textContent.includes("patch-V.mpq")&&article.textContent.includes("patch-Z.mpq"),
        privateConnectionInstructions:article.textContent.includes("acceptance email")&&
