@@ -70,9 +70,18 @@ Launch **Wow.exe**, not an automatic updater, and follow the privately supplied 
 - Never include a server IP, a prefilled realmlist or any real credentials in public HTML, scripts, data, README files or this guide.
 - Do not package or upload third-party proprietary base game files.
 
-### Outstanding before website integration
+### Draft implementation and review — 4 November 2026
 
-1. Owner's preferred client download URL and actual tested result.
-2. Recheck Warmane’s normal download link when service is available again; the card must continue to show **“Currently out of order”** until confirmed working.
-3. Review the current Game Clients tab markup before applying HTML changes.
-4. Confirm the current approved Naxxramas patch releases and perform browser checks after integration.
+- **Integrated into the existing Game Clients section in PR #52 only.** It uses scoped JS/CSS while leaving the original `site-content.html`, native navigation and editable resource card unchanged. The site has **not** been merged or published from this PR.
+- Both official external provider **pages** were reachable during review: [ChromieCraft downloads](https://chromiecraft.com/en/downloads/) listed its 3.3.5a client, and [Warmane downloads](https://www.warmane.com/download) showed its download form. This does **not** prove any particular download completed or the supplied file's build. Keep Warmane's **“Currently out of order”** notice until its relevant older-client option is actually verified.
+- The [Naxxramas patch README](https://github.com/CosmicCuddle/Naxxramas-Server-Patches/blob/main/README.md) confirms that fresh players need **both** `patch-V.mpq` and `patch-Z.mpq`, potentially from different releases.
+- [Draft-only Actions run #41890147802](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/41890147802) **passed** source integrity, original Home/Game Clients A/B checks, desktop/mobile Chrome layout and keyboard navigation, and privacy-boundary tests.
+- The Game Clients layout passed **1440px desktop** and **390px mobile** browser checks. The run captured extended 3500px/5500px-high screenshots, reviewed for full-guide presentation. It also simulated the actual CSS `visual-admin-active` mode: the old card and native grid remain visible there, while the visitor guide returns after the simulation. **This is not a real administrator sign-in or editing test.**
+- New Players links to this guide for download/install instructions rather than repeating the whole walkthrough.
+
+### Remaining release conditions
+
+1. Obtain the owner's chosen **preferred client download URL** and verify the offered game build before enabling its button or labelling the source tested.
+2. Keep Warmane marked **“Currently out of order”** until the required download option has genuinely been confirmed working; the webpage loading alone is not enough.
+3. Obtain owner's review of the desktop/mobile guide, and confirm real visual-admin editing behaviour before publishing.
+4. Obtain explicit approval before merging or publishing PR #52. Do not release a realmlist, realm address, passwords or third-party client binaries.
