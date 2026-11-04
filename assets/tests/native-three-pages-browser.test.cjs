@@ -19,7 +19,7 @@ function browserBinary(){
 function probe(slug,viewportWidth){
  const frame=document.getElementById("site");
  const out=document.getElementById("result");
- let settled=false, navClicked=false, initialChecks=null, searchStarted=false, searchChecks=0;
+ let settled=false, navClicked=false, initialChecks=null, searchStarted=false, searchChecks=0, legacyClicked=false, legacyChecks=null, legacyAttempts=0;
  function finish(ready,checks){
   if(settled)return;
   settled=true;
@@ -39,6 +39,17 @@ function probe(slug,viewportWidth){
     rulesHeadingAfterClick:(d.getElementById("sectionHeading")||{}).textContent?.includes("Server Rules")===true,
     noOverflowAfterClick:d.documentElement.scrollWidth<=frame.contentWindow.innerWidth+3
    });
+   finish(Object.values(checks).every(Boolean),checks);
+   return;
+  }
+  if(legacyClicked){
+   const heading=d.getElementById("sectionHeading");
+   const checks=Object.assign({},legacyChecks,{
+     originalGameClientsNavigation:!!heading&&String(heading.textContent).includes("Game Clients"),
+     noGuideContentAfterLegacyClick:!d.querySelector("[data-naxx-guide-content]"),
+     legacySectionStillHasNativeGrid:!!d.getElementById("resourceGrid")
+   });
+   if(!checks.originalGameClientsNavigation&&legacyAttempts++<16)return;
    finish(Object.values(checks).every(Boolean),checks);
    return;
   }
@@ -103,7 +114,13 @@ function probe(slug,viewportWidth){
     if(!checks.originalSearchResponds&&searchChecks++<15)return;
     input.value="";
     input.dispatchEvent(new frame.contentWindow.Event("input",{bubbles:true}));
-    finish(Object.values(checks).every(Boolean),checks);
+    if(!Object.values(checks).every(Boolean)){finish(false,checks);return;}
+    const clients=Array.from(main.querySelectorAll('button[data-section]'))
+      .find(b=>String(b.textContent).includes("Game Clients"));
+    if(!clients){checks.gameClientsButtonFound=false;finish(false,checks);return;}
+    legacyChecks=checks;
+    legacyClicked=true;
+    clients.click();
     return;
    }
    finish(Object.values(checks).every(Boolean),checks);
@@ -239,6 +256,6 @@ async function main(){
   await new Promise(resolve=>server.close(resolve));
  }
  if(failures)throw Error(failures+" browser scenario(s) failed");
- console.log("PASS: six local Chrome checks including legacy search/Admin presence, native navigation and approved DOCX download; no Tally submission attempted");
+ console.log("PASS: six local Chrome checks including live Mage search, Game Clients sidebar navigation, Admin presence, mobile drawer and approved DOCX download; no Tally submission attempted");
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});
