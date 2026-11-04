@@ -48,14 +48,14 @@ jobs:
         run: node assets/tests/native-three-pages-navigation.test.cjs
       - name: Verify rendering recovery and error states
         run: node assets/tests/native-three-pages-behavior.test.cjs
+      - name: Test actual Enter-key navigation on desktop and mobile
+        run: node assets/tests/native-three-pages-keyboard.test.cjs
       - name: Smoke-test rendered pages and capture visual review screenshots
         run: node assets/tests/native-three-pages-browser.test.cjs
         env:
           NAXX_VISUAL_REVIEW: '1'
       - name: Compare original Game Clients navigation against main baseline
         run: node assets/tests/native-game-clients-baseline.test.cjs
-      - name: Test actual Enter-key navigation on desktop and mobile
-        run: node assets/tests/native-three-pages-keyboard.test.cjs
       - name: Save draft-only visual review screenshots
         if: always()
         uses: actions/upload-artifact@v4
