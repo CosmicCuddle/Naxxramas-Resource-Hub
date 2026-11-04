@@ -20,7 +20,13 @@
     if (!grid) return;
     var selected = isSelected();
     grid.classList.toggle(className, selected);
-    if (!selected || !grid.querySelector(".game-client-card")) return;
+    if (!selected) {
+      // Do not leave the injected guide on a different native resource section.
+      var previousGuide = document.getElementById(marker);
+      if (previousGuide) previousGuide.remove();
+      return;
+    }
+    // The guide must still render if an administrator later removes every legacy card.
     // Keep future admin-created download cards visible to players.
     // Only the legacy ChromieCraft card repeats the new guide's information.
     grid.querySelectorAll(".game-client-card").forEach(function (card) {
