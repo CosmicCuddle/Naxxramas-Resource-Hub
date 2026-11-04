@@ -181,9 +181,11 @@ function serverHandler(req,res){
   res.setHeader("Content-Type","text/html; charset=utf-8");
   res.end(harnessHtml(slug,width));return;
  }
- const relative=decodeURIComponent(url.pathname).replace(/^\/+/,"");
- let file=path.resolve(root,relative);
- if(file!==root&&!file.startsWith(root+path.sep)){res.writeHead(403);res.end();return;}
+ const baseline=url.pathname.startsWith("/__baseline__/");
+ const base=baseline?path.resolve(root,"baseline"):root;
+ const relative=decodeURIComponent(url.pathname).replace(/^\/+/,"").replace(/^__baseline__\/?/,"");
+ let file=path.resolve(base,relative);
+ if(file!==base&&!file.startsWith(base+path.sep)){res.writeHead(403);res.end();return;}
  try{
   if(fs.statSync(file).isDirectory())file=path.join(file,"index.html");
   const stat=fs.statSync(file);
@@ -208,6 +210,64 @@ function captureChrome(browser,url){
   child.on("close",code=>code===0?finish(null,stdout):finish(Error("Chrome exited "+code+" "+stderr.slice(-1200))));
  });
 }
+
+function screenshot(browser,url,file,w,h){
+ return new Promise((resolve,reject)=>{
+  const args=["--headless=new","--no-sandbox","--disable-gpu","--disable-dev-shm-usage",
+   "--no-first-run","--disable-extensions","--disable-background-networking","--hide-scrollbars",
+   "--force-device-scale-factor=1","--virtual-time-budget=14000",
+   "--window-size="+w+","+h,"--screenshot="+file,url];
+  const child=cp.spawn(browser,args,{stdio:["ignore","pipe","pipe"]});
+  let stderr="",done=false;
+  const timer=setTimeout(()=>{child.kill("SIGKILL");complete(Error("Screenshot time-out: "+url));},75000);
+  function complete(e){if(done)return;done=true;clearTimeout(timer);e?reject(e):resolve();}
+  child.stderr.on("data",x=>stderr=(stderr+x.toString()).slice(-600));
+  child.on("error",complete);
+  child.on("close",code=>{
+   if(code!==0)return complete(Error("Screenshot Chrome exit "+code+": "+stderr));
+   try{
+    const data=fs.readFileSync(file);
+    if(data.length<3500||data.toString("hex",0,8)!=="89504e470d0a1a0a")
+     throw Error("Missing/invalid PNG screenshot: "+file);
+    console.log("PASS: visual capture "+path.basename(file)+" ("+
+     data.readUInt32BE(16)+"×"+data.readUInt32BE(20)+", "+data.length+" bytes)");
+    complete();
+   }catch(e){complete(e);}
+  });
+ });
+}
+async function captureVisualGallery(browser,port){
+ const output=path.join(root,"qa-screenshots");
+ fs.mkdirSync(output,{recursive:true});
+ const shots=[
+  ["01-original-home","Current Home", "/__baseline__/",1440,900],
+  ["02-draft-home","Draft Home","/",1440,900],
+  ["03-guide-desktop","New Player Guide — desktop","/new-players/",1440,900],
+  ["04-rules-desktop","Server Rules — desktop","/rules/",1440,900],
+  ["05-apply-desktop","Apply to Join — desktop","/apply/",1440,900],
+  ["06-guide-mobile","New Player Guide — mobile","/new-players/",390,844],
+  ["07-rules-mobile","Server Rules — mobile","/rules/",390,844],
+  ["08-apply-mobile","Apply to Join — mobile","/apply/",390,844]
+ ];
+ for(const [id,label,route,w,h] of shots){
+  const url="http://127.0.0.1:"+port+route;
+  await screenshot(browser,url,path.join(output,id+".png"),w,h);
+ }
+ const cards=shots.map(([id,label,route,w])=>'<section><h2>'+label+'</h2><p>'+w+
+  'px width</p><a href="'+id+'.png"><img src="'+id+'.png" alt="'+label+'"></a></section>').join("\n");
+ const html='<!doctype html><html lang="en"><head><meta charset="utf-8">'+
+  '<meta name="viewport" content="width=device-width, initial-scale=1"><title>Naxxramas Draft Visual Review</title>'+
+  '<style>body{font:14px system-ui;background:#0e0b09;color:#ead3a5;padding:16px}h1{color:#ffcf84}h2{font-size:17px}'+
+  '.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px}'+
+  'section{border:1px solid #7b583b;background:#1c1510;padding:12px}img{width:100%;height:auto;display:block}'+
+  'a:focus-visible{outline:3px solid #f6ca7d}p{color:#c4b4a0}</style></head><body>'+
+  '<h1>Naxxramas Resource Hub — Visual Review</h1><p>Unpublished draft #47. No applicant data or live Tally.</p>'+
+  '<p>Compare the original and draft Home first, then review the three new pages. Click an image to enlarge.</p>'+
+  '<div class="grid">'+cards+'</div></body></html>';
+ fs.writeFileSync(path.join(output,"00-open-visual-review.html"),html);
+ console.log("PASS: eight draft visual screenshots and local review gallery prepared; no deployment");
+}
+
 async function main(){
  const browser=browserBinary();
  const server=http.createServer(serverHandler);
@@ -235,6 +295,7 @@ async function main(){
    if(result.ready)console.log("PASS: "+page+" "+width+"px",JSON.stringify(result.checks));
    else{console.error("FAIL: "+page+" "+width+"px",JSON.stringify(result.checks));failures++;}
   }
+  if(process.env.NAXX_VISUAL_REVIEW==="1")await captureVisualGallery(browser,port);
  }finally{
   await new Promise(resolve=>server.close(resolve));
  }
