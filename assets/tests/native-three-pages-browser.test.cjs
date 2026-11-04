@@ -8,7 +8,7 @@ const http=require("node:http");
 const cp=require("node:child_process");
 const {URL}=require("node:url");
 const root=path.resolve(__dirname,"../..");
-const expected={"apply":8,"rules":35,"new-players":38};
+const expected={"apply":8,"rules":35,"new-players":38,"home":0};
 function browserBinary(){
  for(const name of ["google-chrome","google-chrome-stable","chromium","chromium-browser"]){
   const r=cp.spawnSync("which",[name],{encoding:"utf8"});
@@ -30,6 +30,33 @@ function probe(slug,viewportWidth){
   let d;
   try{d=frame.contentDocument;}catch(e){finish(false,{sameOrigin:false});return;}
   if(!d)return;
+  if(slug==="home"){
+   const main=d.getElementById("mainNav"),mobile=d.getElementById("mobileNav");
+   if(!main||!mobile||!d.getElementById("resourceGrid"))return;
+   const homeButton=main.querySelector('button[data-section="Home"]');
+   const mobileHome=mobile.querySelector('button[data-section="Home"]');
+   const siteHeading=d.getElementById("sectionHeading");
+   if(!homeButton||!mobileHome||!siteHeading||!d.querySelector('#mainNav button[data-naxx-guide-link="apply"]'))return;
+   const desktopGuide=main.querySelectorAll("button[data-naxx-guide-link]");
+   const mobileGuide=mobile.querySelectorAll("button[data-naxx-guide-link]");
+   const originalButtons=main.querySelectorAll("button[data-section]");
+   const focusButton=main.querySelector('button[data-naxx-guide-link="rules"]');
+   focusButton.focus();
+   const checks={
+    nativeRootLoaded:!!d.getElementById("resourceGrid"),
+    originalHomePreserved:!!homeButton&&!!mobileHome,
+    originalNavigationRetained:originalButtons.length>=5,
+    threeNewNativeDesktopLinks:desktopGuide.length===3,
+    threeNewNativeMobileLinks:mobileGuide.length===3,
+    newControlsAreNativeButtons:Array.from(desktopGuide).every(b=>b.tagName==="BUTTON"&&b.type==="button"),
+    desktopGuideButtonFocuses:d.activeElement===focusButton,
+    homeNotOverwrittenByGuide:!d.body.classList.contains("naxx-three-page-route"),
+    noGuideContentOnHome:!d.querySelector("[data-naxx-guide-content]"),
+    noHorizontalOverflow:d.documentElement.scrollWidth<=frame.contentWindow.innerWidth+3
+   };
+   finish(Object.values(checks).every(Boolean),checks);
+   return;
+  }
   if(navClicked){
    const rules=d.querySelector('[data-naxx-guide-content="rules"]');
    if(!rules)return;
@@ -48,8 +75,11 @@ function probe(slug,viewportWidth){
    const nav=d.getElementById(id);
    return nav ? nav.querySelectorAll("button[data-naxx-guide-link]").length : 0;
   };
+  const focusLink=d.querySelector('#mainNav button[data-naxx-guide-link="rules"]');
+  if(focusLink)focusLink.focus();
   const checks={
    articleLoaded:!!article,
+   nativeGuideButtonFocuses:!!focusLink&&d.activeElement===focusLink,
    nativePageClass:d.body.classList.contains("naxx-three-page-route"),
    correctHeading:(d.getElementById("sectionHeading")||{}).textContent?.includes(
     slug==="apply"?"Apply to Join":slug==="rules"?"Server Rules":"New Player Guide"
@@ -92,7 +122,7 @@ function harnessHtml(slug,width){
  return '<!doctype html><html><head><meta charset="utf-8"><title>Local draft QA</title>'+
   '<meta name="viewport" content="width=device-width,initial-scale=1"></head>'+
   '<body style="margin:0;background:#17100b"><iframe id="site" title="Naxxramas QA" '+
-  'style="display:block;border:0;width:'+Number(width)+'px;height:900px" src="/'+slug+'/"></iframe>'+
+  'style="display:block;border:0;width:'+Number(width)+'px;height:900px" src="/'+(slug==="home"?"":slug+"/")+'"></iframe>'+
   '<pre id="result">QA_PENDING</pre><script>'+code+'</'+'script></body></html>';
 }
 function contentType(file){
@@ -151,7 +181,7 @@ async function main(){
   const actual=crypto.createHash("sha256").update(Buffer.from(await response.arrayBuffer())).digest("hex");
   if(actual!=="f6617c8a4da6e9b75b56b020361f8aab57a8cca47921a9225685b0c0cddfa695")throw Error("Word download bytes changed");
   console.log("PASS: application DOCX downloads by HTTP with correct type and exact approved SHA-256");
-  for(const [page,width] of [["apply",1440],["apply",390],["rules",390],["new-players",1440]]){
+  for(const [page,width] of [["home",1440],["home",390],["apply",1440],["apply",390],["rules",390],["new-players",1440]]){
    const target="http://127.0.0.1:"+port+"/__qa__?page="+page+"&width="+width;
    const html=await captureChrome(browser,target);
    const match=html.match(/<pre id="result">QA_RESULT:([^<]*)<\/pre>/);
@@ -167,6 +197,6 @@ async function main(){
   await new Promise(resolve=>server.close(resolve));
  }
  if(failures)throw Error(failures+" browser scenario(s) failed");
- console.log("PASS: four local Chrome checks including live sidebar click; no external Tally submission attempted");
+ console.log("PASS: six local Chrome checks, native-home preservation and real sidebar click; no external Tally submission attempted");
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});
