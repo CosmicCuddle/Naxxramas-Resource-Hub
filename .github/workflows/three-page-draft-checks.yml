@@ -4,12 +4,25 @@ on:
   push:
     branches:
       - draft/three-native-pages-faq-2026-11-03
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/three-page-draft-checks.yml'
+      - 'assets/tests/**'
+      - 'assets/naxx-three-*'
+      - 'apply/**'
+      - 'new-players/**'
+      - 'rules/**'
+      - 'index.html'
+      - 'site-content.html'
 
 permissions:
   contents: read
 
 jobs:
   verify-draft:
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
