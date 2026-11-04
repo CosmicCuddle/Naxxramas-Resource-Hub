@@ -278,17 +278,15 @@ assert.ok(!clientScript.includes("naxx-client-note"),
  "The old redundant client-connection note must not repeat the new introductory banner");
 
 assert.ok(clientScript.includes("https://chromiecraft.com/en/downloads/") &&
- clientScript.includes("https://www.warmane.com/download"),
- "Existing and alternative download pages must remain visible");
-assert.ok(clientScript.includes("Currently out of order") &&
+ clientScript.includes("https://web.archive.org/web/20260228080116/https://www.warmane.com/download") &&
  clientScript.includes("Warmane provides a download page") &&
- !clientScript.includes("its download option is currently unavailable"),
- "Warmane must have one status banner, while its description remains a normal download explanation");
-assert.ok(clientScript.includes("naxx-client-service-note") &&
- clientScript.includes("Currently out of order") &&
- clientCss.includes(".naxx-client-service-note") &&
- !clientScript.includes("web.archive.org/web/20260228080116/https://www.warmane.com/download"),
- "Warmane card must show an out-of-order notice above its normal link, not an archived link");
+ clientScript.includes("The link opens a saved copy of Warmane's download page"),
+ "ChromieCraft stays primary, while Warmane uses the owner-tested 28 February 2026 snapshot with a truthful archive note");
+assert.ok(!clientScript.includes("Currently out of order") &&
+ !clientScript.includes("naxx-client-service-note") &&
+ !clientCss.includes(".naxx-client-service-note") &&
+ clientCss.includes(".naxx-client-provider-note"),
+ "Warmane's outdated outage badge must be removed without changing the source's normal description");
 assert.ok(!/\b(?:\d{1,3}\.){3}\d{1,3}\b/.test(clientScript) &&
  !/\bset\s+real(?:m)?list\s+/i.test(clientScript),
  "Client guide must contain no realm address or ready-made connection line");
