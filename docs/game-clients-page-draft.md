@@ -20,18 +20,7 @@ This banner is rendered as the **first element** of the Game Clients guide, befo
 
 If a download website asks which **expansion** or **patch** you want, choose **Wrath of the Lich King (WotLK)**, **patch 3.3.5a (build 12340)**. Do not choose Vanilla, The Burning Crusade, Classic, or another patch. This is the client Naxxramas uses even during earlier progression stages.
 
-**Preferred candidate — Eternion:** https://eternion-wow.net/download . Its own download page advertises a **separate plain "Full client — 3.3.5a (build 12340)"** with no Eternion realm patches in that archive. Only this plain full-client download is under consideration; **do not install Eternion's launcher, `Eternion-WotLK-Complete.zip` pack, other realm-specific MPQs or connection file**, which would prepare the game for Eternion rather than Naxxramas. The draft card links to the provider's informational download page but deliberately keeps the **actual client-download button disabled** until the archive/build/safety checks have been completed. No Naxxramas-compatible installation has yet been verified.
-
-**Eternion provider-page selection:** Their page starts with a launcher promotion. Instead, scroll to the **Wrath of the Lich King 3.3.5a** section and choose **Full client — 3.3.5a (build 12340)**, about **16.5 GB**. Do not follow the provider's subsequent realm installation instructions. On the actual WoW login screen, a correct 3.3.5a installation can display **`Version 3.3.5 (12340)`** without the letter "a". This is expected.
-
-**Independent-download verification record — pending, not a website endorsement:**
-
-- Provider information: https://eternion-wow.net/download
-- Archive URL linked by the provider's *Full client* control: `https://eternion-wow.net/downloads/wotlk.zip`
-- Published archive size: approximately **16.5 GB**; this is the provider's figure, not a measured value.
-- Published SHA-256: `54ed5737cf9954e77c3e70050f35a045b17b882e6adc957e34fb5d417d132819`
-- **Not verified:** actual bytes downloaded, hash matching, actual extracted content, absence of realm customisations or altered executables, Naxxramas patch and account compatibility, or security of this external download.
-- **Before enabling direct download:** obtain the whole archive and compare its SHA-256 to the *currently published* value, inspect the extracted game files without running foreign executables, verify build 12340, check for provider-specific MPQs and executables, and test Naxxramas's two required patches and private connection process. Do not upload game files or publish private connection details.
+**Main download option — ChromieCraft:** https://chromiecraft.com/en/downloads/ . Look for the **Wrath of the Lich King (WotLK), patch 3.3.5a / build 12340** client. The download provider's own connection settings are not for Naxxramas; accepted applicants follow their private Naxxramas onboarding instructions. The actual archive has not been independently verified by this draft's tests.
 
 **Alternative — Warmane:** https://www.warmane.com/download . The owner requested its normal public URL, with a small **“Currently out of order”** note at the top of the Warmane download card. Keep the link for future use, but do not imply the client download works or has been tested.
 
@@ -86,7 +75,7 @@ Launch **Wow.exe**, not an automatic updater, and follow the privately supplied 
 ### Presentation and review requirements
 
 - Integrate with the existing Game Clients tab; retain the Resource Hub's current navigation and dark/gold visual theme.
-- Make download choices easy to distinguish. The preferred source needs to be confirmed before being labelled as tested.
+- Make download choices easy to distinguish. No source may be labelled independently tested until its actual client archive has been checked.
 - Keep the numbered setup instructions on this page instead of duplicating them across Server Rules and Apply to Join.
 - Cross-link the New Player Guide, Apply to Join and Patch Notes briefly rather than reproducing their full content.
 - Verify all download URLs, patch release details and actual client build before publishing.
@@ -104,7 +93,26 @@ Launch **Wow.exe**, not an automatic updater, and follow the privately supplied 
 
 ### Remaining release conditions
 
-1. **Eternion is the owner's chosen preferred candidate, not yet an approved/tested download.** Verify its plain full-client archive, checksum and offered build, and ensure it contains no Eternion-specific patch pack, changed executable or unwanted connection settings before enabling any client-download button.
+1. **ChromieCraft is the main listed download option.** Confirm the actual 3.3.5a build 12340 archive and Naxxramas patch compatibility before labelling any downloaded client tested. **Eternion is deferred by the owner and must not appear as a public choice.**
 2. Keep Warmane marked **“Currently out of order”** until the required download option has genuinely been confirmed working; the webpage loading alone is not enough.
 3. Obtain owner's review of the desktop/mobile guide, and confirm real visual-admin editing behaviour before publishing.
 4. Obtain explicit approval before merging or publishing PR #52. Do not release a realmlist, realm address, passwords or third-party client binaries.
+
+### Deferred research only — not a public download option
+
+**Decision (4 November 2026):** CosmicCuddle decided **not to use or recommend Eternion for now**. It is removed from the Game Clients page. Do not re-add or continue its verification without a new owner decision. The following record is historical research only; it is not an endorsement, working download recommendation, or confirmation that the archive is safe.
+
+**Previously considered source — Eternion (deferred):** https://eternion-wow.net/download . Its own download page advertises a **separate plain "Full client — 3.3.5a (build 12340)"** with no Eternion realm patches in that archive. Only this plain full-client download is under consideration; **do not install Eternion's launcher, `Eternion-WotLK-Complete.zip` pack, other realm-specific MPQs or connection file**, which would prepare the game for Eternion rather than Naxxramas. No Eternion card or link is included in the public-facing guide. No Naxxramas-compatible installation has yet been verified.
+
+**Earlier provider-page observation (unverified):** Their page starts with a launcher promotion. Instead, scroll to the **Wrath of the Lich King 3.3.5a** section and choose **Full client — 3.3.5a (build 12340)**, about **16.5 GB**. Do not follow the provider's subsequent realm installation instructions. On the actual WoW login screen, a correct 3.3.5a installation can display **`Version 3.3.5 (12340)`** without the letter "a". This is expected.
+
+**Independent-download verification record — pending, not a website endorsement:**
+
+- Provider information: https://eternion-wow.net/download
+- Archive URL linked by the provider's *Full client* control: `https://eternion-wow.net/downloads/wotlk.zip`
+- Published archive size: approximately **16.5 GB**; this is the provider's figure, not a measured value.
+- Published SHA-256: `54ed5737cf9954e77c3e70050f35a045b17b882e6adc957e34fb5d417d132819`
+- **Not verified:** actual bytes downloaded, hash matching, actual extracted content, absence of realm customisations or altered executables, Naxxramas patch and account compatibility, or security of this external download.
+- **Before enabling direct download:** obtain the whole archive and compare its SHA-256 to the *currently published* value, inspect the extracted game files without running foreign executables, verify build 12340, check for provider-specific MPQs and executables, and test Naxxramas's two required patches and private connection process. Do not upload game files or publish private connection details.
+
+
