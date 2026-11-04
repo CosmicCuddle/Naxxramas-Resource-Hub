@@ -34,6 +34,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Check out unchanged main branch for read-only A/B comparison
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: baseline
+          persist-credentials: false
       - name: Protect existing public connection details
         run: node assets/tests/no-public-connection-details.test.cjs
       - name: Check new pages, Word download and closed Tally
@@ -44,3 +50,5 @@ jobs:
         run: node assets/tests/native-three-pages-behavior.test.cjs
       - name: Smoke-test rendered pages in headless Chrome
         run: node assets/tests/native-three-pages-browser.test.cjs
+      - name: Compare original Game Clients navigation against main baseline
+        run: node assets/tests/native-game-clients-baseline.test.cjs
