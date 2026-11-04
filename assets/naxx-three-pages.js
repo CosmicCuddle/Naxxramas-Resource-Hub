@@ -1,5 +1,6 @@
-/* Draft three-page Resource Hub integration. Native navigation and shell only.
- * Pages are proposed for owner review. No application receiver is configured.
+/* Naxxramas three-page Resource Hub integration — staged release.
+ * Owner authorised the application-open outcome; this draft branch is not deployed.
+ * Completed Word applications are collected only by the owner-controlled Tally form.
  */
 (function(){
   "use strict";
@@ -15,7 +16,7 @@
     {slug:"rules",label:"Server Rules",title:"Server Rules",group:"General",
      icon:"inv_misc_note_05.jpg",intro:"Community expectations, fair play, loot rules and enforcement."},
     {slug:"apply",label:"Apply to Join",title:"Apply to Join Naxxramas",group:"General",
-     icon:"inv_misc_key_03.jpg",intro:"The planned application process. Submissions are not currently open."}
+     icon:"inv_misc_key_03.jpg",intro:"Download, complete and privately submit an application to join Naxxramas."}
   ];
   var path = location.pathname.replace(/\/+$/,"/"), active = pages.find(function(p){
     return path === new URL(p.slug+"/",root).pathname;
@@ -85,11 +86,12 @@
   // (including delayed handbook/search hooks). Keep new route content mounted
   // even when a native refresh replaces the grid after this script loads.
   // Observe only the one content grid, never the 31 MB document body.
-  // Release gate: the Tally URL is prepared in the draft HTML, but is NEVER
-  // loaded or displayed until the owner separately approves the public website
-  // application opening and the approved Word template is available.
-  // Tally's own Close form setting remains an independent safety control.
-  var APPLICATION_EMBED_APPROVED = false;
+  // Owner requested applications OPEN (4 Nov 2026). This flag is enabled only
+  // in the unmerged release candidate; the current public site remains unchanged.
+  // The approved blank Word template and full email-only privacy notice are
+  // served above the owner-controlled Tally embed.
+  // Tally's own Close form setting remains an independent account-side control.
+  var APPLICATION_EMBED_APPROVED = true;
   var pageMarkup = null;
   var requestStarted = false;
   var requestFailed = false;
