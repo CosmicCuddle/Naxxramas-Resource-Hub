@@ -183,7 +183,7 @@ function probe(slug,viewportWidth){
    // ChromieCraft card. The new guide must remount without that legacy card.
    clientRemovalInProgress=true;
    if(!legacy){checks.guideSurvivesLegacyRemoval=false;finish(false,checks);return;}
-   legacy.remove();
+   d.querySelectorAll("#resourceGrid > .game-client-card").forEach(function(card){card.remove();});
    guide.remove();
    frame.contentWindow.setTimeout(function(){
     const replacement=d.getElementById("naxx-game-client-guide");
