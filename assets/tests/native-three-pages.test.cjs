@@ -132,31 +132,34 @@ assert.ok(guide.includes("no permanent server-wide level-60 cap"));
 assert.ok(guide.includes("patch-V.mpq")&&guide.includes("patch-Z.mpq"));
 assert.ok(guide.includes("buy and sell")&&guide.includes("supply and demand"));
 const apply=read("apply/content.html");
-assert.ok(apply.includes('type="file"')&&apply.includes("disabled"),"Upload must be inert");
-assert.ok(apply.includes("Applications are not currently open"));
+assert.ok(apply.includes('type="file"')&&apply.includes("disabled"),"Hidden closed-state fallback must remain available for rollback");
+assert.ok(apply.includes('<strong>Applications are open.</strong>'),"Application-open status must be clear");
 assert.ok(!/<form\b/i.test(apply),"No live form endpoint");
 assert.equal((apply.match(/<iframe\b/g)||[]).length,1,
  "Exactly one prepared Tally iframe may exist in the draft");
 assert.ok(apply.includes('id="naxx-tally-live-application"')&&apply.includes('hidden aria-label='),
- "Prepared embed must be hidden while applications are not approved");
+ "Safe initially hidden panel must be revealed by the approved native renderer");
 assert.ok(apply.includes('data-tally-src="https://tally.so/embed/q5Lqr8?'),
  "Use only the exact owner-supplied Tally form ID");
 assert.ok(!/<iframe\b[^>]*\ssrc=/i.test(apply),
  "Never fetch Tally from the static HTML while applications are closed");
 assert.ok(apply.includes('href="https://tally.so/r/q5Lqr8"'),
  "Include a same-form direct fallback for when applications are later opened");
-assert.ok(nav.includes("var APPLICATION_EMBED_APPROVED = false;"),
- "Native site must hard-block live Tally loading until owner activation");
+assert.ok(nav.includes("var APPLICATION_EMBED_APPROVED = true;"),
+ "Owner-approved release candidate must enable Tally on the Apply page only");
 assert.ok(nav.includes("if(!APPLICATION_EMBED_APPROVED)"),
- "Closed application guard must prevent any Tally iframe fetch");
-assert.ok(css.includes(".naxx-tally-live-application[hidden] {display:none!important;}"),
- "Hidden Tally preview may not be made visible by native CSS");
+ "Release toggle must retain the ability to close applications if authorised later");
+assert.ok(css.includes(".naxx-tally-live-application[hidden] {display:none!important;}") &&
+ css.includes(".naxx-guide-disabled[hidden] {display:none!important;}"),
+ "The live panel and closed fallback must not be visible at the same time");
 assert.ok(apply.includes('accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"'),
  "Private test form must reflect the approved Word DOCX template, not a premature PDF offer");
-assert.ok(apply.includes("private Tally upload")&&apply.includes("not connected or active"),
- "Tally setup is a plan, not a functional submission receiver");
-assert.ok(apply.includes("one Word DOCX file, up to 10 MB"),
- "Keep planned Free-tier upload limit visible during review");
+assert.ok(apply.includes("owner-controlled <strong>Tally upload</strong>") &&
+ apply.includes("GitHub Pages does not collect application files"),
+ "Real application uploads must go to the owner-controlled Tally form, never GitHub Pages");
+assert.ok(apply.includes("one .docx file, up to 10 MB") ||
+ apply.includes("one .docx file (up to 10 MB)"),
+ "Keep the approved single-DOCX 10-MB limit visible on the open page");
 assert.ok(apply.includes("email")&&apply.includes("Discord"));
 assert.ok(apply.includes("general <strong>Naxxramas contact email</strong>") &&
  apply.includes("application questions, other enquiries, player support") &&
@@ -168,9 +171,8 @@ assert.ok(apply.includes('href="#privacy"') &&
  apply.includes('aria-labelledby="application-privacy-heading"') &&
  apply.includes("What we collect and why") &&
  apply.includes("How long we keep it") &&
- apply.includes("Our proposed lawful basis") &&
+ apply.includes("We rely on the owner's") &&
  apply.includes("legitimate interests") &&
- apply.includes("final review before applications open") &&
  apply.includes("90 days of submission") &&
  apply.includes("30 days of the decision") &&
  apply.includes("Tally's Trash") &&
@@ -217,8 +219,9 @@ assert.ok(apply.includes("Any one of these is enough") &&
 assert.ok(apply.includes("You do not need to do all four") &&
  apply.includes("no recognisable contact or joining activity"),
  "The existing FAQ should explain all alternatives without adding another question");
-assert.ok(apply.includes("applications are not yet open"),
- "Document download must not imply applications can be submitted");
+assert.ok(apply.includes("Applications are open.") &&
+ apply.includes("upload your finished application privately"),
+ "Opened website must give truthful, actionable submission instructions");
 
 const blob=Buffer.from(site);
 const hash=crypto.createHash("sha1").update(Buffer.concat([
@@ -226,7 +229,7 @@ const hash=crypto.createHash("sha1").update(Buffer.concat([
 assert.equal(hash,"71ab9f2bf4cf12282fcbe135f7ec787805715b62",
  "Source must match the owner-approved sanitized main branch without further alterations");
 console.log("PASS: original site source, root loader, three native routes and sidebar safety");
-console.log("PASS: 12 visible rules, 81 FAQ answers across three pages, closed application");
+console.log("PASS: 12 visible rules, 81 FAQ answers and approved open Tally release integration");
 console.log("PASS: no private connection file or upload receiver in new page assets");
 console.log("PASS: approved public Game Clients privacy correction is incorporated from main.");
-console.warn("REVIEW GATES: confirm final Rules wording, real-browser behavior and disabled application process before merge.");
+console.warn("RELEASE GATE: still a draft. Do not merge until Tally account privacy text is aligned with owner-approved email-only contact.");
