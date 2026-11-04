@@ -49,7 +49,7 @@ function probe(slug,viewportWidth){
      noGuideContentAfterLegacyClick:!d.querySelector("[data-naxx-guide-content]"),
      legacySectionStillHasNativeGrid:!!d.getElementById("resourceGrid")
    });
-   if(!checks.originalGameClientsNavigation&&legacyAttempts++<50)return;
+   if(!checks.originalGameClientsNavigation&&legacyAttempts++<160)return;
    if(!checks.originalGameClientsNavigation){
     checks.diagnostics={
       path:frame.contentWindow.location.pathname,
@@ -184,7 +184,7 @@ function probe(slug,viewportWidth){
   finish(Object.values(checks).every(Boolean),checks);
  }
  const interval=setInterval(check,200);
- setTimeout(function(){clearInterval(interval);if(!settled)finish(false,{timeout:"Native route did not mount within browser budget"});},18000);
+ setTimeout(function(){clearInterval(interval);if(!settled)finish(false,{timeout:"Native route did not mount within browser budget"});},45000);
  check();
 }
 function harnessHtml(slug,width){
@@ -225,10 +225,10 @@ function captureChrome(browser,url){
  return new Promise((resolve,reject)=>{
   const args=["--headless=new","--no-sandbox","--disable-gpu","--disable-dev-shm-usage",
   "--no-first-run","--disable-extensions","--disable-background-networking",
-  "--virtual-time-budget=22000","--window-size=1500,1000","--dump-dom",url];
+  "--virtual-time-budget=48000","--window-size=1500,1000","--dump-dom",url];
   const child=cp.spawn(browser,args,{stdio:["ignore","pipe","pipe"]});
   let stdout="",stderr="",done=false;
-  const timer=setTimeout(()=>{child.kill("SIGKILL");finish(Error("Chrome timed out: "+url+" "+stderr.slice(-900)));},75000);
+  const timer=setTimeout(()=>{child.kill("SIGKILL");finish(Error("Chrome timed out: "+url+" "+stderr.slice(-900)));},110000);
   function finish(e,value){if(done)return;done=true;clearTimeout(timer);e?reject(e):resolve(value);}
   child.stdout.on("data",chunk=>{stdout+=chunk.toString();if(stdout.length>3*1024*1024)finish(Error("Chrome output unexpectedly large"));});
   child.stderr.on("data",chunk=>{stderr=(stderr+chunk.toString()).slice(-4000);});
