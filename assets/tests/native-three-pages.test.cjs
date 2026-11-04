@@ -237,6 +237,10 @@ assert.ok(clientScript.includes("patch-V.mpq") && clientScript.includes("patch-Z
 assert.ok(clientScript.includes("https://chromiecraft.com/en/downloads/") &&
  clientScript.includes("https://www.warmane.com/download"),
  "Existing and alternative download pages must remain visible");
+assert.ok(clientScript.includes("Currently out of order") &&
+ clientScript.includes("Warmane provides a download page") &&
+ !clientScript.includes("its download option is currently unavailable"),
+ "Warmane must have one status banner, while its description remains a normal download explanation");
 assert.ok(clientScript.includes("naxx-client-service-note") &&
  clientScript.includes("Currently out of order") &&
  clientCss.includes(".naxx-client-service-note") &&
