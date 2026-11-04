@@ -198,7 +198,7 @@ function harnessHtml(slug,width){
  return '<!doctype html><html><head><meta charset="utf-8"><title>Local draft QA</title>'+
   '<meta name="viewport" content="width=device-width,initial-scale=1"></head>'+
   '<body style="margin:0;background:#17100b"><iframe id="site" title="Naxxramas QA" '+
-  'style="display:block;border:0;width:'+Number(width)+'px;height:900px" src="/'+(slug==="home"?"":slug==="clients"?"?section=Game%20Clients":slug+"/")+'"></iframe>'+
+  'style="display:block;border:0;width:'+Number(width)+'px;height:900px" src="/'+(slug==="home"?"":slug==="clients"?"Naxxramas-Resource-Hub/?section=Game%20Clients":slug+"/")+'"></iframe>'+
   '<pre id="result">QA_PENDING</pre><script>'+code+'</'+'script></body></html>';
 }
 function contentType(file){
@@ -215,9 +215,11 @@ function serverHandler(req,res){
   res.setHeader("Content-Type","text/html; charset=utf-8");
   res.end(harnessHtml(slug,width));return;
  }
- const baseline=url.pathname.startsWith("/__baseline__/");
+ // Mirror the production GitHub Pages prefix; the native router expects this path.
+ const normalisedPath=url.pathname.replace(/^\/Naxxramas-Resource-Hub(?=\/|$)/,"");
+ const baseline=normalisedPath.startsWith("/__baseline__/");
  const base=baseline?path.resolve(root,"baseline"):root;
- const relative=decodeURIComponent(url.pathname).replace(/^\/+/,"").replace(/^__baseline__\/?/,"");
+ const relative=decodeURIComponent(normalisedPath).replace(/^\/+/,"").replace(/^__baseline__\/?/,"");
  let file=path.resolve(base,relative);
  if(file!==base&&!file.startsWith(base+path.sep)){res.writeHead(403);res.end();return;}
  try{
@@ -282,8 +284,8 @@ async function captureVisualGallery(browser,port){
   ["06-guide-mobile","New Player Guide — mobile","/new-players/",390,844],
   ["07-rules-mobile","Server Rules — mobile","/rules/",390,844],
   ["08-apply-mobile","Apply to Join — mobile","/apply/",390,844],
-  ["09-clients-desktop","Game Clients — desktop","/?section=Game%20Clients",1440,900],
-  ["10-clients-mobile","Game Clients — mobile","/?section=Game%20Clients",390,844]
+  ["09-clients-desktop","Game Clients — desktop","/Naxxramas-Resource-Hub/?section=Game%20Clients",1440,900],
+  ["10-clients-mobile","Game Clients — mobile","/Naxxramas-Resource-Hub/?section=Game%20Clients",390,844]
  ];
  for(const [id,label,route,w,h] of shots){
   const url="http://127.0.0.1:"+port+route;
