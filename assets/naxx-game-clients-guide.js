@@ -1,0 +1,47 @@
+/* Additive Game Clients guide for the existing native Resource Hub section.
+ * The original 31 MB content and its admin-editable resources are never modified.
+ * Pending verification of the preferred download source before deployment.
+ */
+(function () {
+  "use strict";
+  var marker = "naxx-game-client-guide";
+  var className = "naxx-game-client-guide-grid";
+  var guideHTML = "\n<article id=\"naxx-game-client-guide\" class=\"card naxx-client-guide\" aria-labelledby=\"naxx-client-title\">\n<header class=\"naxx-client-head\">\n  <p class=\"naxx-client-eyebrow\">NAXXRAMAS • GAME CLIENTS</p>\n  <h2 id=\"naxx-client-title\">Download and Set Up World of Warcraft</h2>\n  <p>Naxxramas uses <strong>World of Warcraft 3.3.5a (build 12340)</strong> throughout Vanilla, The Burning Crusade and Wrath of the Lich King. Your character's Individual Progression determines what content is available.</p>\n</header>\n<nav class=\"naxx-client-jump\" aria-label=\"Sections of this guide\">\n  <a href=\"#naxx-client-download\">Download</a><a href=\"#naxx-client-prepare\">Installation</a><a href=\"#naxx-client-connect\">Connection</a><a href=\"#naxx-client-help\">Troubleshooting</a>\n</nav>\n\n<section class=\"naxx-client-section\" id=\"naxx-client-download\">\n  <h3>1. Download a compatible game client</h3>\n  <p>Only a <strong>3.3.5a / build 12340</strong> client is suitable. The links below belong to external providers, not Naxxramas.</p>\n  <div class=\"naxx-client-downloads\">\n    <div class=\"naxx-client-download-card\">\n      <span class=\"naxx-client-source-label\">Planned preferred source</span>\n      <h4>Preferred Client</h4>\n      <p>We're checking the new preferred download. The button will be enabled once its source and version are approved.</p>\n      <span class=\"naxx-client-unavailable\">Download link pending</span>\n    </div>\n    <div class=\"naxx-client-download-card\">\n      <span class=\"naxx-client-source-label\">Existing download source</span>\n      <h4>ChromieCraft</h4>\n      <p>Provides a 3.3.5a client through direct download, mirrors and torrent. Its preconfigured connection points to ChromieCraft; accepted Naxxramas players must replace it with their private connection file.</p>\n      <a class=\"game-client-external-button\" href=\"https://chromiecraft.com/en/downloads/\" target=\"_blank\" rel=\"noopener noreferrer\">Open ChromieCraft Downloads</a>\n    </div>\n    <div class=\"naxx-client-download-card\">\n      <span class=\"naxx-client-source-label\">Alternative download page</span>\n      <h4>Warmane</h4>\n      <p>Warmane provides a client download page. Its required older download option has not yet been verified; check the actual offered version before using it.</p>\n      <a class=\"game-client-external-button\" href=\"https://www.warmane.com/download\" target=\"_blank\" rel=\"noopener noreferrer\">View Warmane Downloads</a>\n    </div>\n  </div>\n  <p class=\"naxx-client-note\">A downloaded client is not already configured for Naxxramas. Never use another server's connection details to connect here.</p>\n</section>\n\n<section class=\"naxx-client-section\" id=\"naxx-client-prepare\">\n  <h3>2. Install the client and required patches</h3>\n  <ol class=\"naxx-client-steps\">\n    <li><strong>Download and extract:</strong> Allow the file to finish downloading. If it arrives as an archive, extract all contents into a dedicated folder such as <code>C:\\Games\\World of Warcraft 3.3.5a</code>. Do not start the game from inside the archive.</li>\n    <li><strong>Check the game folder:</strong> Look for <code>Wow.exe</code> and the <code>Data</code> folder. Keep this client separate from any other private-server installation.</li>\n    <li><strong>Confirm the version:</strong> It must be <strong>3.3.5a, build 12340</strong>. Modern retail, Classic or other builds will not work correctly.</li>\n    <li><strong>Install both required Naxxramas patches:</strong> Close the game. Download the currently approved <code>patch-V.mpq</code> and <code>patch-Z.mpq</code> files from <a href=\"https://github.com/CosmicCuddle/Naxxramas-Server-Patches/releases\" target=\"_blank\" rel=\"noopener noreferrer\">Naxxramas Patch Releases</a>. Put both in the <code>Data</code> folder without changing their filenames. Follow the matching release notes.</li>\n    <li><strong>Optional appearance patches:</strong> <code>Patch-J.mpq</code> and <code>Patch-U.mpq</code> are optional when supported. They do not replace either of the two required patches.</li>\n    <li><strong>Preserve your settings:</strong> Clear <code>Cache</code> only if your patch instructions or troubleshooting require it. Do not delete <code>Interface</code> or <code>WTF</code>; those folders contain addons and personal settings.</li>\n  </ol>\n  <p>For downloads and change information, see <a href=\"?section=Patches\">Patches</a> and <a href=\"patches/\">Patch Notes</a>. Always check which versions are currently approved.</p>\n</section>\n\n<section class=\"naxx-client-section\" id=\"naxx-client-connect\">\n  <h3>3. Connect after acceptance</h3>\n  <p><strong>The Naxxramas realm address is private and is not published here.</strong> Accepted applicants receive the genuine connection configuration file, along with their next steps, as part of their acceptance email.</p>\n  <ol class=\"naxx-client-steps\">\n    <li>Follow the instructions in your acceptance email and keep a copy of any existing connection settings.</li>\n    <li>Install the approved <code>realmlist.wtf</code> file in the correct language folder, commonly <code>Data\\enUS</code> or <code>Data\\enGB</code>, exactly as your email instructs.</li>\n    <li>Check the filename: Windows must not add an extra <code>.txt</code> extension.</li>\n    <li>Launch with <code>Wow.exe</code>, not an updater or another server's launcher, and follow the private account setup instructions.</li>\n    <li>Never share your password or the private connection information in public messages or support tickets.</li>\n  </ol>\n  <p>Not accepted yet? Start at <a href=\"apply/\">Apply to Join</a>. For how character progression works, visit the <a href=\"new-players/\">New Player Guide</a>.</p>\n</section>\n\n<section class=\"naxx-client-section\" id=\"naxx-client-help\">\n  <h3>4. Troubleshooting</h3>\n  <div class=\"naxx-client-issues\">\n    <div><h4>Download link broken</h4><p>Do not use unknown mirrors or unfamiliar executables. Report the link and use another checked 3.3.5a source.</p></div>\n    <div><h4>Can't find Wow.exe</h4><p>Confirm the archive finished extracting and open the main game directory.</p></div>\n    <div><h4>Wrong game version</h4><p>Use exactly <strong>3.3.5a, build 12340</strong>; avoid launchers that automatically update the client.</p></div>\n    <div><h4>Incorrect custom spell or content data</h4><p>Check that both required MPQs are in <code>Data</code> and match the approved Naxxramas releases.</p></div>\n    <div><h4>Connecting to the wrong realm</h4><p>After acceptance, confirm the owner's private connection file is in the correct language folder. Do not guess the realm address.</p></div>\n    <div><h4>Login or addon problems</h4><p>Check the acceptance and account instructions. Addons belong under <code>Interface\\AddOns</code> and must support 3.3.5a. If still stuck, report the exact error without sharing credentials.</p></div>\n  </div>\n</section>\n</article>";
+  function isSelected() {
+    try {
+      if (typeof currentSection === "string") return currentSection === "Game Clients";
+    } catch (_) {}
+    var a = document.querySelector('#mainNav button[data-section="Game Clients"]');
+    var b = document.querySelector('#mobileNav button[data-section="Game Clients"]');
+    return !!((a && a.classList.contains("active")) || (b && b.classList.contains("active")));
+  }
+  function sync() {
+    var grid = document.getElementById("resourceGrid");
+    if (!grid) return;
+    var selected = isSelected();
+    grid.classList.toggle(className, selected);
+    if (!selected || !grid.querySelector(".game-client-card")) return;
+    // Keep future admin-created download cards visible to players.
+    // Only the legacy ChromieCraft card repeats the new guide's information.
+    grid.querySelectorAll(".game-client-card").forEach(function (card) {
+      var heading = card.querySelector(".game-client-title");
+      card.classList.toggle("naxx-legacy-client-card",
+        !!heading && heading.textContent.trim() === "ChromieCraft");
+    });
+    if (!document.getElementById(marker)) {
+      grid.insertAdjacentHTML("afterbegin", guideHTML);
+    }
+  }
+  function start() {
+    var grid = document.getElementById("resourceGrid");
+    if (!grid) return;
+    new MutationObserver(sync).observe(grid, { childList: true });
+    sync();
+    window.addEventListener("pageshow", sync);
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", start, { once: true });
+  } else {
+    start();
+  }
+})();
