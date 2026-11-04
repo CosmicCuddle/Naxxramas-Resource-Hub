@@ -238,6 +238,22 @@ assert.ok(site.includes("visual-admin-active"),
 assert.ok(clientScript.includes("patch-V.mpq") && clientScript.includes("patch-Z.mpq") &&
  clientScript.includes("3.3.5a") && clientScript.includes("12340"),
  "Complete guide must explain the exact client and both required patches");
+assert.ok(clientScript.includes("naxx-client-explainer-title") &&
+ clientScript.includes("The <strong>game client</strong>") &&
+ clientScript.includes("The <strong>game server</strong>") &&
+ clientScript.includes("Downloading their client does not mean you will play on their server") &&
+ clientScript.includes("Naxxramas acceptance email") &&
+ clientCss.includes(".naxx-client-guide .naxx-client-explainer"),
+ "The first Game Clients banner must explain the client/server distinction before showing downloads");
+assert.ok(clientScript.includes("Eternion (plain 3.3.5a client)") &&
+ clientScript.includes("https://eternion-wow.net/download") &&
+ clientScript.includes("Client file not yet verified") &&
+ clientScript.includes("Do not use the Eternion Launcher") &&
+ clientScript.includes("Eternion install pack"),
+ "Eternion must remain a plain-full-client candidate, with separate launcher/patch warning and no tested-download claim");
+assert.ok(!clientScript.includes("naxx-client-note"),
+ "The old redundant client-connection note must not repeat the new introductory banner");
+
 assert.ok(clientScript.includes("https://chromiecraft.com/en/downloads/") &&
  clientScript.includes("https://www.warmane.com/download"),
  "Existing and alternative download pages must remain visible");
