@@ -12,7 +12,7 @@
     "assets/naxx-theme-v3.css?v=2",
     "assets/naxx-countdowns-compact.css?v=4",
     "assets/naxx-home-class-selector.css?v=1",
-    "assets/naxx-three-pages.css?v=2"
+    "assets/naxx-three-pages.css?v=3"
   ];
   var scripts=[
     "assets/naxx-countdowns.js?v=7",

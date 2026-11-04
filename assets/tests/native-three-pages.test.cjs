@@ -19,7 +19,7 @@ const faqs = [38,35,8];
 assert.ok(index.length<6500,"Original root index loader must stay small");
 assert.ok(index.includes("site-content.html"),"Existing site content must remain bootstrapped");
 assert.ok(index.includes("naxx-three-pages.js?v=2"));
-assert.ok(index.includes("naxx-three-pages.css?v=2"));
+assert.ok(index.includes("naxx-three-pages.css?v=3"));
 assert.ok(index.includes("naxx-talent-sets-full-sync.js?v=3"),
   "Newest Talent Sets regression fix must be preserved");
 assert.ok(nav.includes('["mainNav","mobileNav"]'),"Both native menus must be extended");
@@ -152,6 +152,12 @@ assert.ok(nav.includes("if(!APPLICATION_EMBED_APPROVED)"),
 assert.ok(css.includes(".naxx-tally-live-application[hidden] {display:none!important;}") &&
  css.includes(".naxx-guide-disabled[hidden] {display:none!important;}"),
  "The live panel and closed fallback must not be visible at the same time");
+const tallyIframeRule=css.split("body.naxx-three-page-route .naxx-tally-live-application iframe {")[1]?.split("}")[0] || "";
+assert.ok(tallyIframeRule.includes("background:#15110d;") &&
+ !tallyIframeRule.includes("background:#fff;"),
+ "Transparent embedded Tally form must use a dark backing so light text remains legible");
+assert.ok(apply.includes("transparentBackground=1"),
+ "Tally embed transparency must be preserved alongside its dark iframe backing");
 assert.ok(apply.includes('accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"'),
  "Private test form must reflect the approved Word DOCX template, not a premature PDF offer");
 assert.ok(apply.includes("owner-controlled <strong>Tally upload</strong>") &&
