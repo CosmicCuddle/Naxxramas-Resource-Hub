@@ -42,7 +42,7 @@ jobs:
           persist-credentials: false
       - name: Protect existing public connection details
         run: node assets/tests/no-public-connection-details.test.cjs
-      - name: Check new pages, Word download and closed Tally
+      - name: Check new pages, Word download and open Tally integration
         run: node assets/tests/native-three-pages.test.cjs
       - name: Verify desktop and mobile navigation
         run: node assets/tests/native-three-pages-navigation.test.cjs
