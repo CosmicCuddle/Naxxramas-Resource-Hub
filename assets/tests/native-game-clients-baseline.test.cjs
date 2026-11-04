@@ -118,7 +118,10 @@ function pageHarness(variant){
       const html=article.innerHTML;
       guide={
        renderedAndVisible:getComputedStyle(article).display!=="none"&&article.getBoundingClientRect().height>0,
-       threeDownloadChoices:cards.length===3,
+       twoDownloadChoices:cards.length===2&&
+        cards[0].querySelector("h4")?.textContent.trim()==="ChromieCraft"&&
+        cards[1].querySelector("h4")?.textContent.trim()==="Warmane"&&
+        !article.textContent.includes("Eternion"),
        warmaneOutageNoticeFirst:!!warmane&&warmane.firstElementChild?.classList.contains("naxx-client-service-note")&&
         warmane.firstElementChild.textContent.includes("Currently out of order"),
        warmaneOfficialLink:!!warmane?.querySelector('a[href="https://www.warmane.com/download"]'),
