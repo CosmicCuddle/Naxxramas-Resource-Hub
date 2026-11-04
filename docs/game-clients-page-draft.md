@@ -10,7 +10,7 @@ Naxxramas uses **World of Warcraft: Wrath of the Lich King 3.3.5a, build 12340**
 
 **Preferred client:** awaiting the owner's tested URL. Do not publish a working-looking button until the download and version are checked.
 
-**Alternative — Warmane:** https://www.warmane.com/download . This is its current download page, but the required older download variant has **not** been confirmed to work. The previously attempted archived link should not be promoted as functional.
+**Alternative — Warmane:** https://web.archive.org/web/20260228080116/https://www.warmane.com/download . Use this owner-specified archived version of Warmane’s download page. The public-facing card describes Warmane as an ordinary alternative client source. The archived page has been mentioned by Warmane community users, but the actual selected client download and build have **not** been independently tested. Do not claim the download is confirmed working.
 
 Naxxramas does not host or distribute the base game client through this page.
 
@@ -73,6 +73,6 @@ Launch **Wow.exe**, not an automatic updater, and follow the privately supplied 
 ### Outstanding before website integration
 
 1. Owner's preferred client download URL and actual tested result.
-2. A working, tested source for the alternative older Warmane client, if still wanted.
+2. Confirm that the archived Warmane page actually provides a working 3.3.5a download; link updated to owner-supplied URL in this draft.
 3. Review the current Game Clients tab markup before applying HTML changes.
 4. Confirm the current approved Naxxramas patch releases and perform browser checks after integration.
