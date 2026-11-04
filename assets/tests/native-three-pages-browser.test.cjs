@@ -138,6 +138,13 @@ function probe(slug,viewportWidth){
      explainer.textContent.includes("game server")&&
      explainer.textContent.includes("Downloading their client does not mean you will play on their server")&&
      explainer.textContent.includes("acceptance email"),
+    bannerHostingAndWotlkClear:!!explainer&&
+     explainer.textContent.includes("do not currently host the base game files ourselves")&&
+     explainer.textContent.includes("Wrath of the Lich King (WotLK)")&&
+     explainer.textContent.includes("patch 3.3.5a (build 12340)"),
+    downloadSelectorGuidance:!!guide.querySelector("#naxx-client-download")&&
+     guide.querySelector("#naxx-client-download").textContent.includes("If a download website asks for the expansion or patch")&&
+     guide.querySelector("#naxx-client-download").textContent.includes("Wrath of the Lich King (WotLK)"),
     eternionCandidateSafe:!!candidate&&
      candidate.textContent.includes("Full client")&&
      candidate.textContent.includes("Eternion Launcher")&&
