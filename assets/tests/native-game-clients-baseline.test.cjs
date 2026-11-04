@@ -22,7 +22,7 @@ function pageHarness(variant){
   const frame=document.getElementById("page");
   const out=document.getElementById("report");
   let stage="ready",cycles=0,after=0,searchSeen=false,clicked=false,loaded=false;
-  let reached=false,emptySeen=false,firstState=null,lastState=null,fail="";
+  let reached=false,emptySeen=false,firstState=null,lastState=null,visual=null,fail="";
   function currentState(){
    let d;
    try{d=frame.contentDocument;}catch(e){return {crossOrigin:true};}
@@ -36,11 +36,33 @@ function pageHarness(variant){
     readyState:d.readyState
    };
   }
+  function homeStyleSnapshot(){
+   const d=frame.contentDocument,w=frame.contentWindow;
+   function css(selector){
+    const el=d.querySelector(selector);
+    if(!el)return {present:false};
+    const st=w.getComputedStyle(el);
+    return {
+      display:st.display,fontFamily:st.fontFamily,fontSize:st.fontSize,fontWeight:st.fontWeight,
+      color:st.color,backgroundColor:st.backgroundColor,padding:st.padding,
+      borderTopColor:st.borderTopColor,borderTopWidth:st.borderTopWidth,
+      borderRadius:st.borderRadius,lineHeight:st.lineHeight
+    };
+   }
+   return {
+    originalHomeButton:css('#mainNav button[data-section="Home"]'),
+    nativeSidebar:css("#mainNav"),
+    originalSearch:css("#searchInput"),
+    originalPageHeading:css("#sectionHeading"),
+    originalContentGrid:css("#resourceGrid"),
+    originalContextTitle:css("#whProContextTitle")
+   };
+  }
   function finish(){
    clearInterval(interval);
    out.textContent="AB_RESULT:"+JSON.stringify({
     variant,searchSeen,clicked,reached,emptySeen,fail,
-    initial:firstState,last:lastState
+    initial:firstState,last:lastState,visual
    });
   }
   const interval=setInterval(()=>{
@@ -54,7 +76,7 @@ function pageHarness(variant){
     }
     const client=Array.from(nav.querySelectorAll("button[data-section]")).find(b=>String(b.textContent).includes("Game Clients"));
     if(!client){fail="Original Game Clients button missing";finish();return;}
-    firstState=currentState();loaded=true;
+    firstState=currentState();visual=homeStyleSnapshot();loaded=true;
     input.value="Mage";
     input.dispatchEvent(new frame.contentWindow.Event("input",{bubbles:true}));
     stage="search";
@@ -160,6 +182,13 @@ async function main(){
  }finally{await new Promise(resolve=>serverInstance.close(resolve));}
  const original=results[0],draft=results[1];
  if(original.fail||draft.fail)throw Error("Cannot compare because a site/search baseline probe did not initialise");
+ for(const [selector,originalCss] of Object.entries(original.visual||{})){
+  const draftCss=draft.visual?.[selector];
+  if(JSON.stringify(originalCss)!==JSON.stringify(draftCss))
+   throw Error("Original Home computed styling differs in draft for "+selector+
+    ": main="+JSON.stringify(originalCss)+" draft="+JSON.stringify(draftCss));
+ }
+ console.log("PASS: original Home computed CSS matches main for all six native elements");
  if(!original.clicked||!draft.clicked||!original.searchSeen||!draft.searchSeen)
   throw Error("The same original Game Clients control was not exercised on both branches");
  if(original.reached&&!draft.reached)
