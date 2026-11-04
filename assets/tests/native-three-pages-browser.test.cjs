@@ -41,7 +41,7 @@ function probe(slug,viewportWidth){
    const mobileGuide=mobile.querySelectorAll("button[data-naxx-guide-link]");
    const originalButtons=main.querySelectorAll("button[data-section]");
    const focusButton=main.querySelector('button[data-naxx-guide-link="rules"]');
-   focusButton.focus();
+   if(viewportWidth===1440)focusButton.focus();
    const checks={
     nativeRootLoaded:!!d.getElementById("resourceGrid"),
     originalHomePreserved:!!homeButton&&!!mobileHome,
@@ -49,7 +49,8 @@ function probe(slug,viewportWidth){
     threeNewNativeDesktopLinks:desktopGuide.length===3,
     threeNewNativeMobileLinks:mobileGuide.length===3,
     newControlsAreNativeButtons:Array.from(desktopGuide).every(b=>b.tagName==="BUTTON"&&b.type==="button"),
-    desktopGuideButtonFocuses:d.activeElement===focusButton,
+    mobileButtonsHaveNativeKeyboardSemantics:Array.from(mobileGuide).every(b=>b.tagName==="BUTTON"&&b.type==="button"&&!b.disabled&&b.tabIndex>=0),
+    desktopGuideButtonFocuses:viewportWidth===390||d.activeElement===focusButton,
     homeNotOverwrittenByGuide:!d.body.classList.contains("naxx-three-page-route"),
     noGuideContentOnHome:!d.querySelector("[data-naxx-guide-content]"),
     noHorizontalOverflow:d.documentElement.scrollWidth<=frame.contentWindow.innerWidth+3
@@ -76,10 +77,12 @@ function probe(slug,viewportWidth){
    return nav ? nav.querySelectorAll("button[data-naxx-guide-link]").length : 0;
   };
   const focusLink=d.querySelector('#mainNav button[data-naxx-guide-link="rules"]');
-  if(focusLink)focusLink.focus();
+  const mobileLink=d.querySelector('#mobileNav button[data-naxx-guide-link="rules"]');
+  if(focusLink&&viewportWidth===1440)focusLink.focus();
   const checks={
    articleLoaded:!!article,
-   nativeGuideButtonFocuses:!!focusLink&&d.activeElement===focusLink,
+   visibleDesktopButtonFocuses:viewportWidth===390||!!focusLink&&d.activeElement===focusLink,
+   mobileButtonHasNativeKeyboardSemantics:!!mobileLink&&mobileLink.tagName==="BUTTON"&&mobileLink.type==="button"&&!mobileLink.disabled&&mobileLink.tabIndex>=0,
    nativePageClass:d.body.classList.contains("naxx-three-page-route"),
    correctHeading:(d.getElementById("sectionHeading")||{}).textContent?.includes(
     slug==="apply"?"Apply to Join":slug==="rules"?"Server Rules":"New Player Guide"
