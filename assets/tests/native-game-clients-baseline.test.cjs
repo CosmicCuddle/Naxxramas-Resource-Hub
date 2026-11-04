@@ -22,7 +22,7 @@ function pageHarness(variant){
   const frame=document.getElementById("page");
   const out=document.getElementById("report");
   let stage="ready",cycles=0,after=0,searchSeen=false,clicked=false,loaded=false;
-  let reached=false,emptySeen=false,firstState=null,lastState=null,visual=null,fail="";
+  let reached=false,emptySeen=false,firstState=null,lastState=null,visual=null,guide=null,fail="";
   function currentState(){
    let d;
    try{d=frame.contentDocument;}catch(e){return {crossOrigin:true};}
@@ -62,7 +62,7 @@ function pageHarness(variant){
    clearInterval(interval);
    out.textContent="AB_RESULT:"+JSON.stringify({
     variant,searchSeen,clicked,reached,emptySeen,fail,
-    initial:firstState,last:lastState,visual
+    initial:firstState,last:lastState,visual,guide
    });
   }
   const interval=setInterval(()=>{
@@ -100,7 +100,41 @@ function pageHarness(variant){
     after++;lastState=currentState();
     if(lastState.hasBody===false||!lastState.hasGrid)emptySeen=true;
     if(lastState.heading?.includes("Game Clients")){
-     reached=true;finish();return;
+     reached=true;
+     // Navigation alone cannot prove the new Game Clients content is mounted.
+     // The main baseline intentionally has no new guide; inspect the draft only.
+     if(variant==="draft"){
+      const d=frame.contentDocument;
+      const article=d.getElementById("naxx-game-client-guide");
+      if(!article){
+       if(after<75)return;
+       fail="Game Clients heading appeared, but the draft guide never mounted";
+       finish();return;
+      }
+      const cards=Array.from(article.querySelectorAll(".naxx-client-download-card"));
+      const warmane=cards.find(c=>c.querySelector("h4")?.textContent.trim()==="Warmane");
+      const legacy=Array.from(d.querySelectorAll(".game-client-card")).find(
+       c=>c.querySelector(".game-client-title")?.textContent.trim()==="ChromieCraft");
+      const html=article.innerHTML;
+      guide={
+       renderedAndVisible:getComputedStyle(article).display!=="none"&&article.getBoundingClientRect().height>0,
+       threeDownloadChoices:cards.length===3,
+       warmaneOutageNoticeFirst:!!warmane&&warmane.firstElementChild?.classList.contains("naxx-client-service-note")&&
+        warmane.firstElementChild.textContent.includes("Currently out of order"),
+       warmaneOfficialLink:!!warmane?.querySelector('a[href="https://www.warmane.com/download"]'),
+       correctGameVersion:article.textContent.includes("3.3.5a")&&article.textContent.includes("12340"),
+       bothPatchesExplained:article.textContent.includes("patch-V.mpq")&&article.textContent.includes("patch-Z.mpq"),
+       privateConnectionInstructions:article.textContent.includes("acceptance email")&&
+        article.textContent.includes("realmlist.wtf"),
+       noPublicRealmAddress:!(/\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b/.test(html)||/set\\s+real(?:m)?list\\s+/i.test(html)),
+       originalEditableCardPreserved:!!legacy,
+       visitorDuplicateHidden:!!legacy&&getComputedStyle(legacy).display==="none",
+       noHorizontalOverflow:d.documentElement.scrollWidth<=frame.contentWindow.innerWidth+3
+      };
+      if(!Object.values(guide).every(Boolean))
+       fail="Draft Game Clients content or privacy checks failed";
+     }
+     finish();return;
     }
     if(after>=80)finish();
    }
@@ -199,6 +233,9 @@ async function main(){
   console.log("BASELINE DIFFERENCE: draft reached Game Clients, original main did not");
  if(original.reached&&draft.reached)
   console.log("PASS: original Game Clients navigation reached on both unchanged main and draft");
+ if(!draft.guide||!Object.values(draft.guide).every(Boolean))
+  throw Error("Game Clients draft did not pass rendered-content checks");
+ console.log("PASS: draft Game Clients renders its guide, Warmane notice, required patches and private onboarding safely");
  console.log("PASS: A/B comparison finished without a draft-only navigation regression");
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});
