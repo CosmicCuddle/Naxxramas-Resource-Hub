@@ -263,18 +263,13 @@ assert.ok(clientScript.includes("patch-J.mpq") &&
  !clientScript.includes("Patch-J.mpq") &&
  !clientScript.includes("Patch-U.mpq"),
  "Optional client patch names must match the official Naxxramas patch README; mutually exclusive login patches must be explained");
-assert.ok(clientScript.includes("Eternion (plain 3.3.5a client)") &&
- clientScript.includes("https://eternion-wow.net/download") &&
- clientScript.includes("Client file not yet verified") &&
- clientScript.includes("Do not use the Eternion Launcher") &&
- clientScript.includes("Eternion install pack"),
- "Eternion must remain a plain-full-client candidate, with separate launcher/patch warning and no tested-download claim");
-assert.ok(clientScript.includes("scroll past the launcher") &&
- clientScript.includes("Full client — 3.3.5a (build 12340)") &&
- clientScript.includes("about 16.5 GB") &&
+assert.ok(!clientScript.includes("Eternion") &&
+ !clientScript.includes("eternion-wow.net") &&
+ !clientScript.includes("Preferred candidate") &&
+ clientScript.includes("Main download option") &&
  clientScript.includes("Version 3.3.5 (12340)") &&
- clientScript.includes("this is normal for the 3.3.5a client"),
- "Provider navigation and in-game version wording must prevent selecting the launcher or wrongly rejecting 3.3.5a");
+ clientCss.includes(".naxx-client-downloads { display:grid; grid-template-columns:repeat(2,minmax(0,1fr))"),
+ "Deferred third-party source must not appear publicly; two current source cards and version guidance remain");
 assert.ok(!clientScript.includes("naxx-client-note"),
  "The old redundant client-connection note must not repeat the new introductory banner");
 
