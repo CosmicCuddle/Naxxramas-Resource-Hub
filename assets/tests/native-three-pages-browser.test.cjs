@@ -68,7 +68,7 @@ function probe(slug,viewportWidth){
  check();
 }
 function harnessHtml(slug,width){
- const code="("+probe.toString()+")("+JSON.stringify(slug)+","+Number(width)+");";
+ const code="var expected="+JSON.stringify(expected)+";("+probe.toString()+")("+JSON.stringify(slug)+","+Number(width)+");";
  return '<!doctype html><html><head><meta charset="utf-8"><title>Local draft QA</title>'+
   '<meta name="viewport" content="width=device-width,initial-scale=1"></head>'+
   '<body style="margin:0;background:#17100b"><iframe id="site" title="Naxxramas QA" '+
