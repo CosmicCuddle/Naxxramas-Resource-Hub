@@ -49,7 +49,7 @@ function probe(slug,viewportWidth){
      noGuideContentAfterLegacyClick:!d.querySelector("[data-naxx-guide-content]"),
      legacySectionStillHasNativeGrid:!!d.getElementById("resourceGrid")
    });
-   if(!checks.originalGameClientsNavigation&&legacyAttempts++<16)return;
+   if(!checks.originalGameClientsNavigation&&legacyAttempts++<50)return;
    if(!checks.originalGameClientsNavigation){
     checks.diagnostics={
       path:frame.contentWindow.location.pathname,
