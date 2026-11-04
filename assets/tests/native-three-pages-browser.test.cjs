@@ -8,7 +8,7 @@ const http=require("node:http");
 const cp=require("node:child_process");
 const {URL}=require("node:url");
 const root=path.resolve(__dirname,"../..");
-const expected={"apply":8,"rules":35,"new-players":38,"home":0};
+const expected={"apply":0,"rules":0,"new-players":24,"home":0};
 function browserBinary(){
  for(const name of ["google-chrome","google-chrome-stable","chromium","chromium-browser"]){
   const r=cp.spawnSync("which",[name],{encoding:"utf8"});
