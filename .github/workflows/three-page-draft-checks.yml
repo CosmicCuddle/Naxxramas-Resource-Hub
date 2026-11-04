@@ -42,3 +42,5 @@ jobs:
         run: node assets/tests/native-three-pages-navigation.test.cjs
       - name: Verify rendering recovery and error states
         run: node assets/tests/native-three-pages-behavior.test.cjs
+      - name: Smoke-test rendered pages in headless Chrome
+        run: node assets/tests/native-three-pages-browser.test.cjs
