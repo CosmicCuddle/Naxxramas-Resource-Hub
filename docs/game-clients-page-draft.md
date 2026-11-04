@@ -29,8 +29,8 @@ Check that the client is **3.3.5a, build 12340**. Another build, a modern retail
 ### Step 4 — Install required Naxxramas patches
 
 1. Close WoW.
-2. Find the approved patch releases: https://github.com/CosmicCuddle/Naxxramas-Server-Patches/releases .
-3. Install both required files: **patch-V.mpq** and **patch-Z.mpq**. Check the latest release instructions before choosing downloads.
+2. Open the [official patch download instructions](https://github.com/CosmicCuddle/Naxxramas-Server-Patches/blob/main/README.md), which link the currently approved files; the [Releases page](https://github.com/CosmicCuddle/Naxxramas-Server-Patches/releases) holds the published versions.
+3. Install **both required files**: **patch-V.mpq** and **patch-Z.mpq**. A newer patch-V release may still rely on an unchanged patch-Z file from a previous release; read the repository guidance rather than expecting both files in one release.
 4. Place both MPQ files inside the game's **Data** folder. Keep the specified names exactly.
 5. Optional visual packages such as Patch-J.mpq and Patch-U.mpq do not replace the two required files.
 6. Only clear Cache when instructed by the relevant release or troubleshooting. Keep Interface and WTF, which hold addons and game settings.
