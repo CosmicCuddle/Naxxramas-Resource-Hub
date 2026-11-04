@@ -46,7 +46,7 @@ async function connect(browser,url,width){
    if(r.exceptionDetails)throw Error("Page script exception: "+r.exceptionDetails.text);return r.result?.value;}
   async function until(expression,stage){for(let i=0;i<140;i++){try{if(await evaluate(expression))return;}catch(e){/* document.write/reload can recreate context */}await pause(250);}throw Error("Failed keyboard stage: "+stage);}
   async function enter(){const p={key:"Enter",code:"Enter",windowsVirtualKeyCode:13,nativeVirtualKeyCode:13};
-   await send("Input.dispatchKeyEvent",Object.assign({type:"rawKeyDown"},p));
+   await send("Input.dispatchKeyEvent",Object.assign({type:"keyDown",text:"\r",unmodifiedText:"\r"},p));
    await send("Input.dispatchKeyEvent",Object.assign({type:"keyUp"},p));}
   return {evaluate,until,enter,close};
  }catch(e){await close();throw e;}
@@ -58,6 +58,7 @@ async function desktop(browser,base){
   const focused=await s.evaluate('(()=>{const b=document.querySelector("#mainNav button[data-naxx-guide-link=rules]");if(!b)return false;b.focus();return document.activeElement===b;})()');
   if(!focused)throw Error("Desktop Rules control cannot receive focus");
   await s.enter();
+  try{const state=await s.evaluate('JSON.stringify({path:location.pathname,active:document.activeElement?.getAttribute("data-naxx-guide-link"),rules:document.querySelectorAll(".naxx-guide-rule").length})');console.log("DESKTOP_AFTER_ENTER",state);}catch(e){console.log("DESKTOP_AFTER_ENTER",String(e));}
   await s.until('location.pathname.endsWith("/rules/")&&document.querySelectorAll(".naxx-guide-rule").length===12',"Enter opened Rules from Apply");
   console.log("PASS: browser keyboard Enter navigated desktop Apply to Rules");
  }finally{await s.close();}
