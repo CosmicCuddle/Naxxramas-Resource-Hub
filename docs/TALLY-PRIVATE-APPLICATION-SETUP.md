@@ -43,17 +43,17 @@ Use these blocks, in order:
 >
 > Pending applications will be reviewed and decided or closed/deleted within **90 days of submission**. I normally aim to reply within **one or two days**, but this is not a guaranteed response time. After a decision to accept or decline, I will manually delete the Tally submission and any copies I hold within **30 days of that decision**, including clearing Tally's Trash. Tally may retain backup information temporarily in line with its own procedures, so deletion is not necessarily immediate across all backups.
 >
-> If you would like to withdraw your application or ask about your information, please use **[OWNER-APPROVED CONTACT METHOD TO BE ADDED BEFORE LAUNCH]**.
+> If you want to withdraw your application, ask about the personal information you provided, or request deletion of your application information, you may contact the owner **by email or by private Discord message**. Either method is acceptable. Approved public contact details will be shown in the final notice before applications open. Never share passwords or completed applications in public Discord channels.
 >
 > You can read Tally's own privacy information at https://tally.so/help/gdpr.
 
-**Not yet approved for public use:** The bracketed contact method is intentionally unfilled. CosmicCuddle must confirm a working, applicant-accessible email address or approved contact route before this notice is copied into the actual Tally form or public Apply page. Legal/privacy completeness and any exceptions to deletion promises require further owner review; don't present this text as a legal compliance guarantee. This is intended to replace the shorter proposed privacy text above **after final approval**, not to appear alongside it as a duplicate notice.
+**Contact channels confirmed (4 November 2026):** CosmicCuddle approved **either email or a private Discord message** for withdrawal/deletion requests; applicants may use either, not necessarily both. **Exact contact destination is still a release requirement:** at least one verified public email address or direct Discord route must be available to applicants *before* acceptance. No particular email address or Discord handle has yet been supplied and approved; do not invent one. This draft notice is **not approved for public use** and must not be copied into Tally until a working public contact route is specified. Legal/privacy completeness and any exceptions to deletion promises require further owner review; don't present this text as a legal compliance guarantee. This is intended to replace the shorter proposed privacy text above **after final approval**, not to appear alongside it as a duplicate notice.
 
 **Approval boundary:** This repository is public. Do not add private email addresses, applicant names, submitted documents or direct private download links to this file or GitHub Issues.
 
 Keep the **existing required acknowledgement**: “I have read the privacy information above and understand how my application will be used” → “I understand and agree.” Provide accessible links to the final privacy notice and Tally's privacy information before launch. Do not claim that uploads are never transferred to or stored by Tally.
 
-**Owner follow-up before real applications:** the maximum pending-review period is now set at **90 days**; withdrawal handling, how applicants can request deletion and any applicable legal exceptions still need a final published privacy notice. Staff-only email alerts should contain no needless sensitive answers. The **website embed remains OFF**. CosmicCuddle reports a successful dummy-file test of the separate Tally form, but its current Close form setting, private dashboard receipt, email alert and permanent deletion remain independently unverified.
+**Owner follow-up before real applications:** the maximum pending-review period is now set at **90 days**; email/Discord request channels are approved, but the publicly usable contact destination, withdrawal handling and any applicable legal exceptions still need a final published privacy notice. Staff-only email alerts should contain no needless sensitive answers. The **website embed remains OFF**. CosmicCuddle reports a successful dummy-file test of the separate Tally form, but its current Close form setting, private dashboard receipt, email alert and permanent deletion remain independently unverified.
 
 
 ### Owner decision — recognised activity within one month after acceptance (3 November 2026, clarified)
@@ -66,7 +66,7 @@ Keep the **existing required acknowledgement**: “I have read the privacy infor
 
 **Preserve the existing data policy independently:** The application and owner-held copies are still due for deletion **within 30 days after the acceptance decision**, including manually clearing Tally Trash. One month to demonstrate joining **does not extend the document retention deadline**.
 
-**Still unresolved:** A publicly accessible, owner-approved route for requests to withdraw an application or delete personal data **before acceptance**. An acceptance-email reply remains one possible way to confirm joining, but it is not a substitute for publicly stated privacy contact instructions. Do not invent an email address, Discord handle, account auto-deletion or automated server action.
+**Channels confirmed; specific destination unresolved:** Email or private Discord are both approved methods for withdrawal/deletion requests, but a publicly accessible address or Discord route **before acceptance** remains to be verified. An acceptance-email reply remains one possible way to confirm joining, but it is not a substitute for publicly stated privacy contact instructions. Do not invent an email address, Discord handle, account auto-deletion or automated server action.
 
 ## 2. Tally settings
 

@@ -158,6 +158,11 @@ assert.ok(apply.includes("private Tally upload")&&apply.includes("not connected 
 assert.ok(apply.includes("one Word DOCX file, up to 10 MB"),
  "Keep planned Free-tier upload limit visible during review");
 assert.ok(apply.includes("email")&&apply.includes("Discord"));
+assert.ok(apply.includes("Application withdrawal or privacy requests:") &&
+ apply.includes("email or private Discord message to the owner") &&
+ apply.includes("Either method is acceptable") &&
+ apply.includes("contact details will be provided in the final privacy notice before applications open"),
+ "Privacy requests must allow either channel, without claiming a supplied public contact destination");
 assert.ok(apply.includes("preferred account username"),"Website must match original owner Word application, not community nickname");
 assert.ok(!apply.includes("community nickname"),"Outdated applicant identity wording must not reappear");
 const officialForm=path.join(root,"apply/naxxramas-application.docx");
