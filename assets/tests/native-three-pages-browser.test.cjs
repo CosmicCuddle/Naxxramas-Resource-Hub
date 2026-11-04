@@ -47,6 +47,18 @@ function probe(slug,viewportWidth){
   let d;
   try{d=frame.contentDocument;}catch(e){finish(false,{sameOrigin:false});return;}
   if(!d)return;
+  if(navClicked){
+   const rules=d.querySelector('[data-naxx-guide-content="rules"]');
+   if(!rules)return;
+   const checks=Object.assign({},initialChecks,{
+    realClickNavigatedToRules:frame.contentWindow.location.pathname.endsWith("/rules/"),
+    rulesMountedAfterClick:rules.querySelectorAll(".naxx-guide-rule").length===12,
+    rulesHeadingAfterClick:(d.getElementById("sectionHeading")||{}).textContent?.includes("Server Rules")===true,
+    noOverflowAfterClick:d.documentElement.scrollWidth<=frame.contentWindow.innerWidth+3
+   });
+   finish(Object.values(checks).every(Boolean),checks);
+   return;
+  }
   if(slug==="home"){
    const main=d.getElementById("mainNav"),mobile=d.getElementById("mobileNav");
    if(!main||!mobile||!d.getElementById("resourceGrid"))return;
@@ -72,18 +84,23 @@ function probe(slug,viewportWidth){
     noGuideContentOnHome:!d.querySelector("[data-naxx-guide-content]"),
     noHorizontalOverflow:d.documentElement.scrollWidth<=frame.contentWindow.innerWidth+3
    };
-   finish(Object.values(checks).every(Boolean),checks);
-   return;
-  }
-  if(navClicked){
-   const rules=d.querySelector('[data-naxx-guide-content="rules"]');
-   if(!rules)return;
-   const checks=Object.assign({},initialChecks,{
-    realClickNavigatedToRules:frame.contentWindow.location.pathname.endsWith("/rules/"),
-    rulesMountedAfterClick:rules.querySelectorAll(".naxx-guide-rule").length===12,
-    rulesHeadingAfterClick:(d.getElementById("sectionHeading")||{}).textContent?.includes("Server Rules")===true,
-    noOverflowAfterClick:d.documentElement.scrollWidth<=frame.contentWindow.innerWidth+3
-   });
+   if(viewportWidth===390&&Object.values(checks).every(Boolean)){
+    const menu=Array.from(d.querySelectorAll(".mobile-top button"))
+      .find(b=>/\\bMenu\\b/i.test(b.textContent));
+    checks.mobileMenuControlPresent=!!menu;
+    if(!menu){finish(false,checks);return;}
+    menu.click();
+    const mobileRules=d.querySelector('#mobileNav button[data-naxx-guide-link="rules"]');
+    checks.mobileRulesLinkPresent=!!mobileRules;
+    if(!mobileRules){finish(false,checks);return;}
+    mobileRules.focus();
+    checks.mobileDrawerRulesButtonFocuses=d.activeElement===mobileRules;
+    if(!checks.mobileDrawerRulesButtonFocuses){finish(false,checks);return;}
+    initialChecks=checks;
+    navClicked=true;
+    mobileRules.click();
+    return;
+   }
    finish(Object.values(checks).every(Boolean),checks);
    return;
   }
@@ -218,6 +235,6 @@ async function main(){
   await new Promise(resolve=>server.close(resolve));
  }
  if(failures)throw Error(failures+" browser scenario(s) failed");
- console.log("PASS: six local Chrome checks, native-home preservation and real sidebar click; no external Tally submission attempted");
+ console.log("PASS: six local Chrome checks, real desktop and mobile drawer navigation, and approved DOCX HTTP download; no Tally submission attempted");
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});
