@@ -4,6 +4,22 @@
 **Planning:** https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/issues/46
 **Status:** Scoped review branch only. No merge, deployment, application uploads or player accounts activated.
 
+## Release candidate — applications OPEN requested (4 November 2026)
+
+**Latest owner instruction:** “I want the applications open.” This overrides the earlier two-release suggestion (pages with intake closed first). The requested outcome is **one release of the New Player Guide, Rules and Apply pages with actual Tally submission enabled**, not a closed-application preview. The owner's previously approved email-only privacy contact, 30-/90-day retention and no further Tally *functional testing* remain unchanged.
+
+**Prepared in unmerged draft PR #47:**
+- The native Apply page's public wording now says **Applications are open**, retains the approved blank 3-page DOCX and 8 FAQs, and displays the full email-only privacy notice **before** a Tally upload.
+- `APPLICATION_EMBED_APPROVED = true` is **staged on this draft branch only**. The formerly closed demonstration panel is hidden while the owner-supplied **q5Lqr8** Tally embed and direct-form fallback are presented. The switch can be turned off again by a future approved rollback.
+- Source, browser and DOM-simulation regressions have been adapted to check the **open release state**, Tally URL integrity and email-only contact, while never submitting a real or dummy application. The original Resource Hub source and other gameplay pages are not modified.
+- A purpose/necessity/balancing record for the approved legitimate-interests approach is staged in `docs/APPLICATION-LEGITIMATE-INTERESTS-ASSESSMENT.md`; it is a reasoned working record, **not legal advice or an independent compliance guarantee**.
+
+**One external account-side content action remains before merging:** The owner must align the **actual Tally form's published privacy text** with the approved email-only contact and link to the full live Apply privacy notice. This is **content setup, not further Tally testing**, and GitHub access does not grant Tally account-edit access. The form may independently receive uploads through its share link if its provider Close form switch is off; the website switch does not control that. Avoid making a public intake claim until the wording is aligned.
+
+**Merge gate:** Do not merge until Tally's live privacy wording has been updated by the owner, current CI for this release candidate has passed, and the requested application-open outcome is confirmed. Then an explicit merge can publish all three pages in the authorised open state; check live deployment before claiming success.
+
+**Status at the time of this entry: UNMERGED; MAIN WEBSITE UNCHANGED; TALLY ACCOUNT CONTENT NOT MODIFIED FROM HERE.**
+
 ## Latest owner decisions and publication preparation — 4 November 2026
 
 **Step 1 — CONTENT ACCEPTED FOR THIS DRAFT:** CosmicCuddle said "I think 1. is done, so lets move onto 2. and then 3." in response to the final Rules, New Player Guide and FAQ review. Record this as approval of the **current page wording** for the planned website release: all 12 always-expanded rules, 38 New Player Guide FAQs, 35 Rules FAQs, and 8 Apply FAQs. Earlier notes below saying "FAQ awaiting exact wording approval" are historical, not current. This content sign-off is **not** approval to merge or activate applications, and does not independently establish unverified server configuration facts as deployed.
