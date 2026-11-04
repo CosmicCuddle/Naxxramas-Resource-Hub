@@ -36,7 +36,9 @@ function probe(slug,viewportWidth){
    const toggles=Array.from(d.querySelectorAll("button,[role=button]"))
     .filter(e=>/menu|sidebar|nav|hamburger/i.test([e.id,e.className,e.getAttribute("aria-label"),e.getAttribute("title"),e.getAttribute("aria-controls")].join(" ")))
     .slice(0,20).map(mini);
-   mobileMenuProbe={parents,toggles};
+   const mobileNodes=Array.from(d.querySelectorAll('[id*="mobile" i],[class*="mobile" i],[id*="toggle" i],[class*="toggle" i]'))
+    .slice(0,80).map(mini);
+   mobileMenuProbe={parents,toggles,mobileNodes};
   }
   out.textContent="QA_RESULT:"+JSON.stringify({page:slug,width:viewportWidth,ready,checks:checks,mobileMenuProbe});
  }
