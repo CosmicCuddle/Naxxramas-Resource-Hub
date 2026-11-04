@@ -8,7 +8,7 @@ const http=require("node:http");
 const cp=require("node:child_process");
 const {URL}=require("node:url");
 const root=path.resolve(__dirname,"../..");
-const expected={"apply":0,"rules":0,"new-players":24,"home":0};
+const expected={"apply":0,"rules":0,"new-players":24,"home":0,"clients":0};
 function browserBinary(){
  for(const name of ["google-chrome","google-chrome-stable","chromium","chromium-browser"]){
   const r=cp.spawnSync("which",[name],{encoding:"utf8"});
@@ -109,6 +109,32 @@ function probe(slug,viewportWidth){
    finish(Object.values(checks).every(Boolean),checks);
    return;
   }
+  if(slug==="clients"){
+   const guide=d.getElementById("naxx-game-client-guide");
+   if(!guide)return;
+   const cards=Array.from(guide.querySelectorAll(".naxx-client-download-card"));
+   const warmane=cards.find(card=>card.querySelector("h4")?.textContent.trim()==="Warmane");
+   const note=warmane?.querySelector(".naxx-client-service-note");
+   const positions=cards.map(card=>card.getBoundingClientRect());
+   const checks={
+    directLinkOpensGameClients:(d.getElementById("sectionHeading")||{}).textContent?.includes("Game Clients")===true,
+    completeGuideRendered:guide.getBoundingClientRect().height>0,
+    threeDownloadCards:cards.length===3,
+    warmaneNoteAtTop:!!warmane&&warmane.firstElementChild===note&&
+     note.textContent.trim()==="Currently out of order",
+    warmaneUsesOfficialLink:!!warmane?.querySelector('a[href="https://www.warmane.com/download"]'),
+    requiredPatchesListed:guide.textContent.includes("patch-V.mpq")&&guide.textContent.includes("patch-Z.mpq"),
+    privacyPreserved:guide.textContent.includes("acceptance email")&&
+     !/\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b/.test(guide.innerHTML),
+    mobileCardsStack:viewportWidth!==390||positions.length===3&&
+     positions[0].top<positions[1].top&&positions[1].top<positions[2].top,
+    desktopCardsInRow:viewportWidth!==1440||positions.length===3&&
+     Math.abs(positions[0].top-positions[1].top)<3&&Math.abs(positions[1].top-positions[2].top)<3,
+    noHorizontalOverflow:d.documentElement.scrollWidth<=frame.contentWindow.innerWidth+3
+   };
+   finish(Object.values(checks).every(Boolean),checks);
+   return;
+  }
   const article=d.querySelector('[data-naxx-guide-content="'+slug+'"]');
   if(!article)return;
   const navCount=function(id){
@@ -172,7 +198,7 @@ function harnessHtml(slug,width){
  return '<!doctype html><html><head><meta charset="utf-8"><title>Local draft QA</title>'+
   '<meta name="viewport" content="width=device-width,initial-scale=1"></head>'+
   '<body style="margin:0;background:#17100b"><iframe id="site" title="Naxxramas QA" '+
-  'style="display:block;border:0;width:'+Number(width)+'px;height:900px" src="/'+(slug==="home"?"":slug+"/")+'"></iframe>'+
+  'style="display:block;border:0;width:'+Number(width)+'px;height:900px" src="/'+(slug==="home"?"":slug==="clients"?"?section=Game%20Clients":slug+"/")+'"></iframe>'+
   '<pre id="result">QA_PENDING</pre><script>'+code+'</'+'script></body></html>';
 }
 function contentType(file){
@@ -255,7 +281,9 @@ async function captureVisualGallery(browser,port){
   ["05-apply-desktop","Apply to Join — desktop","/apply/",1440,900],
   ["06-guide-mobile","New Player Guide — mobile","/new-players/",390,844],
   ["07-rules-mobile","Server Rules — mobile","/rules/",390,844],
-  ["08-apply-mobile","Apply to Join — mobile","/apply/",390,844]
+  ["08-apply-mobile","Apply to Join — mobile","/apply/",390,844],
+  ["09-clients-desktop","Game Clients — desktop","/?section=Game%20Clients",1440,900],
+  ["10-clients-mobile","Game Clients — mobile","/?section=Game%20Clients",390,844]
  ];
  for(const [id,label,route,w,h] of shots){
   const url="http://127.0.0.1:"+port+route;
@@ -273,7 +301,7 @@ async function captureVisualGallery(browser,port){
   '<p>Compare the original and draft Home first, then review the three new pages. Click an image to enlarge.</p>'+
   '<div class="grid">'+cards+'</div></body></html>';
  fs.writeFileSync(path.join(output,"00-open-visual-review.html"),html);
- console.log("PASS: eight draft visual screenshots and local review gallery prepared; no deployment");
+ console.log("PASS: ten draft visual screenshots and local review gallery prepared; no deployment");
 }
 
 async function main(){
@@ -291,7 +319,7 @@ async function main(){
   const actual=crypto.createHash("sha256").update(Buffer.from(await response.arrayBuffer())).digest("hex");
   if(actual!=="f6617c8a4da6e9b75b56b020361f8aab57a8cca47921a9225685b0c0cddfa695")throw Error("Word download bytes changed");
   console.log("PASS: application DOCX downloads by HTTP with correct type and exact approved SHA-256");
-  for(const [page,width] of [["home",1440],["home",390],["apply",1440],["apply",390],["rules",390],["new-players",1440]]){
+  for(const [page,width] of [["home",1440],["home",390],["apply",1440],["apply",390],["rules",390],["new-players",1440],["clients",1440],["clients",390]]){
    const target="http://127.0.0.1:"+port+"/__qa__?page="+page+"&width="+width;
    const html=await captureChrome(browser,target);
    const match=html.match(/<pre id="result">QA_RESULT:([^<]*)<\/pre>/);
@@ -308,6 +336,6 @@ async function main(){
   await new Promise(resolve=>server.close(resolve));
  }
  if(failures)throw Error(failures+" browser scenario(s) failed");
- console.log("PASS: six local Chrome checks including open Tally panel, email-only privacy notice, legacy navigation and approved DOCX; no Tally submission attempted");
+ console.log("PASS: eight local Chrome checks including Game Clients desktop/mobile, privacy, legacy navigation and approved DOCX; no application submission attempted");
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});
