@@ -197,6 +197,14 @@ The command will stop if source history is shallow or incomplete, unsaved/ignore
 
 **Release remains blocked:** Even a validated full Git bundle does not approve migration of `content/legacy/`, publication of the 31 MB source tree, a combined GitHub-ready website update or changes to the live site. CosmicCuddle must approve any production move after a review of backup/recovery coverage and website/browser behaviour.
 
+## Unified page/resource Git preflight — no deployment
+
+The new `editor/tools/plan-page-draft.cjs` validates the **actual existing page/navigation source hashes** and the browser editor's text/hyperlink positions before generating any in-memory page changes. It checks all four HTML fragment paths and `content/navigation.json` and rejects unexpected filenames, source mismatches, unsafe link targets and protected navigation routes. It can work with the already-supported `naxx-local-draft-v3` format.
+
+`editor/tools/plan-mixed-editor-update.cjs` combines that validation with the existing `naxx-local-resource-draft-v2` resource preflight. It checks a clean, committed Git checkout and, when resource edits exist, rehearses an exact candidate source-tree reconstruction and rollback. It reports **separate changed Git-tracked page paths and uncommitted candidate resource-fragment paths** with SHA-256 checksums, without publishing, writing to Git or creating a deployable archive.
+
+**Release gate:** Page drafts do not yet record an authenticated/verified source commit, and the proposed numeric resource paths are **not committed** to Git. The mixed planner therefore sets `draftBoundToExactCommit:false`, `githubReady:false` and `deployable:false` even when all file hashes and the current checkout match. This must not be mistaken for a ready-to-install GitHub update. Owner approval, safe commit binding, resource source-tree adoption and visitor/admin regression remain required.
+
 ## Remaining development
 
 1. Test the local preview and all revert buttons in Edge/Chrome on a disposable copy, including draft restore, ZIP validation, icons and keyboard access.
