@@ -207,6 +207,17 @@
     $('resource-selected-caption').textContent='Resource '+(activeIndex+1)+' — '+
       (core.contentValid(content.value)?'Content not yet applied':'Invalid content: use plain text, up to 30,000 characters');
   });
+  window.NaxxLocalResourceReview = Object.freeze({
+    getDraft: function () {
+      if (!model||!hasAnyEdits()) {
+        if (hasPendingInput())throw Error('Apply the resource text edits before saving the review package.');
+        return null;
+      }
+      if (hasPendingInput())
+        throw Error('Apply or revert the resource text edits before saving the review package.');
+      return core.resourceDraft(changes,contentChanges,model);
+    }
+  });
   controls.hidden=true;
   updateButtons();
 })();
