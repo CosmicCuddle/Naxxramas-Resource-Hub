@@ -175,10 +175,18 @@
       Array.from(state.values()).some(function (page) { return editedFields(page).length > 0; });
   }
   function setButtons() {
-    var ready = state.size > 0;
-    $('save-draft').disabled = !ready || !hasChanges();
-    $('export-changes').disabled = !ready || !hasChanges();
+    var ready = state.size === PATHS.length && !!navState;
+    var changed = hasChanges();
+    $('save-draft').disabled = !ready || !changed;
+    $('export-changes').disabled = !ready || !changed;
     $('load-draft').disabled = !ready;
+    $('preview-page').disabled = !ready;
+    $('revert-page').disabled = !ready || !editedFields(state.get(activePath)).length;
+    $('revert-nav').disabled = !ready || !navEditCount();
+    $('revert-all').disabled = !ready || !changed;
+    if (!$('preview-wrap').hidden) {
+      $('preview-caption').textContent = 'Edits may have changed. Press Preview Current Page to refresh this offline snapshot.';
+    }
     $('changed-count').textContent = (navEditCount() + Array.from(state.values()).reduce(function (total, page) {
       return total + editedFields(page).length;
     }, 0)) + ' edits not yet exported';
@@ -277,6 +285,8 @@
       original: nav, current: JSON.parse(JSON.stringify(nav))
     };
     state = next;
+    $('preview-wrap').hidden = true;
+    $('preview-frame').removeAttribute('srcdoc');
     showFields();
     showNavigation();
     setButtons();
@@ -359,7 +369,7 @@
       say(err.message, true);
     }
   });
-  $('page').addEventListener('change', function () { activePath = this.value; showFields(); });
+  $('page').addEventListener('change', function () { activePath = this.value; showFields(); setButtons(); });
   $('search').addEventListener('input', showFields);
   $('save-draft').addEventListener('click', function () {
     if (!hasChanges()) return;
@@ -414,6 +424,51 @@
     try { await exportChanged(); }
     catch (err) { say(err.message, true); }
   });
+  $('preview-page').addEventListener('click', function () {
+    if (state.size !== PATHS.length || !navState) return;
+    try {
+      var page = state.get(activePath);
+      var html = applyPage(page);
+      var selected = navState.current.pages.find(function (item) {
+        return activePath === item.slug + '/content.html';
+      });
+      var title = selected ? selected.title : TITLES[activePath];
+      $('preview-frame').srcdoc = NaxxEditorPreview.render(html, title);
+      $('preview-wrap').hidden = false;
+      $('preview-caption').textContent =
+        'Offline approximation of ' + TITLES[activePath] + '. Scripts, external images and form uploads are disabled.';
+      say('Offline preview refreshed. Nothing was uploaded, published or saved.');
+    } catch (err) { say(err.message, true); }
+  });
+  $('revert-page').addEventListener('click', function () {
+    var page = state.get(activePath);
+    if (!page || !editedFields(page).length) return;
+    if (!window.confirm('Discard the current page edits for ' + TITLES[activePath] + '?')) return;
+    page.edits.clear();
+    showFields();
+    setButtons();
+    say('Current page edits reverted locally. Other pages and navigation are unchanged.');
+  });
+  $('revert-nav').addEventListener('click', function () {
+    if (!navState || !navEditCount()) return;
+    if (!window.confirm('Discard your navigation label and icon edits?')) return;
+    navState.current = JSON.parse(JSON.stringify(navState.original));
+    showNavigation();
+    setButtons();
+    say('Navigation edits reverted locally. HTML page edits are unchanged.');
+  });
+  $('revert-all').addEventListener('click', function () {
+    if (!hasChanges()) return;
+    if (!window.confirm('Discard ALL local edits to HTML pages and navigation? Download a draft first if you need them.')) return;
+    state.forEach(function (page) { page.edits.clear(); });
+    navState.current = JSON.parse(JSON.stringify(navState.original));
+    showFields();
+    showNavigation();
+    $('preview-wrap').hidden = true;
+    $('preview-frame').removeAttribute('srcdoc');
+    setButtons();
+    say('All local edits reverted to the selected folder. No website files were changed.');
+  });
   PATHS.forEach(function (path) {
     var option = document.createElement('option');
     option.value = path;
@@ -426,7 +481,7 @@
     option.textContent = { 'new-players': 'New Players', rules: 'Server Rules', apply: 'Apply to Join' }[slug];
     $('nav-page').appendChild(option);
   });
-  $('nav-page').addEventListener('change', showNavigation);
+  $('nav-page').addEventListener('change', function () { showNavigation(); setButtons(); });
   ['label', 'title', 'intro', 'icon'].forEach(function (field) {
     $('nav-' + field).addEventListener('input', function () {
       if (!navState) return;
