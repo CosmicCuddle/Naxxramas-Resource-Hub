@@ -79,6 +79,11 @@ The release gate must eventually verify three separate layers:
 
 **C. Visitor/admin behaviour:** browser tests must check desktop and mobile layouts, original navigation, class/dungeon/raid resource pages, search, media, old admin edit functions, application privacy and Game Clients. A byte-level test alone does not prove runtime compatibility.
 
+**D. Side-collection usage:** the separate 29 records contain 174 nested objects, 696 nested object properties and 87 literal Boolean settings in the verified original. A read-only script scan found 13 candidate direct dot-style accesses to the side collection, versus 31 candidate direct accesses to the main resources. This is not a verified call graph. All 29 records and their nested structure must remain intact in the original source prefix/suffix; tests must also prove that existing consumers continue to work. Do not split the side collection independently, deduplicate fields, or treat the absence of literal ID matches as absence of dependencies.
+
+**E. New editor conflict and recovery checks:** when the future user-facing resource editor is introduced, verify that stale original hashes, altered fragments, removed custom properties and inconsistent output manifests all stop export. A ZIP with only changed resources cannot be described as a whole-site backup; separate validated full-repository snapshots remain a release requirement.
+
+
 ## Publishing and recovery
 
 The owner will continue to use a separate GitHub branch and pull request for changes. The pristine backup branch remains untouched. The changed-files ZIP will be separate from an optional **complete, validated repository backup ZIP**. Neither a draft nor a temporary dry-run should be described as a full backup.
