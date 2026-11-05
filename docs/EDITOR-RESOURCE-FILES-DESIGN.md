@@ -185,6 +185,18 @@ It requires all five private files to be **outside the Git checkout**, rejects s
 
 **Scope:** A matched pair represents the complete reviewed **page and resource edit intent**, not a complete set of GitHub-ready website files. The page ZIP already uses existing tracked paths, while the resource ZIP deliberately uses **review-only** fragment paths and contains an unpublishable preview HTML. Separately approved `content/legacy/` migration, generated compatibility integration, live-site simulation, retained Git recovery data and CosmicCuddle's review/approval are still required before publishing.
 
+## Sparse integrated proposed-GitHub layout and exact rollback rehearsal
+
+`editor/tools/rehearse-unified-source-layout.cjs` now supplies the first **combined source-path simulation**. It consumes both existing reviewed ZIPs and the same source-bound page/resource drafts and receipt, verifies their complete byte-for-byte identity, and uses **the actual ZIP entry bytes** to build an **isolated, disposable sparse workspace**. Nothing is committed to Git or merged.
+
+The candidate contains **425 files**: the proposed 418-file `content/legacy/` resource source tree; four already-tracked page fragments; the already-tracked navigation JSON; the protected, unchanged root `index.html`; and a new generated `site-content.html` **inside the temporary test folder only**. The 418 source files retain all 414 resource objects plus original prefix, suffix, separators and a hash manifest.
+
+After applying actual changed resource-fragment entries and page-navigation entries from the reviewed ZIPs, the tool validates all file paths, resource hashes, original non-resource source layout, reviewed page edits and unchanged loader. It independently rebuilds the compatibility website from the **staged** source fragments and requires the result to equal both the reviewed resource-preview ZIP and its expected SHA-256 **byte-for-byte**. It then restores all seven existing original tracked files, removes the candidate resource directory, checks the exact original sparse-workspace inventory, deletes the temporary folder and checks the **real** Git checkout fingerprint again.
+
+**Important limitations:** This sparse workspace does not copy all website assets or Git history, is not a complete browser test environment, and is **not a full backup**. It only proves that the proposed independent resource-source paths and existing page paths could be combined and reversed without losing original bytes. It does **not** authorise a 31 MB source-tree migration, create a publishable repository patch, deploy a new site, change GitHub Pages, or eliminate the required owner-verified backup.
+
+**Next gate:** An explicit owner decision about adopting `content/legacy/` and handling the duplicated source storage. Only after that decision should we plan a real complete checkout preview, demonstrate compatibility runtime equivalence and construct a separate owner-reviewed GitHub change set with rollback instructions.
+
 ## Proposed long-term source layout
 
 A possible future repository layout, only after tests and owner approval:
