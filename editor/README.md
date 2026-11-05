@@ -137,6 +137,16 @@ Original content IDs, title values, embedded images and confidential source stri
 
 This is an internal proof for the future reviewed multi-file resource exporter. Do not copy temporary paths into GitHub or confuse the in-memory change-set with the downloadable private review ZIP.
 
+## Proposed 418-file source tree and rollback rehearsal
+
+`node editor/tools/rehearse-proposed-resource-tree.cjs` creates the **proposed** `content/legacy/` source tree in a private OS temporary folder. The rehearsal checks 414 numeric resource files, a manifest and three original layout files, rebuilding the original website exactly. It then checks an intentionally edited candidate, rolls back the changes, verifies the original SHA-256 again, and deletes the temporary folder.
+
+No source fragments are committed or made downloadable by this rehearsal. A candidate-only manifest explicitly forbids interpreting the output as a deployable GitHub export. The baseline source tree occupies approximately **31.1 MB**, so keeping it *alongside* the 31 MB generated compatibility file would duplicate a substantial part of the website. That decision is **not approved** yet.
+
+`node editor/tools/audit-full-checkout.cjs` separately audits the entire clean, tracked Git checkout with a cumulative fingerprint. This makes it harder to mistake the resource-only folder for a complete repository backup. It is **an inventory test, not a backup**, and does not capture Git history, untracked files or external service data.
+
+Both commands are covered by the protected editor workflow. Do not run these against the live website or treat their output as instructions to replace the current `site-content.html` or root `index.html`.
+
 ## Original large website audit (read-only)
 
 Before any migration of the large original site file, run this from the repository root:
