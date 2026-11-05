@@ -81,6 +81,10 @@ test('review package rejects missing drafts, changed resource baselines and unex
   await assert.rejects(review.build(invalid,null,zip),/path/);
   const dup=resourceDraft();dup.changes.push({...dup.changes[0]});
   await assert.rejects(review.build(null,dup,zip),/duplicated/);
+  const unsafe=resourceDraft();unsafe.changes[0].content='<script>unsafe</script>';
+  await assert.rejects(review.build(null,unsafe,zip),/Unsafe resource content/);
+  const blank=resourceDraft();blank.changes[0].title='   ';
+  await assert.rejects(review.build(null,blank,zip),/Unsafe resource title/);
 });
 test('review ZIP cannot sneak production files into review archives',async()=>{
   assert.throws(()=>zip.makeReviewZip([{path:'index.html',content:'<html>'},
