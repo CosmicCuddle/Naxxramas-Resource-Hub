@@ -1,0 +1,34 @@
+name: Naxxramas editor prototype checks
+
+on:
+  pull_request:
+    paths:
+      - 'editor/**'
+      - 'game-clients/content.html'
+      - 'assets/naxx-game-clients-guide.js'
+      - 'index.html'
+  push:
+    branches:
+      - 'feature/multi-file-editor-export-2026-11-05'
+    paths:
+      - 'editor/**'
+      - 'game-clients/content.html'
+      - 'assets/naxx-game-clients-guide.js'
+      - 'index.html'
+
+permissions:
+  contents: read
+
+jobs:
+  editor-prototype:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout reviewed files
+        uses: actions/checkout@v4
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate editor, ZIP exports and Game Clients
+        run: node --test editor/tests/*.test.cjs
