@@ -5,6 +5,9 @@ on:
     paths:
       - 'editor/tools/rehearse-full-git-recovery.cjs'
       - 'editor/tests/full-git-recovery.test.cjs'
+      - 'editor/tools/create-local-git-backup.cjs'
+      - 'editor/tools/rehearse-saved-git-backup.cjs'
+      - 'editor/tests/local-git-backup.test.cjs'
       - '.github/workflows/naxx-private-git-recovery.yml'
   push:
     branches:
@@ -12,6 +15,9 @@ on:
     paths:
       - 'editor/tools/rehearse-full-git-recovery.cjs'
       - 'editor/tests/full-git-recovery.test.cjs'
+      - 'editor/tools/create-local-git-backup.cjs'
+      - 'editor/tools/rehearse-saved-git-backup.cjs'
+      - 'editor/tests/local-git-backup.test.cjs'
       - '.github/workflows/naxx-private-git-recovery.yml'
 
 permissions:
@@ -37,4 +43,6 @@ jobs:
         run: node --test editor/tests/full-git-recovery.test.cjs
       - name: Independently restore complete fetched Git refs and original tracked website
         run: node editor/tools/rehearse-full-git-recovery.cjs
+      - name: Save a private complete-history bundle and receipt, restore twice, then delete it
+        run: node editor/tools/rehearse-saved-git-backup.cjs
       # Intentionally NO artifact upload, GitHub release, push or external sink.
