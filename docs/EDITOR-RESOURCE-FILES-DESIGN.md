@@ -123,6 +123,17 @@ The optional `editor/tools/create-local-git-backup.cjs` creates a durable **loca
 
 **Decision gate before adopting independently editable resources:** Make and independently retain an owner-approved, verified backup for the Git repository plus any other relevant private systems, review the ~31 MB additional resource-data duplication, then test a *non-production* rebuild and rollback. This implementation does not merge, publish, commit a source-tree migration or authorise deployment.
 
+## Unified page, navigation and resource change preflight — protected development
+
+The next development milestone introduces two **offline, read-only planners**:
+
+- `editor/tools/plan-page-draft.cjs`: validates the existing four-page `naxx-local-draft-v3` JSON format and all five source SHA-256 hashes (four HTML pages and `content/navigation.json`); independently reproduces the browser editor's approved text/link positions, protects script/style/form content, validates link URLs and navigation routes, and computes **in-memory** changed HTML/JSON bytes only for genuinely edited files.
+- `editor/tools/plan-mixed-editor-update.cjs`: checks a clean, committed Git checkout, verifies page/navigation and/or `naxx-local-resource-draft-v2` resource changes, rehearses the proposed 418-file source tree and its exact rollback, then produces a **hash-only, non-deployable combined plan** identifying existing page paths separately from uncommitted candidate resource-fragment paths.
+
+The plan deliberately distinguishes two facts: the five page/navigation paths are **already tracked** by Git, while `content/legacy/resources/NNNN.fragment` remains **a proposal** and cannot yet be copied to GitHub as a working website update. The existing generated `site-content.html` is never overwritten and its proposed rebuild hash is recorded for later verification. A plan refuses a mismatched expected Git commit or original file hash; it does not read or write any public server settings.
+
+**Still blocked:** The existing page draft format intentionally declares `sourceCommitVerified:false`. Although the planner verifies the exact current checkout, it **cannot retrospectively prove which Git commit a previously downloaded browser draft originated from**. It marks `draftBoundToExactCommit:false` until a future editor-draft version explicitly binds a reviewed commit, with checks for conflicts before any GitHub-ready export. Resource migration also needs owner approval, a retained full-Git-backup and compatibility/browser tests. None of the combined plan data is publishable or deployable.
+
 ## Proposed long-term source layout
 
 A possible future repository layout, only after tests and owner approval:
