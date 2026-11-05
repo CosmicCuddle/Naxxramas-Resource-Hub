@@ -262,7 +262,15 @@ async function inspectBrowser(site,work){
       }
       if(!last?.ready){
         const failed=Object.keys(last?.checks||{}).filter(k=>!last.checks[k]);
-        throw Error('Private '+scenario.page+' browser checks did not pass: '+failed.join(', '));
+        // Metadata-only diagnostics; never capture website text or visitor data.
+        const debug=await send('Runtime.evaluate',{
+          expression:'({pathname:location.pathname,search:location.search,ready:document.readyState,grid:!!document.getElementById("resourceGrid"),heading:!!document.getElementById("sectionHeading"),navButtons:document.querySelectorAll("#mainNav button").length,loading:!!document.querySelector(".naxx-loading"),clientGuide:!!document.getElementById("naxx-game-client-guide")})',
+          returnByValue:true
+        });
+        throw Error('Private '+scenario.page+' browser checks did not pass: '+
+          failed.join(', ')+'; state='+JSON.stringify(debug.result?.value)+
+          '; localReads='+metrics.localReadRequests+
+          '; blocked='+metrics.rejectedExternalRequests);
       }
       checks.push({route:scenario.page,width:scenario.width,passed:Object.keys(last.checks).length});
     }
