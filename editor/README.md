@@ -13,8 +13,9 @@ This prototype exists only on the feature/multi-file-editor-export-2026-11-05 br
 - Apply to Join: apply/content.html
 - Game Clients: game-clients/content.html
 - Three newer sidebar entries: content/navigation.json (labels, titles, introductions, Warcraft icon filenames).
+- Original 414 resources: **title-only private draft trial** in section 4 of editor/index.html; the source file is read and verified locally, and the draft is downloaded as JSON only.
 
-The original 31 MB site-content.html, original resource records, older menu entries, class/dungeon handbook data, overlays and page layout are **not** editable through this prototype yet.
+The original 31 MB site-content.html is **never overwritten**. Resource content, original custom fields, older menu entries, class/dungeon handbook layouts, overlays and page layout are **not** editable through this prototype. Only existing resource titles can be held in a separate local draft.
 
 Game Clients now lives in a separate HTML fragment instead of a JavaScript string. Its display script fetches that fragment from the same repository, and leaves the legacy client card visible with a warning if the new file cannot be read.
 
@@ -28,7 +29,17 @@ The newer-menu script reads metadata from content/navigation.json. It retains or
 4. In the editor, choose the extracted Resource Hub folder.
 5. Use the page search/edit controls or the separate navigation editor.
 6. Use Show only fields I have changed for a shorter review. Press Preview Current Page to inspect a simplified offline rendering of your edits. Press Revert Page Edits or Revert Navigation Edits to discard only that area; Revert All Unexported Edits discards all local edits after confirmation.
-7. Save Draft downloads a JSON file. Export Changed Files downloads only changed content paths, a SHA-256 manifest and review instructions.
+7. Save Draft downloads a JSON file. Export Changed Files downloads only changed page/navigation paths, a SHA-256 manifest and review instructions.
+
+### Using the separate resource title draft trial
+
+1. Open the same local `editor/index.html` and scroll to section **4. Resource titles — private draft trial**.
+2. Choose the original `site-content.html` file in your extracted website folder (30,976,969 bytes). The editor verifies its complete SHA-256 hash. Files with changes, wrong versions or incomplete data are refused.
+3. Search by title, section or number. Select a resource, change **only its title**, and select **Apply Title Edit**. Unapplied text is not saved when changing selections.
+4. Use **Save Resource Draft (.json)** to download only the changed title positions with the verified original fingerprint. **Load Resource Draft** restores those changes only if the same protected baseline is present.
+5. To remove a change, use **Revert Selected Title** or **Discard All Resource Title Edits**. These controls affect browser memory only; all discards require confirmation when applicable.
+
+The resource title draft is **separate from** the page/navigation draft in section 5. It is not a GitHub-ready resource archive and it cannot produce a replacement `site-content.html`. No source code from the original website is executed or uploaded. Do not place the draft into your published site. Browser-level manual acceptance testing is still required before release.
 
 The editor only reads local user-selected files; it neither overwrites them nor uploads or publishes changes. Its preview is a **simplified visual approximation**, not the full website. A sandboxed iframe with a restrictive Content Security Policy excludes external images, clickable links, scripts, videos, and the application iframe. It cannot submit real applications. Do not treat the preview as proof that the public page will look or behave identically. The website's Game Clients and menu scripts separately fetch public same-origin content when a visitor loads the site.
 
@@ -36,13 +47,14 @@ The editor only reads local user-selected files; it neither overwrites them nor 
 
 ## Saving behaviour and limits
 
-- Draft format naxx-local-draft-v3 is a local downloaded JSON file, not autosave, publication, or a full repository backup.
+- The four-page/navigation draft format `naxx-local-draft-v3` is a local downloaded JSON file, not autosave, publication, or a full repository backup.
+- The separate resource-title draft format is `naxx-local-resource-title-draft-v1`. It stores only edited resource positions/titles and the SHA-256 baseline. It does not include all 414 original resource records, source HTML or a compatible GitHub export.
 - Draft restore demands exact source SHA-256 fingerprints for all four page files and the navigation file; mismatches are rejected.
 - Changed-files ZIP paths are restricted to the four page HTML files and content/navigation.json plus the manifest and instructions. It cannot contain a replacement root index.html.
 - HTML edits change only existing text fragments and href values, not whole document structure or application embed attributes. Unsafe links are rejected.
 - Navigation changes are limited to approved text/icon fields; existing slugs, links and grouping are fixed. Icon names must be existing WoW JPG filenames, not URLs.
 - Browser folder selection uses webkitdirectory. Edge and Chrome are the intended browsers; all browser versions have not been tested.
-- No authentication, private online publishing, rich-text formatting, new download cards, image uploading, full site backups, layout editing, or editing of the original 31 MB resource DATA yet.
+- No authentication, private online publishing, rich-text formatting, new download cards, image uploading, full site backups, layout editing, original resource content editing, or resource-data migration. Only title edits can be saved into a separate local JSON draft.
 - Revert buttons discard local edits after explicit confirmation; they do not change files on disk. An invalid folder import preserves your existing work; selecting a different valid folder first asks whether you wish to discard current edits. Preview does not auto-refresh while typing—press Preview Current Page again after editing.
 - The local editor should remain privately distributed. A public GitHub Pages UI lock cannot protect confidential admin operations.
 - To preserve a full copy, separately use the untouched GitHub backup branch and download the complete repository ZIP.
@@ -56,7 +68,7 @@ To run locally from the repository root:
 
     node --test editor/tests/*.test.cjs
 
-These tests cover ZIP paths, hashes and CRC; edits against the actual content fragments; the Game Clients loader and fallback; navigation JSON loading and fallback; and protection of the small root loader.
+These tests cover ZIP paths, hashes and CRC; edits against the actual content fragments; the Game Clients loader and fallback; navigation JSON loading and fallback; protection of the small root loader; exact-SHA-verified original resource parsing; resource-title draft validation; and simulated title-panel button interactions.
 
 **Browser-level visual testing, form behaviour, complete ZIP extraction and real publishing are not confirmed by Node tests.** Manual testing is required before any merge.
 
