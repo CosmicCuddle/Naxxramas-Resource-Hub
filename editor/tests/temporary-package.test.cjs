@@ -73,3 +73,16 @@ test('safe report includes only aggregate totals and hashes',()=>{
   assert.ok(!Object.hasOwn(report,'resourceContents'));
   assert.ok(!Object.hasOwn(report,'resourceIds'));
 });
+
+test('reconstruction rejects a manifest that claims a different original source',()=>{
+  let tmp;
+  assert.throws(()=>withTemporaryPackage(original,(root)=>{
+    tmp=root;
+    const manifestPath=path.join(root,'manifest.json');
+    const metadata=JSON.parse(fs.readFileSync(manifestPath,'utf8'));
+    metadata.sourceSha256='0'.repeat(64);
+    fs.writeFileSync(manifestPath,JSON.stringify(metadata));
+    reconstructTemporaryPackage(root);
+  }),/Incomplete or unexpected package manifest/);
+  assert.equal(fs.existsSync(tmp),false);
+});
