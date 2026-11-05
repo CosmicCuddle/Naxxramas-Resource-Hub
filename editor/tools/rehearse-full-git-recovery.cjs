@@ -152,7 +152,7 @@ function rehearse(root,options={}){
     const bundle=path.join(work,'source.bundle');
     git(root,['bundle','create',bundle,'--all','HEAD'],{timeout:180000});
     const bundleBytes=fs.readFileSync(bundle);
-    if(bundleBytes.length<1024)throw Error('Git bundle is unexpectedly small.');
+    if(bundleBytes.length<32)throw Error('Git bundle is empty or incomplete.');
     const verified=verifyRecovery(root,bundle,work,before);
     return {
       format:'naxx-private-git-history-recovery-v1',
