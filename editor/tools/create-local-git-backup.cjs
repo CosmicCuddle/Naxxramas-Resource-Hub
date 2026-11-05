@@ -38,10 +38,11 @@ function safeOutput(output,checkout){
   return names;
 }
 function createExclusive(file,bytes){
-  let fd;
+  let fd=null,created=false;
   try{
     fd=fs.openSync(file,fs.constants.O_CREAT|fs.constants.O_EXCL|
       fs.constants.O_WRONLY,0o600);
+    created=true;
     let offset=0;
     while(offset<bytes.length){
       const written=fs.writeSync(fd,bytes,offset,Math.min(1024*1024,bytes.length-offset));
@@ -52,7 +53,11 @@ function createExclusive(file,bytes){
     fs.closeSync(fd);fd=null;
     if(!fs.readFileSync(file).equals(bytes))
       throw Error('Private backup contents differ after writing.');
-  }finally{if(fd!==undefined&&fd!==null)fs.closeSync(fd);}
+  }catch(error){
+    if(fd!==null){try{fs.closeSync(fd);}catch(_){}}
+    if(created)fs.rmSync(file,{force:true});
+    throw error;
+  }
 }
 function instructions(receipt){
   return [
