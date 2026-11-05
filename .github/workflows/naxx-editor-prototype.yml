@@ -48,6 +48,8 @@ jobs:
         run: node editor/tools/audit-side-collection.cjs
       - name: Audit deeper side-object shapes and possible literal cross-references
         run: node editor/tools/audit-side-nested.cjs
+      - name: Audit possible legacy DATA collection usages without executing scripts
+        run: node editor/tools/audit-side-usage.cjs
       - name: Audit inline image preservation without exporting media
         run: node editor/tools/audit-legacy-media.cjs
       - name: Rehearse 414 separate resource files and delete temporary package
