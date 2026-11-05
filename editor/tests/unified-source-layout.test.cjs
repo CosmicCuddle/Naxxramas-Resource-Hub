@@ -8,7 +8,7 @@ const {createPagePackage,MANIFEST:PAGE_MANIFEST,GUIDE:PAGE_GUIDE}=
   require('../tools/package-reviewed-page-update.cjs');
 const {createResourcePreview}=require('../tools/package-reviewed-resource-preview.cjs');
 const {encode,decode}=require('../tools/private-source-zip.cjs');
-const {TRACKED,SPARSE_COUNT,verifyAssembled,rehearseUnified}=
+const {TRACKED,SPARSE_COUNT,assertCandidateTreeUnadopted,verifyAssembled,rehearseUnified}=
   require('../tools/rehearse-unified-source-layout.cjs');
 const root=path.resolve(__dirname,'..','..');
 const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
@@ -110,5 +110,15 @@ test('sparse workspace verification refuses missing and unexpected files',async(
     fs.writeFileSync(path.join(dir,'unexpected.html'),'do not deploy');
     assert.throws(()=>verifyAssembled(dir,{root},null,null,Buffer.alloc(0)),
       /missing, extra or unapproved/);
+  }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
+
+test('candidate-only migration guard refuses a previously adopted resource folder',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'naxx-source-migration-guard-'));
+  try{
+    assert.equal(assertCandidateTreeUnadopted(dir),true);
+    fs.mkdirSync(path.join(dir,'content','legacy'),{recursive:true});
+    assert.throws(()=>assertCandidateTreeUnadopted(dir),
+      /proposed resource source-tree path already exists/);
   }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });
