@@ -35,6 +35,26 @@ These objects also contain **13,821 occurrences of fields outside the audit's sm
 
 The separate 29-item array has 29 direct objects with a name field and no direct id field. We must not count these as resource records or discard them without determining their purpose.
 
+### Protected 29-item side collection — verified shape (Part 08)
+
+The standalone read-only audit now checks this collection against the same exact original Git blob as the 414 resources. GitHub editor workflow run 42040703834 passed **63/63 tests**, including the new side-collection tests.
+
+| Aggregate finding | Verified |
+| --- | ---: |
+| Direct side objects | 29 |
+| Direct properties per object | 7, consistently |
+| Total direct properties | 203 |
+| Literal name fields | 29 |
+| Duplicate decoded names | 0 |
+| Direct id fields | 0 |
+| Object-valued direct fields | 87 (three per record) |
+| String-valued direct fields | 58 (two per record) |
+| Number-like direct fields | 58 (two per record) |
+| Arrays / expressions / unparseable direct fields | 0 |
+
+No site names, content values, custom property keys or identifiers were printed by the new audit. Its shape counts **do not** reveal what the three nested objects contain, which site features depend on them, or whether any runtime mutations occur. Do not rename, flatten, omit or export this 29-item collection independently until its nested schema and references are fully checked. The original file and visitor code were not modified.
+
+
 ## Byte-exact split and rebuild proof (development only)
 
 The read-only in-memory splitter now locates the pre-clone window object, isolates all **414 resource object fragments** and retains **415 separator sections**. It reconstructs the complete original HTML without writing a single file.
