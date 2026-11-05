@@ -13,9 +13,9 @@ This prototype exists only on the feature/multi-file-editor-export-2026-11-05 br
 - Apply to Join: apply/content.html
 - Game Clients: game-clients/content.html
 - Three newer sidebar entries: content/navigation.json (labels, titles, introductions, Warcraft icon filenames).
-- Original 414 resources: **title-only private draft trial** in section 4 of editor/index.html; the source file is read and verified locally, and the draft is downloaded as JSON only.
+- Original 414 resources: **title and multiline plain-text content draft trial** in section 4 of editor/index.html; the exact original source is fingerprint-verified locally and changes download as JSON only.
 
-The original 31 MB site-content.html is **never overwritten**. Resource content, original custom fields, older menu entries, class/dungeon handbook layouts, overlays and page layout are **not** editable through this prototype. Only existing resource titles can be held in a separate local draft.
+The original 31 MB site-content.html is **never overwritten**. Titles and existing plain-text content can be edited in a local draft. Original IDs, class associations, custom fields, older menu entries, class/dungeon handbook layouts, images, overlays and page layout remain protected.
 
 Game Clients now lives in a separate HTML fragment instead of a JavaScript string. Its display script fetches that fragment from the same repository, and leaves the legacy client card visible with a warning if the new file cannot be read.
 
@@ -31,15 +31,17 @@ The newer-menu script reads metadata from content/navigation.json. It retains or
 6. Use Show only fields I have changed for a shorter review. Press Preview Current Page to inspect a simplified offline rendering of your edits. Press Revert Page Edits or Revert Navigation Edits to discard only that area; Revert All Unexported Edits discards all local edits after confirmation.
 7. Save Draft downloads a JSON file. Export Changed Files downloads only changed page/navigation paths, a SHA-256 manifest and review instructions.
 
-### Using the separate resource title draft trial
+### Using the separate resource title and content draft trial
 
-1. Open the same local `editor/index.html` and scroll to section **4. Resource titles — private draft trial**.
-2. Choose the original `site-content.html` file in your extracted website folder (30,976,969 bytes). The editor verifies its complete SHA-256 hash. Files with changes, wrong versions or incomplete data are refused.
-3. Search by title, section or number. Select a resource, change **only its title**, and select **Apply Title Edit**. Unapplied text is not saved when changing selections.
-4. Use **Save Resource Draft (.json)** to download only the changed title positions with the verified original fingerprint. **Load Resource Draft** restores those changes only if the same protected baseline is present.
-5. To remove a change, use **Revert Selected Title** or **Discard All Resource Title Edits**. These controls affect browser memory only; all discards require confirmation when applicable.
+1. Open local `editor/index.html` and scroll to **4. Resource titles and content — private draft trial**.
+2. Select the exact original `site-content.html` file from the extracted development website. Its full 30,976,969 bytes are checked using SHA-256; a different version will be rejected.
+3. Search by title, section or number. Select a resource. Edit its title and/or multiline **plain-text** content. Original line breaks are shown in the textarea and can be preserved. Use **Apply Resource Edits** to stage changes in memory. When changing selection, unapplied edits require confirmation to discard.
+4. Use **Save Resource Draft (.json)** to download only modified titles and content plus the original baseline fingerprint. **Load Resource Draft** checks it against the same verified original. Older title-only `naxx-local-resource-title-draft-v1` JSON files remain importable.
+5. To undo edits, use **Revert Selected Resource** or **Discard All Resource Edits**. Clearing an originally nonempty content field requires a separate confirmation. All these buttons affect only browser memory.
 
-The resource title draft is **separate from** the page/navigation draft in section 5. It is not a GitHub-ready resource archive and it cannot produce a replacement `site-content.html`. No source code from the original website is executed or uploaded. Do not place the draft into your published site. Browser-level manual acceptance testing is still required before release.
+The new draft format is `naxx-local-resource-draft-v2`. Empty content and line breaks are allowed. New content is limited to 30,000 characters and rejects HTML brackets and unsafe control characters. This editor does not display or execute content as HTML. Original content was confirmed to contain no HTML-like tags, but the original runtime's formatting and admin behaviour are not yet fully verified.
+
+The resource draft is **separate from** the page/navigation draft in section 5. It is not a GitHub-ready resource archive, cannot replace `site-content.html`, and cannot be published. No original website code is executed or uploaded. Manual owner acceptance and later reviewed export/recovery controls remain required.
 
 The editor only reads local user-selected files; it neither overwrites them nor uploads or publishes changes. Its preview is a **simplified visual approximation**, not the full website. A sandboxed iframe with a restrictive Content Security Policy excludes external images, clickable links, scripts, videos, and the application iframe. It cannot submit real applications. Do not treat the preview as proof that the public page will look or behave identically. The website's Game Clients and menu scripts separately fetch public same-origin content when a visitor loads the site.
 
@@ -48,13 +50,13 @@ The editor only reads local user-selected files; it neither overwrites them nor 
 ## Saving behaviour and limits
 
 - The four-page/navigation draft format `naxx-local-draft-v3` is a local downloaded JSON file, not autosave, publication, or a full repository backup.
-- The separate resource-title draft format is `naxx-local-resource-title-draft-v1`. It stores only edited resource positions/titles and the SHA-256 baseline. It does not include all 414 original resource records, source HTML or a compatible GitHub export.
+- The separate resource draft format is `naxx-local-resource-draft-v2`, which stores only changed title/content fields by resource position and the pinned original source hash. Older title-only `naxx-local-resource-title-draft-v1` files can be restored. Neither contains all 414 original records, full source HTML or a GitHub-ready website export.
 - Draft restore demands exact source SHA-256 fingerprints for all four page files and the navigation file; mismatches are rejected.
 - Changed-files ZIP paths are restricted to the four page HTML files and content/navigation.json plus the manifest and instructions. It cannot contain a replacement root index.html.
 - HTML edits change only existing text fragments and href values, not whole document structure or application embed attributes. Unsafe links are rejected.
 - Navigation changes are limited to approved text/icon fields; existing slugs, links and grouping are fixed. Icon names must be existing WoW JPG filenames, not URLs.
 - Browser folder selection uses webkitdirectory. Edge and Chrome are the intended browsers; all browser versions have not been tested.
-- No authentication, private online publishing, rich-text formatting, new download cards, image uploading, full site backups, layout editing, original resource content editing, or resource-data migration. Only title edits can be saved into a separate local JSON draft.
+- No authentication, private online publishing, rich-text formatting, new download cards, image uploading, full site backups, layout editing, editing of IDs/classes/custom fields, or resource-data migration. Only titles and multiline content can be saved in the separate local resource JSON draft.
 - Revert buttons discard local edits after explicit confirmation; they do not change files on disk. An invalid folder import preserves your existing work; selecting a different valid folder first asks whether you wish to discard current edits. Preview does not auto-refresh while typing—press Preview Current Page again after editing.
 - The local editor should remain privately distributed. A public GitHub Pages UI lock cannot protect confidential admin operations.
 - To preserve a full copy, separately use the untouched GitHub backup branch and download the complete repository ZIP.
@@ -68,9 +70,9 @@ To run locally from the repository root:
 
     node --test editor/tests/*.test.cjs
 
-These tests cover ZIP paths, hashes and CRC; edits against the actual content fragments; the Game Clients loader and fallback; navigation JSON loading and fallback; protection of the small root loader; exact-SHA-verified original resource parsing; resource-title draft validation; and simulated title-panel button interactions.
+These tests cover ZIP paths, hashes and CRC; edits against the actual content fragments; the Game Clients loader and fallback; navigation JSON loading and fallback; protection of the small root loader; exact-SHA-verified original resource parsing; resource-title/content draft validation; and simulated title/content-panel button interactions.
 
-**Real-browser smoke:** The protected editor workflow also runs `node editor/tools/browser-smoke-title-draft.cjs` in a fresh headless Chrome profile against a localhost-only server. [Run 42051908181](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42051908181) passed: it loaded all 414 verified resources, applied one title edit, downloaded and restored the JSON draft, and refused an incorrect source file while retaining the edit. The original source, public website, external application form and GitHub repository were not modified. The temporary download/profile was deleted.
+**Real-browser smoke:** The protected editor workflow also runs `node editor/tools/browser-smoke-title-draft.cjs` in a fresh headless Chrome profile against a localhost-only server. [Run 42051908181](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42051908181) passed: it loaded all 414 verified resources, applied title and multiline content edits, downloaded and restored a JSON draft, and refused an incorrect source file while retaining both edits. The original source, public website, external application form and GitHub repository were not modified. The temporary download/profile was deleted.
 
 **Still outstanding:** owner's manual visual/keyboard review of this new resource panel in Edge/Chrome, full resource-content editing, a combined safe draft format, reviewed GitHub-ready changed-fragment exports, complete restore verification and all normal visitor/admin website compatibility gates.
 
@@ -96,6 +98,14 @@ See docs/EDITOR-RESOURCE-FILES-DESIGN.md for the proposed eventual GitHub folder
 The candidate audit tool can be run locally with \`node editor/tools/audit-side-consumers.cjs\`. It prints counts only; it does not log original resource names, IDs, URLs, script text or fields. This audit is **not** a usable original-resource editor or a substitute for manual visitor/admin browser testing.
 
 
+
+## Multiline content milestone — 5 November 2026
+
+The baseline audit confirmed **414 string-literal content fields**, including **121 originally empty** values and **288 containing line breaks**; maximum decoded length was **19,165 characters**. No HTML-like tags or disallowed control characters were found. The v2 resource draft editor retains line breaks, does not execute markup, and permits intentionally empty content after a clearing confirmation.
+
+[Editor CI run 42054557700](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42054557700) passed **108/108 Node component tests** and a real local Chrome smoke test of title/content draft download and restore. A protected source-rebuild rehearsal changed one content field and verified the other 413 resource fragments and every non-resource byte remained untouched.
+
+**Limit:** This is a local draft only. No edited resource files, compatibility HTML output, full-site backup or GitHub-ready resource export have been produced for the owner. The public website is unchanged.
 
 ## Original large website audit (read-only)
 
