@@ -42,6 +42,14 @@
       var keys=Object.keys(edit).sort().join(',');
       if(keys!=='index,title'&&keys!=='content,index'&&keys!=='content,index,title')
         throw Error('Unexpected resource draft field.');
+      if(Object.prototype.hasOwnProperty.call(edit,'title')&&
+         (typeof edit.title!=='string'||!edit.title.trim()||edit.title.length>160||
+          /[<>\\x00-\\x1f\\x7f]/.test(edit.title)))
+        throw Error('Unsafe resource title in review draft.');
+      if(Object.prototype.hasOwnProperty.call(edit,'content')&&
+         (typeof edit.content!=='string'||edit.content.length>30000||
+          /[<>\\x00-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f]/.test(edit.content)))
+        throw Error('Unsafe resource content in review draft.');
       seen.add(edit.index);
     });
     return draft;
