@@ -261,6 +261,22 @@ If the original receipt covered **both** editing areas, add `--pages "/private/p
 
 **Protect this ZIP.** Unlike the small changed-pages ZIP, it contains the complete generated website resource source and may include confidential custom content. **Do not upload or publish it, attach it to a public Issue, place it in GitHub Pages, or copy the preview file over the live website.** It is not a complete repository backup or a permitted production update. The owner-approved resource source-tree migration, preview/rollback review and final integrated export are still separate decisions.
 
+## Verify that both private review ZIPs belong together
+
+`editor/tools/verify-paired-editor-archives.cjs` now checks that the **existing-path page/navigation ZIP** and **private resource compatibility-preview ZIP** correspond to exactly **one verified Git commit, review receipt and both original drafts**.
+
+The private command takes **five already saved files**:
+
+```bash
+node editor/tools/verify-paired-editor-archives.cjs --pages "/private/page-draft.json" --resources "/private/resource-draft.json" --receipt "/private/commit.review.json" --page-zip "/private/changed-pages.zip" --resource-zip "/private/resource-preview.zip"
+```
+
+It requires these files to exist **outside Git**, as non-symlink regular files, with absolute paths. The two draft formats and receipt are revalidated against the clean current checkout. The verifier **independently regenerates both deterministic ZIPs**, checks their exact ZIP bytes and hashes, compares the two manifests' reviewed commit/tree/receipt/draft fingerprints and confirms each archive's omitted-edit count matches the other archive's changed-file count. It also verifies the full generated compatibility preview and original resource rollback through the existing builder.
+
+A forged ZIP with valid ZIP CRCs, a ZIP from a different review of the **same Git commit**, a changed draft, changed review receipt, missing editing area, unexpected file or changed source checkout all cause refusal.
+
+The command prints **only hashes, counts and review status**. It creates **no new package or backup**, writes no Git files, and makes no online call. Two matching archives are a **complete offline review pair only**, **not a merged GitHub-ready file tree or deployable website**. The resource directory is still a proposal, and a separately retained backup, preview tests and CosmicCuddle's explicit approval remain required.
+
 ## Remaining development
 
 1. Test the local preview and all revert buttons in Edge/Chrome on a disposable copy, including draft restore, ZIP validation, icons and keyboard access.
