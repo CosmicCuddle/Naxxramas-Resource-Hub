@@ -282,19 +282,24 @@
   }
   function draftData() {
     return {
-      format: 'naxx-local-draft-v2',
+      format: 'naxx-local-draft-v3',
       sourceBranchHint: SOURCE_BRANCH,
       sourceCommitVerified: false,
       createdAt: new Date().toISOString(),
       files: PATHS.map(function (path) {
         var page = state.get(path);
         return { path: path, sourceSha256: page.hash, edits: Object.fromEntries(page.edits) };
-      })
+      }),
+      navigation: {
+        path: NAV_PATH,
+        sourceSha256: navState.hash,
+        document: navState.current
+      }
     };
   }
   async function exportChanged() {
     var files = [], manifest = {
-      format: 'naxx-changed-files-v2',
+      format: 'naxx-changed-files-v3',
       sourceBranchHint: SOURCE_BRANCH,
       sourceCommitVerified: false,
       generatedAt: new Date().toISOString(),
@@ -309,6 +314,17 @@
       files.push({ path: path, content: updated });
       manifest.files.push({ path: path, sourceSha256: originalHash, exportedSha256: updatedHash, editedPieces: editedFields(page).length });
     }
+    if (navEditCount() > 0) {
+      var validated = validateNavigation(navState.current);
+      var updatedNav = JSON.stringify(validated, null, 2) + '\n';
+      files.push({ path: NAV_PATH, content: updatedNav });
+      manifest.files.push({
+        path: NAV_PATH,
+        sourceSha256: navState.hash,
+        exportedSha256: await NaxxEditorZip.sha256(updatedNav),
+        editedPieces: navEditCount()
+      });
+    }
     if (!files.length) throw new Error('No changed pages to export.');
     files.unshift({ path: 'UPDATE-MANIFEST.json', content: JSON.stringify(manifest, null, 2) + '\n' });
     files.push({ path: 'HOW_TO_APPLY.txt', content:
@@ -318,14 +334,14 @@
       '2. Create a NEW development branch, not main.\n' +
       '3. Compare the original file hashes in UPDATE-MANIFEST.json with your checkout.\n' +
       '4. If anything has changed since export, STOP and reconcile before copying.\n' +
-      '5. Copy only the included page HTML files to the SAME relative paths.\n' +
+      '5. Copy only included HTML/JSON files to their SAME relative paths.\n' +
       '6. Review the diff and site preview; run all website checks.\n' +
       '7. Open a pull request for approval. Do not overwrite root index.html.\n' +
       'Source branch hint for this prototype: ' + SOURCE_BRANCH + '\n' +
       'The selected folder is not cryptographically verified against any Git commit.\n'
     });
     download(NaxxEditorZip.makeZip(files), 'Naxxramas-Website-Changed-Files.zip');
-    say('Changed-files ZIP created with ' + manifest.files.length + ' page(s). This is NOT published to GitHub.');
+    say('Changed-files ZIP created with ' + manifest.files.length + ' file(s). This is NOT published to GitHub.');
   }
 
   filePicker.addEventListener('change', async function () {
@@ -352,7 +368,7 @@
   draftPicker.addEventListener('change', async function () {
     try {
       var draft = JSON.parse(await draftPicker.files[0].text());
-      if (draft.format !== 'naxx-local-draft-v2' || !Array.isArray(draft.files) || draft.files.length !== PATHS.length) throw new Error('Unrecognised draft format.');
+      if (draft.format !== 'naxx-local-draft-v3' || !Array.isArray(draft.files) || draft.files.length !== PATHS.length) throw new Error('Unrecognised draft format.');
       var replacements = new Map();
       draft.files.forEach(function (file) {
         var page = state.get(file.path);
@@ -367,8 +383,25 @@
         });
         replacements.set(file.path, edits);
       });
+      if (!navState || !draft.navigation || draft.navigation.path !== NAV_PATH ||
+          draft.navigation.sourceSha256 !== navState.hash) {
+        throw new Error('The saved navigation draft does not match the selected folder.');
+      }
+      var imported = validateNavigation(draft.navigation.document);
+      var restoredNav = {
+        format: 'naxx-navigation-v1',
+        pages: navState.original.pages.map(function (p, i) {
+          var saved = imported.pages[i];
+          return {
+            slug: p.slug, label: saved.label, title: saved.title,
+            group: p.group, icon: saved.icon, intro: saved.intro
+          };
+        })
+      };
       PATHS.forEach(function (path) { state.get(path).edits = replacements.get(path); });
+      navState.current = restoredNav;
       showFields();
+      showNavigation();
       setButtons();
       say('Draft restored locally. Review your edits before exporting.');
     } catch (err) { say(err.message, true); }
@@ -384,6 +417,24 @@
     option.textContent = TITLES[path];
     $('page').appendChild(option);
   });
+  ['new-players', 'rules', 'apply'].forEach(function (slug, i) {
+    var option = document.createElement('option');
+    option.value = String(i);
+    option.textContent = { 'new-players': 'New Players', rules: 'Server Rules', apply: 'Apply to Join' }[slug];
+    $('nav-page').appendChild(option);
+  });
+  $('nav-page').addEventListener('change', showNavigation);
+  ['label', 'title', 'intro', 'icon'].forEach(function (field) {
+    $('nav-' + field).addEventListener('input', function () {
+      if (!navState) return;
+      var index = Number($('nav-page').value || 0);
+      var page = navState.current.pages[index];
+      if (!page) return;
+      page[field] = this.value;
+      setButtons();
+    });
+  });
   setButtons();
   showFields();
+  showNavigation();
 })();
