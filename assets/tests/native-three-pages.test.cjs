@@ -18,7 +18,7 @@ const titles = ["New Player Guide","Server Rules","Apply to Join Naxxramas"];
 const faqs = [24,0,0];
 assert.ok(index.length<6500,"Original root index loader must stay small");
 assert.ok(index.includes("site-content.html"),"Existing site content must remain bootstrapped");
-assert.ok(index.includes("naxx-three-pages.js?v=2"));
+assert.ok(index.includes("naxx-three-pages.js?v=3"));
 assert.ok(index.includes("naxx-three-pages.css?v=3"));
 assert.ok(index.includes("naxx-talent-sets-full-sync.js?v=3"),
   "Newest Talent Sets regression fix must be preserved");
