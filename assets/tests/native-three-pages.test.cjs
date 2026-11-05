@@ -225,7 +225,7 @@ assert.ok(index.includes("naxx-game-clients-guide.js?v=2") &&
  bootstrap.includes("naxx-game-clients-guide.js?v=2") &&
  bootstrap.includes("naxx-game-clients-guide.css?v=1"),
  "Native and nested routes must load the same Game Clients assets");
-assert.ok(clientHtml.includes('currentSection === "Game Clients"') &&
+assert.ok(clientScript.includes('currentSection === "Game Clients"') &&
  clientScript.includes(".game-client-card") &&
  clientScript.includes("naxx-legacy-client-card"),
  "New guide must activate only on Game Clients and retain editable native resource cards");
