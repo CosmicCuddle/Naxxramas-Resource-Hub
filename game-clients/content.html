@@ -1,0 +1,75 @@
+
+<article id="naxx-game-client-guide" class="card naxx-client-guide" aria-labelledby="naxx-client-title">
+<aside class="naxx-client-explainer" aria-labelledby="naxx-client-explainer-title">
+  <h2 id="naxx-client-explainer-title">Why download WoW from another website?</h2>
+  <p>The <strong>game client</strong> is the World of Warcraft program on your computer. The <strong>game server</strong> is the online world it connects to. Naxxramas uses the <strong>World of Warcraft: Wrath of the Lich King (WotLK)</strong> client, <strong>patch 3.3.5a (build 12340)</strong>. We <strong>do not currently host the base game files ourselves</strong>, so for now we link to compatible downloads from other WoW communities.</p>
+  <p><strong>Downloading their client does not mean you will play on their server.</strong> You do not need to create a game account with them. After your application is accepted, use the private connection instructions from your Naxxramas acceptance email and install our required patches. Your client will then connect to <strong>Naxxramas</strong>, not the download provider's realm.</p>
+  <p><strong>Important:</strong> Download the base game client only. Do not install another server's launcher, custom patch pack or connection settings.</p>
+</aside>
+<header class="naxx-client-head">
+  <p class="naxx-client-eyebrow">NAXXRAMAS • GAME CLIENTS</p>
+  <h2 id="naxx-client-title">Download and Set Up World of Warcraft</h2>
+  <p>You use the same game client throughout Vanilla, The Burning Crusade and Wrath of the Lich King progression. Your character's <strong>Individual Progression</strong> determines which content is unlocked, so you do not need a separate client for each era.</p>
+</header>
+<nav class="naxx-client-jump" aria-label="Sections of this guide">
+  <a href="#naxx-client-download">Download</a><a href="#naxx-client-prepare">Installation</a><a href="#naxx-client-connect">Connection</a><a href="#naxx-client-help">Troubleshooting</a>
+</nav>
+
+<section class="naxx-client-section" id="naxx-client-download">
+  <h3>1. Download a compatible game client</h3>
+  <p>If a download website asks for the expansion or patch, select <strong>Wrath of the Lich King (WotLK)</strong> and <strong>patch 3.3.5a (build 12340)</strong>. Do not select Vanilla, The Burning Crusade, Classic, or another version. The links below belong to external providers, not Naxxramas.</p>
+  <div class="naxx-client-downloads">
+    <div class="naxx-client-download-card">
+      <span class="naxx-client-source-label">Main download option</span>
+      <h4>ChromieCraft</h4>
+      <p>Provides a Wrath of the Lich King (WotLK) 3.3.5a client through direct download, mirrors and torrent. Its preconfigured connection points to ChromieCraft; accepted Naxxramas players must replace it with their private connection file.</p>
+      <a class="game-client-external-button" href="https://chromiecraft.com/en/downloads/" target="_blank" rel="noopener noreferrer">Open ChromieCraft Downloads</a>
+    </div>
+    <div class="naxx-client-download-card">
+      <span class="naxx-client-source-label">Alternative client source</span>
+      <h4>Warmane</h4>
+      <p>Warmane provides a download page for World of Warcraft clients. For Naxxramas, look for the Wrath of the Lich King 3.3.5a option and check that it is build 12340 before installing.</p>
+      <p class="naxx-client-provider-note">The link opens a saved copy of Warmane's download page.</p>
+      <a class="game-client-external-button" href="https://web.archive.org/web/20260228080116/https://www.warmane.com/download" target="_blank" rel="noopener noreferrer">View Warmane Downloads</a>
+    </div>
+  </div>
+</section>
+
+<section class="naxx-client-section" id="naxx-client-prepare">
+  <h3>2. Install the client and required patches</h3>
+  <ol class="naxx-client-steps">
+    <li><strong>Download and extract:</strong> Allow the file to finish downloading. If it arrives as an archive, extract all contents into a dedicated folder such as <code>C:\Games\World of Warcraft 3.3.5a</code>. Do not start the game from inside the archive.</li>
+    <li><strong>Check the game folder:</strong> Look for <code>Wow.exe</code> and the <code>Data</code> folder. Keep this client separate from any other private-server installation.</li>
+    <li><strong>Confirm the version:</strong> It must be <strong>Wrath of the Lich King (WotLK), patch 3.3.5a, build 12340</strong>. On the game's login screen, the version may appear as <strong>Version 3.3.5 (12340)</strong> without the letter “a” — this is normal for the 3.3.5a client. Modern retail, Classic or other builds will not work correctly.</li>
+    <li><strong>Install both required Naxxramas patches:</strong> Close the game. Open the <a href="https://github.com/CosmicCuddle/Naxxramas-Server-Patches/blob/main/README.md" target="_blank" rel="noopener noreferrer">official patch download instructions</a> to find the currently approved <code>patch-V.mpq</code> and <code>patch-Z.mpq</code>. For a new installation, you need <strong>both</strong>. Some releases update V without replacing Z, so the two files may be linked from different releases. Put both in the game's <code>Data</code> folder, keeping their exact filenames. Follow the release notes for any required cache clearing.</li>
+    <li><strong>Optional appearance patches (not required):</strong> <code>patch-J.mpq</code> adds a Vanilla-style login screen; <code>patch-U.mpq</code> adds Vanilla-style loading screens; <code>patch-C.mpq</code> adds a Burning Crusade-style login screen. <strong>Choose J or C, never both</strong>, because they replace the same login-screen files. Follow the <a href="https://github.com/CosmicCuddle/Naxxramas-Server-Patches/blob/main/OPTIONAL-PATCHES.md" target="_blank" rel="noopener noreferrer">official optional patch instructions</a>. These optional files never replace the required V and Z patches.</li>
+    <li><strong>Preserve your settings:</strong> Clear <code>Cache</code> only if your patch instructions or troubleshooting require it. Do not delete <code>Interface</code> or <code>WTF</code>; those folders contain addons and personal settings.</li>
+  </ol>
+  <p>For downloads and change information, see <a href="?section=Patches">Patches</a> and <a href="patches/">Patch Notes</a>. Always check which versions are currently approved.</p>
+</section>
+
+<section class="naxx-client-section" id="naxx-client-connect">
+  <h3>3. Connect after acceptance</h3>
+  <p><strong>The Naxxramas realm address is private and is not published here.</strong> Accepted applicants receive the genuine connection configuration file, along with their next steps, as part of their acceptance email.</p>
+  <ol class="naxx-client-steps">
+    <li>Follow the instructions in your acceptance email and keep a copy of any existing connection settings.</li>
+    <li>Install the approved <code>realmlist.wtf</code> file in the correct language folder, commonly <code>Data\enUS</code> or <code>Data\enGB</code>, exactly as your email instructs.</li>
+    <li>Check the filename: Windows must not add an extra <code>.txt</code> extension.</li>
+    <li>Launch with <code>Wow.exe</code>, not an updater or another server's launcher, and follow the private account setup instructions.</li>
+    <li>Never share your password or the private connection information in public messages or support tickets.</li>
+  </ol>
+  <p>Not accepted yet? Start at <a href="apply/">Apply to Join</a>. For how character progression works, visit the <a href="new-players/">New Player Guide</a>.</p>
+</section>
+
+<section class="naxx-client-section" id="naxx-client-help">
+  <h3>4. Troubleshooting</h3>
+  <div class="naxx-client-issues">
+    <div><h4>Download link broken</h4><p>Do not use unknown mirrors or unfamiliar executables. Report the link and use another checked 3.3.5a source.</p></div>
+    <div><h4>Can't find Wow.exe</h4><p>Confirm the archive finished extracting and open the main game directory.</p></div>
+    <div><h4>Wrong game version</h4><p>Use exactly <strong>3.3.5a, build 12340</strong>; avoid launchers that automatically update the client.</p></div>
+    <div><h4>Incorrect custom spell or content data</h4><p>Check that both required MPQs are in <code>Data</code> and match the approved Naxxramas releases.</p></div>
+    <div><h4>Connecting to the wrong realm</h4><p>After acceptance, confirm the owner's private connection file is in the correct language folder. Do not guess the realm address.</p></div>
+    <div><h4>Login or addon problems</h4><p>Check the acceptance and account instructions. Addons belong under <code>Interface\AddOns</code> and must support 3.3.5a. If still stuck, report the exact error without sharing credentials.</p></div>
+  </div>
+</section>
+</article>
