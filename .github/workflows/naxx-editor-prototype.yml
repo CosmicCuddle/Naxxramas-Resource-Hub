@@ -38,6 +38,8 @@ jobs:
         run: node editor/tools/browser-smoke-title-draft.cjs
       - name: Read-only inventory of original website file
         run: node editor/tools/inspect-legacy.cjs
+      - name: Verify entire clean tracked repository checkout before any future backup
+        run: node editor/tools/audit-full-checkout.cjs
       - name: Read-only lexical audit of legacy DATA shape
         run: node editor/tools/audit-legacy-shape.cjs
       - name: Safe static-JSON inventory of legacy DATA
