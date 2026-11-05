@@ -43,6 +43,19 @@ The new draft format is `naxx-local-resource-draft-v2`. Empty content and line b
 
 The resource draft is **separate from** the page/navigation draft in section 5. It is not a GitHub-ready resource archive, cannot replace `site-content.html`, and cannot be published. No original website code is executed or uploaded. Manual owner acceptance and later reviewed export/recovery controls remain required.
 
+### Save page/navigation and resource drafts together — private review ZIP
+
+The **Save Combined Review Package (.zip)** button in section 5 downloads a single ZIP containing **separate local draft files**, without copying the live website or creating an update for GitHub. You may save changes from either editor area or both.
+
+- `REVIEW-PAGE-DRAFT.json` — only when page or navigation edits have been staged; contains the existing `naxx-local-draft-v3` format.
+- `REVIEW-RESOURCE-DRAFT.json` — only when resource title/content edits have been **applied**; contains `naxx-local-resource-draft-v2`.
+- `REVIEW-MANIFEST.json` — identifies included drafts and records their SHA-256 checksums and known original-source fingerprints.
+- `READ_ME_FIRST.txt` — explains how to restore drafts locally and the warning **not to copy** the ZIP to GitHub or the public website.
+
+This ZIP is named `Naxxramas-Private-Editing-Review.zip`. To restore, extract it privately and use the existing **Load Saved Draft** (pages/navigation) and **Load Resource Draft** (resources) buttons. The hash checks still apply. Resource text must be applied or reverted before saving this package; unapplied typing is not silently included.
+
+**Do not confuse it with Export Changed Files (.zip).** That older command still exports only changed page/navigation files under their actual relative repository paths. The combined review package contains **drafts rather than edited website files**; it cannot be deployed and is **not** a complete GitHub backup. Do not upload the ZIP or review JSON files into a public branch. A later independently reviewed exporter will be needed to create update-ready resource fragments with appropriate paths.
+
 The editor only reads local user-selected files; it neither overwrites them nor uploads or publishes changes. Its preview is a **simplified visual approximation**, not the full website. A sandboxed iframe with a restrictive Content Security Policy excludes external images, clickable links, scripts, videos, and the application iframe. It cannot submit real applications. Do not treat the preview as proof that the public page will look or behave identically. The website's Game Clients and menu scripts separately fetch public same-origin content when a visitor loads the site.
 
 **Do not apply an exported ZIP directly to main.** Use a disposable Git checkout, compare original file hashes from the manifest, inspect changed files, run tests, then open a PR. The exported source branch hint is not verified evidence that a selected local folder came from a particular commit.
@@ -51,6 +64,7 @@ The editor only reads local user-selected files; it neither overwrites them nor 
 
 - The four-page/navigation draft format `naxx-local-draft-v3` is a local downloaded JSON file, not autosave, publication, or a full repository backup.
 - The separate resource draft format is `naxx-local-resource-draft-v2`, which stores only changed title/content fields by resource position and the pinned original source hash. Older title-only `naxx-local-resource-title-draft-v1` files can be restored. Neither contains all 414 original records, full source HTML or a GitHub-ready website export.
+- The combined private review ZIP uses a **separate path allowlist**; it never places the root `index.html` loader, complete original `site-content.html`, or arbitrary paths into a review bundle. Neither this review ZIP nor its manifest authorises a GitHub deployment.
 - Draft restore demands exact source SHA-256 fingerprints for all four page files and the navigation file; mismatches are rejected.
 - Changed-files ZIP paths are restricted to the four page HTML files and content/navigation.json plus the manifest and instructions. It cannot contain a replacement root index.html.
 - HTML edits change only existing text fragments and href values, not whole document structure or application embed attributes. Unsafe links are rejected.
@@ -106,6 +120,12 @@ The baseline audit confirmed **414 string-literal content fields**, including **
 [Editor CI run 42054557700](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42054557700) passed **108/108 Node component tests** and a real local Chrome smoke test of title/content draft download and restore. A protected source-rebuild rehearsal changed one content field and verified the other 413 resource fragments and every non-resource byte remained untouched.
 
 **Limit:** This is a local draft only. No edited resource files, compatibility HTML output, full-site backup or GitHub-ready resource export have been produced for the owner. The public website is unchanged.
+
+## Combined review package milestone — 5 November 2026
+
+A local **multi-file review ZIP** now saves both editor areas in one download while retaining independent page and resource draft JSON files. The package includes a SHA-256 manifest and recovery instructions. Its writer uses a separate strict allowlist from the existing page/navigation GitHub-path ZIP writer.
+
+[Editor run 42058261964](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42058261964) passed **113/113 component tests**: both-draft packages, page-only or resource-only packages, integrity hashes, duplicate/unsafe paths, baseline mismatch and protection against adding production HTML. A later Chrome browser smoke also downloaded a resource-only review ZIP with no deployable website file. This proves draft packaging only; it is not the final separate-resource source-file migration or update mechanism.
 
 ## Original large website audit (read-only)
 
