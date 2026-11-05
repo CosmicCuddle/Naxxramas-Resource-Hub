@@ -158,6 +158,23 @@ Verification rejects modified draft payloads, stale commits, unexpected relative
 
 **Status:** This crosses the **reviewed existing Git path** milestone, not a production release gate. The reviewed receipt is not an authentication signature and the ZIP's manifest explicitly records `ownerApproved:false`, `githubReadyForDeployment:false`, `publishable:false`, `deployable:false` and `completeRepositoryBackup:false`. The complete mixed page/resource update is still blocked on the owner-approved separate resource source tree, generated compatibility build, independently retained recovery data and owner inspection.
 
+## Private changed-resource ZIP with complete generated compatibility preview
+
+The new `editor/tools/package-reviewed-resource-preview.cjs` complements the existing **reviewed, changed tracked-path page/navigation ZIP**. This is the *resource review* half, not a combined production migration.
+
+A clean checkout, verified full Git-commit review receipt and matching v2 resource draft are required. If the receipt binds any v3 page/navigation edits, the exact matching page draft is also required—but those page files are **not** included in this ZIP. The receipt and original 414-resource SHA-256 are checked independently before packaging.
+
+The archive contains:
+
+- Only the **edited** resource object fragments under review-only paths `CANDIDATE-RESOURCE-FRAGMENTS/NNNN.fragment`, never the unapproved live `content/legacy/resources/` directory.
+- `PREVIEW-ONLY-generated-site-content.html`: the **entire reconstructed ~31 MB website compatibility source** to inspect offline, **not** a replacement for the live `site-content.html` path.
+- A per-changed-fragment manifest recording both the *proposed eventual Git path* and *actual review-only ZIP path*, original/updated SHA-256, reviewed Git commit/receipt hashes, generated-source size/hash and excluded page/navigation change count.
+- Private-use guidance explicitly warning that the ZIP includes full generated source, is **not deployable**, **not a complete backup**, **not** approved for upload or publication, and **cannot** be copied over the live root loader or generated site content.
+
+Verification independently reconstructs the complete intended website bytes from the unchanged original 414 records plus the ZIP's changed fragments, compares that reconstruction with the included preview HTML, checks the manifest and warning byte-for-byte, verifies the approved 418-file temporary source-tree rehearsal and performs a byte-exact rollback to the pinned original. ZIP path allowlists, central-directory checks and CRC32 protection are also applied.
+
+**Security and release boundary:** A private archive containing the whole generated site may contain confidential custom data. It must stay private and must not be attached to GitHub PRs, CI artifacts or a public website. The final resource source-tree migration and live compatibility builder still need owner approval, retained full-Git recovery data, repository storage review and visitor/admin validation. A resource preview archive does **not** mean the resource paths were adopted into Git.
+
 ## Proposed long-term source layout
 
 A possible future repository layout, only after tests and owner approval:
