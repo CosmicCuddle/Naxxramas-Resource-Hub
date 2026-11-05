@@ -1,18 +1,20 @@
-/* Naxxramas local editor prototype: text + link editing in three existing HTML fragments.
+/* Naxxramas local editor prototype: text + link editing in four existing HTML fragments.
  * Reads only user-selected local files, never writes to the working tree or uses network APIs.
  */
 (function () {
   'use strict';
-  var REFERENCE_COMMIT = '5064a9d3cadb7071caa1d0f67e43f87d4b591043';
+  var SOURCE_BRANCH = 'feature/multi-file-editor-export-2026-11-05';
   var PATHS = [
     'new-players/content.html',
     'rules/content.html',
-    'apply/content.html'
+    'apply/content.html',
+    'game-clients/content.html'
   ];
   var TITLES = {
     'new-players/content.html': 'New Players',
     'rules/content.html': 'Server Rules',
-    'apply/content.html': 'Apply to Join'
+    'apply/content.html': 'Apply to Join',
+    'game-clients/content.html': 'Game Clients'
   };
   var state = new Map();
   var activePath = PATHS[0];
@@ -213,7 +215,7 @@
       });
     }
     if (matches.size !== PATHS.length) {
-      throw new Error('The chosen folder must include new-players/content.html, rules/content.html and apply/content.html.');
+      throw new Error('The chosen folder must include the content.html files for New Players, Rules, Apply and Game Clients.');
     }
     var next = new Map();
     for (var j = 0; j < PATHS.length; j++) {
@@ -231,8 +233,9 @@
   }
   function draftData() {
     return {
-      format: 'naxx-local-draft-v1',
-      referenceCommit: REFERENCE_COMMIT,
+      format: 'naxx-local-draft-v2',
+      sourceBranchHint: SOURCE_BRANCH,
+      sourceCommitVerified: false,
       createdAt: new Date().toISOString(),
       files: PATHS.map(function (path) {
         var page = state.get(path);
@@ -242,9 +245,9 @@
   }
   async function exportChanged() {
     var files = [], manifest = {
-      format: 'naxx-changed-files-v1',
-      referenceCommit: REFERENCE_COMMIT,
-      referenceIsNotVerifiedAgainstSelectedFolder: true,
+      format: 'naxx-changed-files-v2',
+      sourceBranchHint: SOURCE_BRANCH,
+      sourceCommitVerified: false,
       generatedAt: new Date().toISOString(),
       files: []
     };
@@ -269,8 +272,8 @@
       '5. Copy only the included page HTML files to the SAME relative paths.\n' +
       '6. Review the diff and site preview; run all website checks.\n' +
       '7. Open a pull request for approval. Do not overwrite root index.html.\n' +
-      'Reference commit for this prototype: ' + REFERENCE_COMMIT + '\n' +
-      'This reference does not prove the local files are from that commit.\n'
+      'Source branch hint for this prototype: ' + SOURCE_BRANCH + '\n' +
+      'The selected folder is not cryptographically verified against any Git commit.\n'
     });
     download(NaxxEditorZip.makeZip(files), 'Naxxramas-Website-Changed-Files.zip');
     say('Changed-files ZIP created with ' + manifest.files.length + ' page(s). This is NOT published to GitHub.');
@@ -298,7 +301,7 @@
   draftPicker.addEventListener('change', async function () {
     try {
       var draft = JSON.parse(await draftPicker.files[0].text());
-      if (draft.format !== 'naxx-local-draft-v1' || !Array.isArray(draft.files) || draft.files.length !== PATHS.length) throw new Error('Unrecognised draft format.');
+      if (draft.format !== 'naxx-local-draft-v2' || !Array.isArray(draft.files) || draft.files.length !== PATHS.length) throw new Error('Unrecognised draft format.');
       var replacements = new Map();
       draft.files.forEach(function (file) {
         var page = state.get(file.path);
