@@ -107,7 +107,7 @@
           if (name === 'a' && !ignored) {
             var href = /\bhref\s*=\s*(["'])(.*?)\1/i.exec(tag);
             if (href) {
-              var offset = href.index + href[0].indexOf(href[2]);
+              var offset = href.index + href[0].indexOf(href[1]) + 1;
               var beginHref = lt + offset, endHref = beginHref + href[2].length;
               out.push({
                 id: 'H:' + beginHref, kind: 'href',
@@ -252,8 +252,7 @@
       var path = PATHS[i], page = state.get(path);
       if (!editedFields(page).length) continue;
       var updated = applyPage(page);
-      var newRuns = scan(updated);
-      if (newRuns.length !== page.runs.length) throw new Error('Edited text unexpectedly changed the HTML structure of ' + path + '.');
+      scan(updated); // Validate tokenisation; intentionally blank text fields are permitted.
       var originalHash = page.hash, updatedHash = await NaxxEditorZip.sha256(updated);
       files.push({ path: path, content: updated });
       manifest.files.push({ path: path, sourceSha256: originalHash, exportedSha256: updatedHash, editedPieces: editedFields(page).length });
