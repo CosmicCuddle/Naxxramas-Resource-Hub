@@ -7,6 +7,7 @@ const fs=require("node:fs");
 const path=require("node:path");
 const vm=require("node:vm");
 const source=fs.readFileSync(path.join(__dirname,"..","naxx-three-pages.js"),"utf8");
+const navSettings=JSON.parse(fs.readFileSync(path.join(__dirname,"..","..","content/navigation.json"),"utf8"));
 const origin="https://cosmiccuddle.github.io/Naxxramas-Resource-Hub/";
 const desired=["Home","new-players","rules","apply","Resources"];
 
@@ -84,7 +85,12 @@ function run(pathname){
   const url=new URL(pathname,origin);
   const location={pathname:url.pathname,href:url.href,assign(next){assigned.push(next);}};
   vm.runInNewContext(source,{
-    document,MutationObserver,URL,location,window:{addEventListener(){}},
+    document,MutationObserver,URL,location,window:{addEventListener(){},console:{error(){throw Error("Unexpected navigation error")}}},
+    fetch(url,options){
+      assert.ok(url.href.endsWith("/content/navigation.json"));
+      assert.equal(options.cache,"default");
+      return Promise.resolve({ok:true,json:async()=>navSettings});
+    },
     console:{error(){throw Error("Unexpected error")}}
   });
   for(const nav of [desktop,mobile]){
