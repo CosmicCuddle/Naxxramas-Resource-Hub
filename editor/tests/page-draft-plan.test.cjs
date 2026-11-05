@@ -113,6 +113,6 @@ test('offline draft scanner matches actual webpage editor token positions in all
     const checked=runs(html);
     assert.ok(checked.length>=10);
     assert.deepEqual(checked.map(x=>[x.id,x.kind,x.start,x.end,x.original]),
-      expected.map(x=>[x.id,x.kind,x.start,x.end,x.original]));
+      JSON.parse(JSON.stringify(expected.map(x=>[x.id,x.kind,x.start,x.end,x.original]))));
   }
 });
