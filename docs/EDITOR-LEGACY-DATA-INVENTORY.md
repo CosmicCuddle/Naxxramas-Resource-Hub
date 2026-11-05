@@ -113,6 +113,19 @@ A separate synthetic compatibility test now changes only a title within the firs
 
 **Release gate:** Any future editor must preserve the 29-item side collection and all original script consumers; source-text preservation and candidate-count equality are necessary checks but do **not** prove functional browser compatibility. Run actual private/offline browser acceptance tests before enabling export or publication.
 
+### Single edited separate-file compatibility rehearsal (development only)
+
+[Editor CI run 42047956345](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42047956345) passed **83/83 tests**, including new safe temporary-file edit scenarios for the first and last resource. The experiment wrote the changed title into exactly one of 414 separately stored resource fragments inside a protected temporary folder, then rebuilt the complete HTML source by reading the fragments and verified original layout files.
+
+- The rebuilt modified compatibility source matched a separately calculated in-memory expected output, byte-for-byte.
+- Exactly 413 unrelated fragments, all separators, the original prefix, and the original suffix were verified unchanged. This protects the preserved 29-item side collection, scripts, styles and embedded media outside the 414 resources.
+- The original immutable package manifest intentionally **rejected** the changed fragment, proving old checksums do not silently accept an edit.
+- Corruption of another fragment, an unexpected change to the selected fragment, invalid title text, invalid position and altered original source were rejected in tests.
+- The temporary files were removed. No edited compatibility file, archive, live website file or GitHub-ready fragment tree was published or committed.
+
+**Not yet established:** a persistable edited manifest, changes to fields other than titles, a working resource editor, an approved revised output format, visitor/admin behaviour under a changed resource, safe changed-files export, or full-site backup/recovery. This rehearsal is a feasibility and safety milestone, **not** an editor release.
+
+
 
 
 
@@ -193,6 +206,7 @@ Run from a complete repository checkout:
     node editor/tools/audit-side-nested.cjs
     node editor/tools/audit-side-usage.cjs
     node editor/tools/audit-side-consumers.cjs
+    node editor/tools/rehearse-edited-resource-files.cjs
     node editor/tools/audit-legacy-media.cjs
     node --test editor/tests/*.test.cjs
 
