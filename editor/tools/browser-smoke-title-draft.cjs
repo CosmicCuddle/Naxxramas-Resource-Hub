@@ -139,6 +139,18 @@ async function launchWithStartupRetry(binary,url,work){
   }
   throw Error('Browser startup retries unexpectedly exhausted.');
 }
+function inspectReviewZip(bytes){
+  const entries=[];let offset=0;
+  while(offset+30<=bytes.length&&bytes.readUInt32LE(offset)===0x04034b50){
+    const size=bytes.readUInt32LE(offset+18),nameSize=bytes.readUInt16LE(offset+26);
+    const extra=bytes.readUInt16LE(offset+28),start=offset+30+nameSize+extra;
+    const name=bytes.subarray(offset+30,offset+30+nameSize).toString('utf8');
+    if(start+size>bytes.length)throw Error('Truncated private review ZIP.');
+    entries.push({name,body:bytes.subarray(start,start+size).toString('utf8')});
+    offset=start+size;
+  }
+  return entries;
+}
 async function verify(browser,work){
   const server=http.createServer(handler);
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
@@ -178,6 +190,27 @@ async function verify(browser,work){
       'Browser Safety Trial Title');
     assert.equal(await chrome.evalPage('document.getElementById("resource-content-edit").value'),
       'Browser-safe multiline content.\n\nSecond paragraph.');
+
+    await chrome.evalPage('document.getElementById("save-review-package").click()');
+    const reviewZip=path.join(downloadDir,'Naxxramas-Private-Editing-Review.zip');
+    for(let i=0;i<70&&!fs.existsSync(reviewZip);i++)await wait(150);
+    assert.equal(fs.existsSync(reviewZip),true,'Combined private review ZIP must download.');
+    const reviewEntries=inspectReviewZip(fs.readFileSync(reviewZip));
+    assert.deepEqual(reviewEntries.map(e=>e.name),[
+      'REVIEW-RESOURCE-DRAFT.json','REVIEW-MANIFEST.json','READ_ME_FIRST.txt'
+    ]);
+    const reviewDraft=JSON.parse(reviewEntries[0].body);
+    const reviewManifest=JSON.parse(reviewEntries[1].body);
+    assert.equal(reviewDraft.format,'naxx-local-resource-draft-v2');
+    assert.equal(reviewDraft.changes.length,1);
+    assert.equal(reviewDraft.changes[0].content,'Browser-safe multiline content.\n\nSecond paragraph.');
+    assert.equal(reviewManifest.githubReady,false);
+    assert.equal(reviewManifest.publishable,false);
+    assert.equal(reviewManifest.fullRepositoryBackup,false);
+    assert.ok(!reviewEntries.some(e=>e.name==='site-content.html'||e.name==='index.html'));
+    assert.match(reviewEntries[2].body,/DO NOT copy/);
+    console.log('PASS: private combined review ZIP saved separate resource draft and integrity manifest, with no deployable website file.');
+
     const wrongPath=path.join(work,'site-content.html');
     fs.writeFileSync(wrongPath,'Not the verified website.',{mode:0o600,flag:'wx'});
     await chrome.chooseFile('#resource-source-file',wrongPath);
