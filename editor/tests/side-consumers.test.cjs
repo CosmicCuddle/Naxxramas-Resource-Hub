@@ -4,6 +4,9 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const {audit,summarize,candidatesInScript}=require('../tools/audit-side-consumers.cjs');
+const {findSideCollection}=require('../tools/audit-side-collection.cjs');
+const {splitInMemory,restoreInMemory}=require('../tools/check-legacy-roundtrip.cjs');
+const {replaceTitleInRecord}=require('../tools/rehearse-title-edit.cjs');
 
 test('classifies simple direct writes, array mutators and member assignments',()=>{
   const js=[
@@ -48,3 +51,22 @@ test('refuses altered source before scanning',()=>{
   const bytes=fs.readFileSync(path.resolve(__dirname,'..','..','site-content.html'));
   assert.throws(()=>audit(Buffer.concat([bytes,Buffer.from('!')])),/fingerprint|Unexpected|Aborting/i);
 });
+
+
+for(const position of [0,413]){
+  test('synthetic title edit keeps all original collection-access patterns at position '+position,()=>{
+    const bytes=fs.readFileSync(path.resolve(__dirname,'..','..','site-content.html'));
+    const original=findSideCollection(bytes);
+    const expected=summarize(original.source,original.internalPropertyKey);
+    const split=splitInMemory(bytes);
+    const records=split.records.slice();
+    records[position]=replaceTitleInRecord(records[position],'Read-only Consumer Compatibility Test').record;
+    const rebuilt=restoreInMemory(split,records).toString('utf8');
+    assert.notEqual(rebuilt,original.source);
+    assert.equal(rebuilt.slice(0,split.arrayBegin),split.source.slice(0,split.arrayBegin));
+    assert.equal(rebuilt.endsWith(split.source.slice(split.arrayEnd)),true);
+    assert.deepEqual(summarize(rebuilt,original.internalPropertyKey),expected);
+    const unchanged=records.filter((r,index)=>index!==position&&r===split.records[index]);
+    assert.equal(unchanged.length,413);
+  });
+}
