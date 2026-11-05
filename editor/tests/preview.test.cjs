@@ -45,16 +45,16 @@ function makeHarness(nodes) {
           createTextNode: textNode
         };
       }
+    },
+    createElement(name) {
+      assert.equal(name, 'template', 'Preview must use an inert template parser.');
+      const template = { content: { childNodes: nodes } };
+      Object.defineProperty(template, 'innerHTML', { set(value) { assert.equal(typeof value, 'string'); } });
+      return template;
     }
   };
-  class DOMParser {
-    parseFromString(_html, kind) {
-      assert.equal(kind, 'text/html');
-      return { body: { childNodes: nodes } };
-    }
-  }
   const window = {};
-  vm.runInNewContext(source, { window, DOMParser, document: mockDocument, Set, Array }, { filename: 'editor/preview.js' });
+  vm.runInNewContext(source, { window, document: mockDocument, Set, Array }, { filename: 'editor/preview.js' });
   return window.NaxxEditorPreview;
 }
 
