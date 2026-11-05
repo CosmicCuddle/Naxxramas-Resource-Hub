@@ -1,54 +1,69 @@
-# Naxxramas local website editor — early prototype
+# Naxxramas local website editor — development prototype
 
-**Status: Development branch only. Not approved for merge or use on the public website.**
-This prototype belongs to the staged editor/save redesign proposed in PR #55.
+**Status: DRAFT. Not approved for merge or publication.**
 
-## What works in this first stage
+Related work: [editor design PR #55](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/pull/55) and [prototype PR #56](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/pull/56).
 
-- Choose an **extracted copy** of the Naxxramas-Resource-Hub repository using Microsoft Edge or Google Chrome on a desktop.
-- Edit existing **text runs** and **link addresses** from the New Players, Server Rules and Apply to Join HTML page fragments.
-- Search for the wording to edit, switch between the three pages, and see which fields are changed.
-- Download a **Save Draft** JSON file and load it later **only against the exact same starting HTML files**. A mismatch is rejected.
-- Download a **Changed Files ZIP** containing the changed page files in their exact GitHub paths, a SHA-256 manifest for review, and manual publishing instructions.
-- Save without modifying the selected folder, the GitHub repository or the published site.
+This prototype exists only on the feature/multi-file-editor-export-2026-11-05 branch. The initial main snapshot is preserved at backup/pristine-pre-editor-redesign-2026-11-05. **Never replace root index.html with an old single-file website export.**
 
-Only text and link attribute byte ranges are replaced. Unedited text, HTML structure, CSS classes, IDs, embedded application markup and scripts are left in the original source. Link protocols are validated before export. Clearing a field is allowed without removing surrounding HTML tags.
+## What can be edited
 
-## How to open the prototype (not a live-site test)
+- New Players: new-players/content.html
+- Server Rules: rules/content.html
+- Apply to Join: apply/content.html
+- Game Clients: game-clients/content.html
+- Three newer sidebar entries: content/navigation.json (labels, titles, introductions, Warcraft icon filenames).
 
-1. Download the feature/multi-file-editor-export-2026-11-05 branch as a ZIP from GitHub.
-2. Extract it into a separate location outside your working Git repository.
-3. Open editor/index.html directly in **Edge** or **Chrome**.
-4. Select that extracted folder using the file picker at the top of the editor.
-5. Edit a text field. Use **Save Draft** for an unpublished JSON copy, or **Export Changed Files** for a review-only ZIP.
+The original 31 MB site-content.html, original resource records, older menu entries, class/dungeon handbook data, overlays and page layout are **not** editable through this prototype yet.
 
-If you change the website files between sessions, load a fresh starting folder. A draft made from an older copy is rejected rather than silently applying changes to different content.
+Game Clients now lives in a separate HTML fragment instead of a JavaScript string. Its display script fetches that fragment from the same repository, and leaves the legacy client card visible with a warning if the new file cannot be read.
 
-## Important limitations
+The newer-menu script reads metadata from content/navigation.json. It retains original labels and icons as a fallback and rejects unexpected routes, groups, and icon filenames. The application privacy and form-loading code has not been changed.
 
-- **Do not merge this editor into main without a separate decision about private distribution.** A folder committed to a public GitHub Pages repository may become publicly viewable even if the editor cannot publish changes. The long-term authoring tool should live privately or locally.
-- This is **not** the original 31 MB website editor. It cannot yet edit the original resources, class/dungeon records, image assets, Game Clients, navigation icons or page layout. The complete site still needs a carefully validated migration.
-- Folder selection uses the Chromium webkitdirectory browser capability. Other browsers may not support it.
-- This early prototype has no full preview, undo history, automatic GitHub upload, authentication, or reliable automatic browser autosave. Save Draft explicitly downloads a JSON file.
-- Exported ZIP files **are not ready to copy onto main**: a reviewer must compare SHA-256 hashes against the source checkout, inspect the diff, test all pages and use a separate PR. The manifest includes a historical reference commit as an **unverified hint**, not as evidence of the selected folder's actual Git commit.
-- A changed-files ZIP is **not a full backup**. Use the untouched GitHub branch backup/pristine-pre-editor-redesign-2026-11-05 or download the full repository separately.
-- The browser editor does not read or upload applications, private realm information, saved passwords, or the original site loader. **Never enter private connection data or credentials into public page text.**
-- **Do not use the old website exporter** to replace root index.html; the current loader must remain intact.
+## How to open this local prototype
 
-## Test command for developers
+1. Download the feature/multi-file-editor-export-2026-11-05 branch ZIP from GitHub.
+2. Extract the whole repository into a disposable folder outside your working Git checkout.
+3. Open editor/index.html with Microsoft Edge or Google Chrome on your computer.
+4. In the editor, choose the extracted Resource Hub folder.
+5. Use the page search/edit controls or the separate navigation editor.
+6. Save Draft downloads a JSON file. Export Changed Files downloads only changed content paths, a SHA-256 manifest and review instructions.
 
-Run from the repository root:
+The editor only reads local user-selected files; it neither overwrites them nor uploads or publishes changes. The website's Game Clients and menu scripts separately fetch public same-origin content when a visitor loads the site.
 
-    node --test editor/tests/export.test.cjs editor/tests/pages.test.cjs
+**Do not apply an exported ZIP directly to main.** Use a disposable Git checkout, compare original file hashes from the manifest, inspect changed files, run tests, then open a PR. The exported source branch hint is not verified evidence that a selected local folder came from a particular commit.
 
-Automated tests cover ZIP container structure, stored-file CRC, UTF-8, folder paths, blocked traversal/duplicates, SHA-256, basic script compilation and source-preservation checks against the three real page files. **Browser-level edit/draft/export tests have not yet been run**, and no end-to-end deployment test has been performed.
+## Saving behaviour and limits
 
-## Next planned stages
+- Draft format naxx-local-draft-v3 is a local downloaded JSON file, not autosave, publication, or a full repository backup.
+- Draft restore demands exact source SHA-256 fingerprints for all four page files and the navigation file; mismatches are rejected.
+- Changed-files ZIP paths are restricted to the four page HTML files and content/navigation.json plus the manifest and instructions. It cannot contain a replacement root index.html.
+- HTML edits change only existing text fragments and href values, not whole document structure or application embed attributes. Unsafe links are rejected.
+- Navigation changes are limited to approved text/icon fields; existing slugs, links and grouping are fixed. Icon names must be existing WoW JPG filenames, not URLs.
+- Browser folder selection uses webkitdirectory. Edge and Chrome are the intended browsers; all browser versions have not been tested.
+- No authentication, private online publishing, rich-text formatting, new download cards, image uploading, full site backups, layout editing, or editing of the original 31 MB resource DATA yet.
+- The local editor should remain privately distributed. A public GitHub Pages UI lock cannot protect confidential admin operations.
+- To preserve a full copy, separately use the untouched GitHub backup branch and download the complete repository ZIP.
+- Do not put applications, passwords, account information, private realm addresses or proprietary WoW game binaries into public content.
 
-1. Browser-level tests with disposable copies of all three HTML pages; improve accessibility, exact text preservation and controlled preview.
-2. Build single-source editable Game Clients content and editable navigation labels/icons without breaking the existing theme.
-3. Build a safe compatibility exporter for original site-content.html and its resource DATA; migrate in verified batches.
-4. Add full-site backup from a complete verified local source tree, conflict detection, automated route checks and safe GitHub Desktop PR instructions.
-5. Owner reviews and approves a distribution location and a disposable manual test; only then consider release.
+## Tests
 
-The live website and pristine backup must not be changed by this prototype.
+A scoped read-only GitHub Actions workflow executes all editor regression tests.
+
+To run locally from the repository root:
+
+    node --test editor/tests/*.test.cjs
+
+These tests cover ZIP paths, hashes and CRC; edits against the actual content fragments; the Game Clients loader and fallback; navigation JSON loading and fallback; and protection of the small root loader.
+
+**Browser-level visual testing, form behaviour, complete ZIP extraction and real publishing are not confirmed by Node tests.** Manual testing is required before any merge.
+
+## Remaining development
+
+1. Test the editor in Edge/Chrome on a disposable copy, including draft restore, ZIP validation, icons and keyboard access.
+2. Add a useful in-editor preview and undo/revert.
+3. Migrate the original site resource DATA in verified, reversible batches without losing its IDs, images, class/dungeon associations or other custom fields.
+4. Add complete repository backup/export from a verified tree, conflict checks and safer publishing guidance.
+5. Choose a genuinely private authoring distribution method. Obtain owner approval before release.
+
+The live website and pristine backup must remain unchanged.
