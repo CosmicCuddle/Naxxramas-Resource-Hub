@@ -109,6 +109,8 @@ The optional manual command requires an explicit **absolute output path outside 
 
 **Security boundary:** This ZIP includes the full original website resource data, not merely the changed resource fields. It must remain private. **Do not commit it, upload it to a public GitHub branch, attach it to CI artifacts, or serve it from GitHub Pages.** It is not a complete backup of the entire repository, has no Git history or external app state, and does not replace the current website's compatibility file. The final decision on committing separately managed resource files and the duplicated ~31 MB remains with CosmicCuddle.
 
+[Editor CI run 42066172796](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42066172796) passed **142/142 automated tests**, including 419-entry private source ZIP creation, archive path/CRC checks, two-stage extraction/reconstruction, byte-exact rollback, invalid source/draft refusal, replacement of the confidentiality notice, external-path-only output, no overwrites and cleanup of disposable working files. These tests verify packaging and recoverability of **candidate resource data**, not GitHub deployment or complete repository recovery.
+
 ## Proposed long-term source layout
 
 A possible future repository layout, only after tests and owner approval:
