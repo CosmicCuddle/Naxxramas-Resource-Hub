@@ -73,6 +73,25 @@ The read-only source audit established **414 static string-literal content field
 
 **Remaining browser and release gate:** Owner visual/keyboard review, full original resource-data relationships and the legacy admin workflow, GitHub-ready multi-file export with changed-fragment checksums, a complete independently validated repository backup/recovery plan, and owner approval before any merge. An intentional rebaseline is required for any future original source version.
 
+## Two-area local review package — implemented, not yet a deployable export
+
+The private development editor now offers **Save Combined Review Package (.zip)**. It keeps the two editor areas in **separate files within one ZIP**, rather than combining source HTML or flattening the 414 resource objects.
+
+Expected filenames are fixed by a dedicated review-only allowlist:
+
+    REVIEW-PAGE-DRAFT.json          (only when page/navigation changes exist)
+    REVIEW-RESOURCE-DRAFT.json      (only when applied resource edits exist)
+    REVIEW-MANIFEST.json
+    READ_ME_FIRST.txt
+
+The page draft retains the existing `naxx-local-draft-v3` source hashes and four original page path records. The resource draft retains `naxx-local-resource-draft-v2` with the SHA-256-pinned 414-resource baseline and changed text fields. The manifest contains SHA-256 and UTF-8 byte sizes for included drafts, declares itself **not publishable**, **not GitHub-ready** and **not a full repository backup**. Recovery is by extracting privately and importing each draft through the existing matching UI. Unapplied resource text is not silently bundled.
+
+**Important boundary:** These review filenames are **not** final website paths. The existing page-only *Export Changed Files* ZIP remains restricted to real paths such as `rules/content.html` and `content/navigation.json`. The new review ZIP is restricted to the four review filenames. Neither writer can emit `index.html` or the 31 MB `site-content.html` from its normal API. The planned numeric `resources/0001.fragment` source paths are still **not committed to this repository**, so claiming a GitHub-ready unified export would be premature.
+
+[Editor run 42058261964](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42058261964) passed **113/113 tests**, including review archive paths and SHA-256 integrity checks. A subsequent real Chrome smoke downloaded the resource-only review ZIP and confirmed it contained no deployable website file. No live source, visitor page, admin form or backup branch was modified.
+
+**Next release gate:** Design and verify a deterministic, reviewable builder that turns source-fingerprint-verified v2 edits into separately stored source fragments, produces an exact compatibility output, includes changed-path manifests for both page and resource files, and validates a complete repository backup and rollback. Do not extend the current GitHub-path export whitelist to hypothetical fragment paths before these conditions are satisfied.
+
 ## Planned editing contract
 
 1. A resource's original stable id is **immutable** in the initial editor. The 414 initial IDs are distinct after decoding; changing names/titles never changes these IDs.
