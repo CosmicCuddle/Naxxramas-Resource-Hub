@@ -92,6 +92,11 @@ The read-only `editor/tools/audit-full-checkout.cjs` enumerates the **complete G
 
 **Crucial distinction:** This is **not a backup**. No archive is written. A future real recovery package must separately preserve the intended repository commit/history and other necessary configuration; Git-ignored/untracked content and external services are outside this preflight. The existing pristine branch is preserved but is not, by itself, verification of a complete recoverable new deployment.
 
+**Automated evidence (5 November 2026):** [Editor CI run 42063283544](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42063283544) passed **135/135 tests** and the dedicated checkout inventory. At the tested commit it verified **127 tracked files**, **94,404,901 tracked bytes**, a clean checkout and the original `site-content.html` SHA-256. The candidate source-tree tests also passed: **418 files**, zero-edit byte-exact rebuild, safe modified rebuild and full rollback to the original hash. These are snapshot measurements of that test commit and may change with later commits; they are **not** an independently stored backup.
+
+**Required approval before migration:** Keep the current generated `site-content.html` serving visitors while the candidate source tree is tested. Review repository size and total duplication, ensure the full tracked checkout plus any relevant private configuration can be restored from a separate backup, and test the generated output in a disposable environment. Only then decide whether to commit `content/legacy/` or combine it with the page/navigation changed-files exporter. Do not silently overwrite the published compatibility file.
+
+
 ## Proposed long-term source layout
 
 A possible future repository layout, only after tests and owner approval:
