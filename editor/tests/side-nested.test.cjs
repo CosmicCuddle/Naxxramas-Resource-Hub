@@ -6,7 +6,7 @@ const path=require('node:path');
 const {audit,scanNested}=require('../tools/audit-side-nested.cjs');
 
 test('nested audit counts exact literal links but never prints secret values or keys',()=>{
-  const source='[{name:"Secret",one:{label:"resource-1",nested:{count:2},tags:["resource-2","other"]},two:{label:"resource-2"},three:{}}]';
+  const source='[{name:"Secret",one:{label:"resource-1",active:true,nested:{count:2},tags:["resource-2","other"]},two:{label:"resource-2"},three:{}}]';
   const data=scanNested(source,0,new Set(['resource-1','resource-2']));
   assert.equal(data.sideObjects,1);
   assert.equal(data.directObjectFieldsInSideRecords,3);
@@ -14,6 +14,7 @@ test('nested audit counts exact literal links but never prints secret values or 
   assert.equal(data.exactNestedLiteralMatchesToResourceIds,3);
   assert.equal(data.exactOuterLiteralMatchesToResourceIds,0);
   assert.equal(data.depthLimitReached,0);
+  assert.equal(data.nestedExpressionForms.booleanLiteral,1);
   assert.equal(data.valuesNamesKeysOrIdsEmitted,false);
   const report=JSON.stringify(data);
   for(const secret of ['Secret','resource-1','resource-2','label','tags'])
