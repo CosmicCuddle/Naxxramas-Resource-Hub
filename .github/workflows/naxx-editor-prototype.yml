@@ -34,6 +34,8 @@ jobs:
           node-version: '22'
       - name: Validate editor, ZIP exports and Game Clients
         run: node --test editor/tests/*.test.cjs
+      - name: Exercise resource title draft UI in a real local Chrome browser
+        run: node editor/tools/browser-smoke-title-draft.cjs
       - name: Read-only inventory of original website file
         run: node editor/tools/inspect-legacy.cjs
       - name: Read-only lexical audit of legacy DATA shape
