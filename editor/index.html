@@ -49,8 +49,8 @@
     <p>Download and extract the <strong>development branch</strong> of your Resource Hub, then open this <code>editor/index.html</code> file in Microsoft Edge or Google Chrome.</p>
     <label for="folder">Choose the extracted Naxxramas-Resource-Hub folder</label>
     <input id="folder" type="file" webkitdirectory multiple aria-describedby="folder-help">
-    <p id="folder-help" class="hint">This reads only four HTML page files from your chosen folder. It does not upload, overwrite or publish anything.</p>
-    <p class="notice"><strong>First-stage coverage:</strong> New Players, Server Rules, Apply to Join and Game Clients (existing text and link addresses). Menu icons, old resource records and full backup export are not yet implemented here.</p>
+    <p id="folder-help" class="hint">This reads four HTML page files and one navigation JSON file from your chosen folder. It does not upload, overwrite or publish anything.</p>
+    <p class="notice"><strong>First-stage coverage:</strong> New Players, Server Rules, Apply to Join and Game Clients (existing text and link addresses). Older resource records and full backup export are not yet implemented here.</p>
   </section>
   <section class="panel" aria-labelledby="edit-title">
     <h2 id="edit-title">2. Edit your page</h2>
@@ -63,8 +63,29 @@
     <h2 id="page-title">New Players</h2>
     <div id="fields"></div>
   </section>
+  <section class="panel" aria-labelledby="nav-title-heading">
+    <h2 id="nav-title-heading">3. Edit sidebar navigation</h2>
+    <p>Change the wording and Warcraft icons for the <strong>three newer menu entries</strong>.
+       Their links and page addresses stay fixed, so navigation cannot be accidentally redirected.</p>
+    <label for="nav-page">Choose menu entry</label>
+    <select id="nav-page"></select>
+    <div class="grid" style="margin-top:16px">
+      <div><label for="nav-label">Menu label</label><input id="nav-label" type="text" maxlength="50" disabled></div>
+      <div><label for="nav-title">Page heading / tooltip</label><input id="nav-title" type="text" maxlength="90" disabled></div>
+    </div>
+    <div style="margin-top:14px">
+      <label for="nav-intro">Page introduction</label>
+      <textarea id="nav-intro" rows="3" maxlength="280" disabled></textarea>
+    </div>
+    <div style="margin-top:14px">
+      <label for="nav-icon">Warcraft icon filename</label>
+      <input id="nav-icon" type="text" maxlength="90" placeholder="inv_misc_book_09.jpg" disabled>
+      <p class="hint">Enter an existing WoW icon filename ending in .jpg, not a website link.
+      The editor will reject unsafe icon names before exporting.</p>
+    </div>
+  </section>
   <section class="panel" aria-labelledby="save-title">
-    <h2 id="save-title">3. Save locally or export changes</h2>
+    <h2 id="save-title">4. Save locally or export changes</h2>
     <p>These actions download files to your computer. Neither action publishes to GitHub.</p>
     <div class="actions">
       <button id="save-draft" type="button" disabled>Save Draft (.json)</button>
@@ -72,7 +93,7 @@
       <button id="export-changes" type="button" disabled>Export Changed Files (.zip)</button>
       <input id="draft-file" type="file" accept=".json,application/json" hidden>
     </div>
-    <p class="hint">A saved draft contains just your edits and the fingerprints of the original four files. Keep it private until reviewed. The changed-files ZIP preserves GitHub folder paths and includes a manifest and review instructions.</p>
+    <p class="hint">A saved draft contains just your edits and the fingerprints of the original four HTML files and navigation JSON. Keep it private until reviewed. The changed-files ZIP preserves GitHub folder paths and includes a manifest and review instructions.</p>
     <p class="hint">For a pristine recovery copy, use the separate <a href="https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/tree/backup/pristine-pre-editor-redesign-2026-11-05" target="_blank" rel="noopener noreferrer">preserved GitHub backup branch</a>. A full repository backup is different from this changed-files export.</p>
   </section>
 </main>
