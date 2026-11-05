@@ -6,6 +6,7 @@
 const fs=require('node:fs');
 const path=require('node:path');
 const {inspectSource,MAIN_BASELINE_BLOB_SHA}=require('./inspect-legacy.cjs');
+const {enclosingParts,property}=require('./audit-legacy-shape.cjs');
 
 const KNOWN_TOP_KEYS=new Set([
   'resources','categories','sections','classes','dungeons','raids',
@@ -124,6 +125,7 @@ function inspectJsonInitializer(bytes){
     nestedArgumentKind:null,nestedArgumentLeadingCharCode:null,nestedIdentifierCharCount:null,
     nestedIsWindowProperty:false,nestedNextSymbolClass:null,nestedAssignmentCandidates:null,
     nestedAssignmentValueClass:null,
+    nestedAssignmentsBeforeData:null,nestedAssignmentKinds:{},nestedStaticLiteralSummaries:[],
     resourceRecordsVerified:false,
     note:'Candidate arrays and ID counts require gameplay/editor relationship verification. Values and identifiers are never printed.'};
   const source=bytes.toString('utf8');
@@ -173,22 +175,43 @@ function inspectJsonInitializer(bytes){
             source[afterId]==='('?'call':
             source.slice(afterId,afterId+2)==='||'?'logicalOr':'otherExpression';
           if(report.nestedIsWindowProperty){
-            let matches=0, found=-1;
+            let matches=0, before=0;
             for(let x=source.indexOf(full); x!==-1; x=source.indexOf(full,x+full.length)){
               const afterName=space(source,x+full.length);
-              if(source[afterName]==='=' && source[afterName+1]!=='=' && source[afterName+1]!=='>'){
-                matches++;found=afterName+1;
-              }
-            }
-            report.nestedAssignmentCandidates=matches;
-            if(matches===1){
-              const p=space(source,found);
-              report.nestedAssignmentValueClass=source[p]==='{'?'objectLiteral':
+              if(source[afterName]!=='=' || source[afterName+1]==='=' || source[afterName+1]==='>')continue;
+              matches++;if(x<start)before++;
+              const p=space(source,afterName+1);
+              const valClass=source[p]==='{'?'objectLiteral':
                 source[p]==='['?'arrayLiteral':
                 source[p]==='"'||source[p]==="'"?'quotedString':
                 source[p]===String.fromCharCode(96)?'templateLiteral':
                 source[p]==='('?'parenthesized':'expression';
+              report.nestedAssignmentKinds[valClass]=(report.nestedAssignmentKinds[valClass]||0)+1;
+              if(valClass==='objectLiteral'||valClass==='arrayLiteral'){
+                try{
+                  const parts=enclosingParts(source,p);
+                  const summary={kind:valClass,directMembers:parts.segments.length,
+                    beforeDataAssignment:x<start};
+                  if(valClass==='objectLiteral'){
+                    let known=0,unknown=0,unparsed=0;
+                    for(const range of parts.segments){
+                      const field=property(source,range);
+                      if(!field.key)unparsed++;
+                      else if(KNOWN_TOP_KEYS.has(field.key))known++;else unknown++;
+                    }
+                    summary.allowedKeyCount=known;summary.unknownKeyCount=unknown;
+                    summary.unparsedKeyCount=unparsed;
+                  }
+                  if(report.nestedStaticLiteralSummaries.length<6)
+                    report.nestedStaticLiteralSummaries.push(summary);
+                }catch(_){report.nestedAssignmentKinds.unparsedLiteral=
+                  (report.nestedAssignmentKinds.unparsedLiteral||0)+1;}
+              }
             }
+            report.nestedAssignmentCandidates=matches;
+            report.nestedAssignmentsBeforeData=before;
+            if(matches===1)
+              report.nestedAssignmentValueClass=Object.keys(report.nestedAssignmentKinds)[0]||null;
           }
         }
       }
