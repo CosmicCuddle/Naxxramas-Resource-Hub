@@ -1,6 +1,6 @@
 # Game Clients — implementation and review record
 
-**Repository status (4 November 2026):** The Game Clients guide was merged into `main` through [PR #52](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/pull/52). That confirms repository integration, **not** independent verification of live GitHub Pages deployment or administrator editing. No private Naxxramas realm address, realmlist contents or login details belong here.
+**Repository status (4 November 2026):** The Game Clients guide was merged into `main` through [PR #52](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/pull/52). A separate read-only GitHub Pages browser check subsequently passed on 5 November 2026, confirming the public guide rendered. Actual administrator sign-in/editing remains unverified. No private Naxxramas realm address, realmlist contents or login details belong here.
 
 ## Download and Set Up Your Game Client
 
@@ -96,7 +96,7 @@ Launch **Wow.exe**, not an automatic updater, and follow the privately supplied 
 
 1. **ChromieCraft is the main listed download option.** Confirm the actual 3.3.5a build 12340 archive and Naxxramas patch compatibility before labelling any downloaded client tested. **Eternion is deferred by the owner and must not appear as a public choice.**
 2. **Warmane archive page download succeeded in the owner's hands.** The owner visually confirmed the login version appeared correct for **WotLK 3.3.5a (12340)**; this is not an independent hash/content or Naxxramas compatibility check. The outdated outage badge is removed. The Wayback copy may become unavailable independently of Warmane.
-3. **Visual review approved by the owner.** Still verify that the public GitHub Pages site loads the merged Game Clients guide, including desktop/mobile navigation and direct links, and confirm actual administrator editing without changing live content during the check.
+3. **Visual review approved by the owner.** The public GitHub Pages site passed an additional read-only headless-browser check of the rendered guide, two approved cards, original admin-control presence and direct download links on 5 November 2026 ([Actions #41940877068](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/41940877068)). Actual administrator sign-in/editing still needs a separate no-save test; neither archived client integrity nor player login has been validated.
 4. **Recovery point verified:** [`backup/pre-game-clients-pr52-2026-11-04-main-7739adb`](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/tree/backup/pre-game-clients-pr52-2026-11-04-main-7739adb) matches pre-merge commit `7739adb`. Any further merge/publication requires a separate owner decision. Never release a realmlist, realm address, passwords or third-party client binaries.
 
 ### Deferred research only — not a public download option
