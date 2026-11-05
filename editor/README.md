@@ -70,6 +70,11 @@ These are **not** production migration, full browser equivalence, or permission 
 
 See docs/EDITOR-RESOURCE-FILES-DESIGN.md for the proposed eventual GitHub folder layout, stability rules and release gates.
 
+**Part 08 data-consumer safety checks:** All 29 side records remain separate from the 414 main resources. An aggregate-only lexical scan classified 13 possible direct accesses to the side collection (two known mutator-call patterns, one shallow member assignment, ten other accesses) and 31 to the main resources. These are code-pattern candidates only, not evidence of executed write paths. In-memory synthetic title edits of the first and last resources leave the full original source outside the resources array unchanged and preserve the code-access candidate counts. [GitHub editor run 42047159391](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42047159391) passed 78/78 tests.
+
+The candidate audit tool can be run locally with \`node editor/tools/audit-side-consumers.cjs\`. It prints counts only; it does not log original resource names, IDs, URLs, script text or fields. This audit is **not** a usable original-resource editor or a substitute for manual visitor/admin browser testing.
+
+
 
 ## Original large website audit (read-only)
 
