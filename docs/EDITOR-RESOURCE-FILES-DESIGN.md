@@ -136,6 +136,18 @@ A second private tool, `editor/tools/rehearse-mixed-update.cjs`, now tests **sta
 
 **Still blocked:** The existing page draft format intentionally declares `sourceCommitVerified:false`. Although the planner verifies the exact current checkout, it **cannot retrospectively prove which Git commit a previously downloaded browser draft originated from**. It marks `draftBoundToExactCommit:false` until a future editor-draft version explicitly binds a reviewed commit, with checks for conflicts before any GitHub-ready export. Resource migration also needs owner approval, a retained full-Git-backup and compatibility/browser tests. None of the combined plan data is publishable or deployable.
 
+## Commit-bound draft review receipts — implemented safety gate
+
+The combined planner previously checked the **current** source commit but could not retain a durable association between an exported draft and a reviewed Git checkout. The new `editor/tools/bind-editor-drafts.cjs` supplies that *review-time* association.
+
+A reviewer explicitly selects the **full Git commit SHA**. After independently confirming a clean Git checkout and the exact selected commit, the tool validates all existing page/navigation edits against their original file hashes and scanner positions, verifies v2 resource edits via the lossless candidate source-tree build and rollback, and computes an immutable-content **review receipt**. It includes SHA-256 fingerprints for the exact draft JSON values, the checked Git commit/tree, whole tracked repository snapshot, five original page/navigation sources plus the complete pinned original resource source, and changed-path hashes. It never embeds original text, resource IDs or entire HTML.
+
+Later receipt validation **recomputes the whole plan** at the originally specified Git commit. It refuses altered draft values, stale commits and modified receipts. The separate local `editor/tools/create-draft-review-receipt.cjs` command can save a new `.review.json` outside the repository with restrictive permissions; it refuses overwrite and unapproved paths and does not generate a site package.
+
+**Provenance boundary:** The browser's v3/v2 drafts are still *untrusted authoring inputs*. They do not record a verified Git HEAD. A SHA-256 receipt is **not** a digital signature, so it does **not** prove who authored an edit or when. `boundAtReview:true` means “these exact draft contents match this exact reviewed checkout now,” **not** “these edits were written at this commit.” Its flags remain `authoredAtThisCommitProven:false`, `cryptographicallySigned:false`, `githubReady:false`, `publishable:false`, `deployable:false` and `approvedByOwner:false`.
+
+This clears a **review-time conflict-detection prerequisite**, not the resource migration or production release. Original files and draft-only combined ZIP handling remain unchanged. A final update package still requires the owner-approved resource tree, verified generated compatibility file, retained recovery package, explicit diff and owner sign-off.
+
 ## Proposed long-term source layout
 
 A possible future repository layout, only after tests and owner approval:
