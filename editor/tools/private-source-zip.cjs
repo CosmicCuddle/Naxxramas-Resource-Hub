@@ -23,6 +23,7 @@ function allowedPath(name,allowed){
   return typeof name==='string'&&name.length>0&&name.length<240&&
     /^[A-Za-z0-9._/-]+$/.test(name)&&
     !name.startsWith('/')&&!name.includes('\\')&&
+    name!=='index.html'&&name!=='site-content.html'&&
     !name.endsWith('/')&&!name.split('/').some(x=>!x||x==='.'||x==='..')&&
     allowed instanceof Set&&allowed.has(name);
 }
