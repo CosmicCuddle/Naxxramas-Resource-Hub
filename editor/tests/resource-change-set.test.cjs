@@ -91,6 +91,25 @@ test('the recorded fragment path and checksum cannot be forged',async()=>{
   }),/manifest entry invalid/);
   assert.equal(fs.existsSync(temporary),false);
 });
+test('a duplicate or omitted changed-path manifest row fails even if the staged fragments are correct',async()=>{
+  const plan=await planChangeSet(original,edits);
+  assert.throws(()=>withTemporaryPackage(original,root=>{
+    for(const [index,value] of plan.fragments)
+      fs.writeFileSync(path.join(root,resourcePath(index)),value,'utf8');
+    plan.manifest.changes[2]={...plan.manifest.changes[1]};
+    verifyStagedPackage(root,original,edits,plan);
+  }),/Duplicate changed resource manifest entry/);
+});
+test('a resource draft changed after staging fails even if its requested fields are unchanged',async()=>{
+  const plan=await planChangeSet(original,edits);
+  const altered=draft(edits.changes.map(x=>({...x})));
+  altered.changes[1].content='Different, not approved text.';
+  assert.throws(()=>withTemporaryPackage(original,root=>{
+    for(const [index,value] of plan.fragments)
+      fs.writeFileSync(path.join(root,resourcePath(index)),value,'utf8');
+    verifyStagedPackage(root,original,altered,plan);
+  }),/no longer matches requested/);
+});
 test('wrong source hash, malformed draft and invalid value stop before staging anything',async()=>{
   await assert.rejects(planChangeSet(Buffer.concat([original,Buffer.from('x')]),edits),/hash mismatch/);
   await assert.rejects(planChangeSet(original,draft([])),/No resource/);
