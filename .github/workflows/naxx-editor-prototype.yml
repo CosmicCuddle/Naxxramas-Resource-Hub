@@ -44,3 +44,5 @@ jobs:
         run: node editor/tools/audit-resource-schema.cjs
       - name: Audit inline image preservation without exporting media
         run: node editor/tools/audit-legacy-media.cjs
+      - name: Rehearse 414 separate resource files and delete temporary package
+        run: node editor/tools/rehearse-resource-files.cjs
