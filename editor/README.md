@@ -70,7 +70,11 @@ To run locally from the repository root:
 
 These tests cover ZIP paths, hashes and CRC; edits against the actual content fragments; the Game Clients loader and fallback; navigation JSON loading and fallback; protection of the small root loader; exact-SHA-verified original resource parsing; resource-title draft validation; and simulated title-panel button interactions.
 
-**Browser-level visual testing, form behaviour, complete ZIP extraction and real publishing are not confirmed by Node tests.** Manual testing is required before any merge.
+**Real-browser smoke:** The protected editor workflow also runs `node editor/tools/browser-smoke-title-draft.cjs` in a fresh headless Chrome profile against a localhost-only server. [Run 42051908181](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42051908181) passed: it loaded all 414 verified resources, applied one title edit, downloaded and restored the JSON draft, and refused an incorrect source file while retaining the edit. The original source, public website, external application form and GitHub repository were not modified. The temporary download/profile was deleted.
+
+**Still outstanding:** owner's manual visual/keyboard review of this new resource panel in Edge/Chrome, full resource-content editing, a combined safe draft format, reviewed GitHub-ready changed-fragment exports, complete restore verification and all normal visitor/admin website compatibility gates.
+
+**The new resource-title flow has one automated Chrome smoke pass.** This is not a full visual/accessibility review, normal website admin acceptance, application submission test, or evidence that publishing works. Manual acceptance and additional export/recovery tests remain required before any merge.
 
 **Legacy source-preservation milestones (read-only):** The original 414 resource fragments were separated and reassembled entirely in memory, reproducing the exact 30,976,969-byte original source and its SHA-256 hash. A separate aggregate audit checked all 414 decoded IDs (no duplicates in the original literals), seven distinct section values, 41 distinct class-association labels and 13,821 occurrences of additional fields outside the audit's limited allowlist. A media audit found 95 embedded image references representing 71 distinct payloads. All original image headers passed; none of their markers are inside the resource array.
 
