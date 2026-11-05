@@ -169,7 +169,30 @@ The 414 object literals were inspected without evaluating their source. All have
 | Additional property occurrences outside the approved audit allowlist | 13,821 |
 | Image markers inside resource fragments | 0 |
 
-The 41 distinct class-association values are **not** 41 playable character classes. Their exact meaning and relationship to navigation/progression remain under review. All 414 content values are string literals, but these may embed structured HTML or other custom content: do not flatten them into plain text.
+The 41 distinct class-association values are **not** 41 playable character classes. Their exact meaning and relationship to navigation/progression remain under review. All 414 content values are string literals. A subsequent content-field audit found **no HTML-like tags** in these original strings and confirmed multiline text; runtime formatting and display handling still require functional verification.
+
+## Multiline resource content audit and draft milestone
+
+An exact-baseline, aggregate-only scan of the **414 original `content` fields** found:
+
+| Protected content finding | Verified |
+| --- | ---: |
+| Original content string fields | 414 |
+| Empty values | 121 |
+| Values containing line breaks | 288 |
+| Values with HTML-like tags | 0 |
+| Values with unsafe control characters | 0 |
+| Maximum decoded characters in one value | 19,165 |
+| Maximum UTF-8 bytes in one value | 21,425 |
+| Total decoded UTF-8 bytes | 592,081 |
+
+All values are source string literals and were decoded without running the original JavaScript. The audit does not output original content, URLs or IDs. **No HTML-like tags** is not proof of the runtime rendering method, Markdown handling or that all future text is safe.
+
+The private local editor now stages changes to **titles and multiline plain-text content** in a separate `naxx-local-resource-draft-v2` JSON download (positions, changed values and exact original source SHA-256 only). It accepts older title-only `naxx-local-resource-title-draft-v1` imports. Newly edited content may contain blank lines and can intentionally be empty (explicit confirmation required before clearing original nonempty text), but HTML brackets and unsafe control characters are prohibited; maximum 30,000 characters. IDs, class associations, custom properties and source scripts remain uneditable.
+
+[Editor CI run 42054557700](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42054557700) passed **108/108 tests** and a **real local Chrome** title/content draft round trip. A separate in-memory content-edit rehearsal verified that exactly **413 other resource objects**, every pre/post-resource script, the independent 29-item collection, embedded images, separators, styles and all other source bytes stayed unchanged. It did **not** publish or produce an owner-editable archive.
+
+**Not yet verified:** final visitor/admin HTML rendering and formatting, changed-fragment GitHub export, an editable manifest accepted by a production builder, full-source backup/recovery, or browser visual/accessibility acceptance by the owner. Keep the original complete source and the pristine backup branch untouched.
 
 ## Embedded image baseline
 
@@ -210,6 +233,8 @@ Run from a complete repository checkout:
     node editor/tools/audit-legacy-json.cjs
     node editor/tools/check-legacy-roundtrip.cjs
     node editor/tools/audit-resource-schema.cjs
+    node editor/tools/audit-resource-content.cjs
+    node editor/tools/rehearse-content-edit.cjs
     node editor/tools/audit-side-collection.cjs
     node editor/tools/audit-side-nested.cjs
     node editor/tools/audit-side-usage.cjs
