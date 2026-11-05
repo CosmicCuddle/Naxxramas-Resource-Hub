@@ -372,7 +372,13 @@
       say(err.message, true);
     }
   });
-  $('page').addEventListener('change', function () { activePath = this.value; showFields(); setButtons(); });
+  $('page').addEventListener('change', function () {
+    activePath = this.value;
+    $('preview-wrap').hidden = true;
+    $('preview-frame').removeAttribute('srcdoc');
+    showFields();
+    setButtons();
+  });
   $('search').addEventListener('input', showFields);
   $('show-changed-only').addEventListener('change', showFields);
   $('save-draft').addEventListener('click', function () {
