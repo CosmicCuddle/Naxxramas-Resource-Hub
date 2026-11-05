@@ -146,6 +146,14 @@ The read-only in-memory splitter now locates the pre-clone window object, isolat
 
 This establishes that source fragments can be separated and reassembled in memory **without loss**. It does **not** prove that new separately stored files have been created, that a modified resource can be safely published, or that the browser/site logic is functionally equivalent after changing how data loads.
 
+### Private resource-title draft screen (development-only)
+
+The title-only panel in \`editor/index.html\` now accepts a user-selected original 30,976,969-byte \`site-content.html\`, computes SHA-256 in the browser, refuses a changed/unverified baseline and lexically lists all 414 original resources. It does **not** execute original website JavaScript, change the source file, or expose a GitHub publishing action. Edit scope is **titles only**; custom fields, original resource content, side collections and embedded images remain read-only.
+
+The separate \`naxx-local-resource-title-draft-v1\` download contains only changed title positions and the exact source fingerprint. Import is verified against the same baseline, with strict duplicate/index/key/text validation. The existing page/navigation editor has its own separate save/export system; the resource-title draft is not a GitHub-ready archive.
+
+[Editor test run 42050830392](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42050830392) passed **94/94 tests**, including component-level resource title controls and malformed draft rejection. **Manual browser acceptance, actual changed-resource export, full-site restore and a verified runtime compatibility test are still outstanding.** No original website file or public GitHub page was altered.
+
 ## Field and association audit
 
 The 414 object literals were inspected without evaluating their source. All have an id, title, section, classes and content field. All 414 id values are ordinary decodable source strings and are distinct after decoding; none are repeated. These findings concern the **original literal** only, not every potential runtime mutation.
