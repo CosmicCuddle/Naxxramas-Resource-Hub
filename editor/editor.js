@@ -16,7 +16,9 @@
     'apply/content.html': 'Apply to Join',
     'game-clients/content.html': 'Game Clients'
   };
+  var NAV_PATH = 'content/navigation.json';
   var state = new Map();
+  var navState = null;
   var activePath = PATHS[0];
   var $ = function (id) { return document.getElementById(id); };
   var status = $('status');
@@ -132,17 +134,52 @@
   function editedFields(page) {
     return page.runs.filter(function (run) { return page.edits.has(run.id); });
   }
+  function validateNavigation(doc) {
+    var slugs = ['new-players', 'rules', 'apply'];
+    if (!doc || doc.format !== 'naxx-navigation-v1' || !Array.isArray(doc.pages) ||
+        doc.pages.length !== slugs.length) throw new Error('Unrecognised navigation data.');
+    doc.pages.forEach(function (p, i) {
+      if (!p || p.slug !== slugs[i] || p.group !== 'General') throw new Error('Navigation routes and group cannot change.');
+      ['label', 'title', 'intro'].forEach(function (field) {
+        var v = p[field], max = field === 'intro' ? 280 : field === 'title' ? 90 : 50;
+        if (typeof v !== 'string' || !v.trim() || v.length > max || /[\x00-\x1f\x7f]/.test(v)) {
+          throw new Error('Invalid ' + field + ' for ' + p.slug + '.');
+        }
+      });
+      if (typeof p.icon !== 'string' || p.icon.length > 90 || !/^[a-z0-9_]+\.jpg$/i.test(p.icon)) {
+        throw new Error('Icon must be an existing WoW icon JPG filename, not a URL.');
+      }
+    });
+    return doc;
+  }
+  function navEditCount() {
+    if (!navState) return 0;
+    return navState.current.pages.reduce(function (total, p, i) {
+      return total + ['label', 'title', 'intro', 'icon'].filter(function (field) {
+        return p[field] !== navState.original.pages[i][field];
+      }).length;
+    }, 0);
+  }
+  function showNavigation() {
+    var index = Number($('nav-page').value || 0), p = navState && navState.current.pages[index];
+    ['label', 'title', 'intro', 'icon'].forEach(function (field) {
+      var input = $('nav-' + field);
+      input.disabled = !p;
+      input.value = p ? p[field] : '';
+    });
+  }
   function hasChanges() {
-    return Array.from(state.values()).some(function (page) { return editedFields(page).length > 0; });
+    return navEditCount() > 0 ||
+      Array.from(state.values()).some(function (page) { return editedFields(page).length > 0; });
   }
   function setButtons() {
     var ready = state.size > 0;
     $('save-draft').disabled = !ready || !hasChanges();
     $('export-changes').disabled = !ready || !hasChanges();
     $('load-draft').disabled = !ready;
-    $('changed-count').textContent = Array.from(state.values()).reduce(function (total, page) {
+    $('changed-count').textContent = (navEditCount() + Array.from(state.values()).reduce(function (total, page) {
       return total + editedFields(page).length;
-    }, 0) + ' edits not yet exported';
+    }, 0)) + ' edits not yet exported';
   }
   function showFields() {
     fields.replaceChildren();
@@ -213,9 +250,13 @@
           matches.set(path, file);
         }
       });
+      if (relative === NAV_PATH || relative.endsWith('/' + NAV_PATH)) {
+        if (matches.has(NAV_PATH)) throw new Error('Found multiple navigation.json files.');
+        matches.set(NAV_PATH, file);
+      }
     }
-    if (matches.size !== PATHS.length) {
-      throw new Error('The chosen folder must include the content.html files for New Players, Rules, Apply and Game Clients.');
+    if (matches.size !== PATHS.length + 1) {
+      throw new Error('The folder must include the four HTML pages AND content/navigation.json.');
     }
     var next = new Map();
     for (var j = 0; j < PATHS.length; j++) {
@@ -226,10 +267,18 @@
       if (runs.length < 10) throw new Error(path + ' does not look like the expected HTML page.');
       next.set(path, { source: source, hash: await NaxxEditorZip.sha256(source), runs: runs, edits: new Map() });
     }
+    var navSource = await matches.get(NAV_PATH).text();
+    if (navSource.length > 64000) throw new Error('Navigation configuration is unexpectedly large.');
+    var nav = validateNavigation(JSON.parse(navSource));
+    navState = {
+      source: navSource, hash: await NaxxEditorZip.sha256(navSource),
+      original: nav, current: JSON.parse(JSON.stringify(nav))
+    };
     state = next;
     showFields();
+    showNavigation();
     setButtons();
-    say('Three local pages loaded. Changes stay in this browser session until you explicitly save a draft or export.');
+    say('Four HTML pages and navigation loaded locally. Nothing has been published.');
   }
   function draftData() {
     return {
@@ -285,7 +334,9 @@
       await importFolder(filePicker.files);
     } catch (err) {
       state = new Map();
+      navState = null;
       showFields();
+      showNavigation();
       setButtons();
       say(err.message, true);
     }
