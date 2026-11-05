@@ -1,0 +1,29 @@
+{
+  "format": "naxx-navigation-v1",
+  "pages": [
+    {
+      "slug": "new-players",
+      "label": "New Players",
+      "title": "New Player Guide",
+      "group": "General",
+      "icon": "inv_misc_book_09.jpg",
+      "intro": "Getting started with Individual Progression, the client, addons and group play."
+    },
+    {
+      "slug": "rules",
+      "label": "Server Rules",
+      "title": "Server Rules",
+      "group": "General",
+      "icon": "inv_misc_note_05.jpg",
+      "intro": "Community expectations, fair play, loot rules and enforcement."
+    },
+    {
+      "slug": "apply",
+      "label": "Apply to Join",
+      "title": "Apply to Join Naxxramas",
+      "group": "General",
+      "icon": "inv_misc_key_03.jpg",
+      "intro": "Download, complete and privately submit an application to join Naxxramas."
+    }
+  ]
+}
