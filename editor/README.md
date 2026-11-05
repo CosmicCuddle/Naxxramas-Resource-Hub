@@ -60,6 +60,16 @@ These tests cover ZIP paths, hashes and CRC; edits against the actual content fr
 
 **Browser-level visual testing, form behaviour, complete ZIP extraction and real publishing are not confirmed by Node tests.** Manual testing is required before any merge.
 
+## Original large website audit (read-only)
+
+Before any migration of the large original site file, run this from the repository root:
+
+    node editor/tools/inspect-legacy.cjs
+
+This reads only the local site-content.html file and prints its byte length, hashes and limited structural marker totals. The reported resource record count is deliberately null because counting marker text is **not** proof of a complete resource inventory. No source text, application information, passwords, addresses or image content is printed, and no files are rewritten.
+
+The editor CI workflow runs this aggregate-only inventory on its complete GitHub checkout. Do not proceed with a data split until we have a trustworthy complete record of IDs, categories, class/dungeon associations, embedded images and overlay dependencies. Existing original resource DATA and all custom features must remain unchanged until separately reviewed.
+
 ## Remaining development
 
 1. Test the local preview and all revert buttons in Edge/Chrome on a disposable copy, including draft restore, ZIP validation, icons and keyboard access.
