@@ -77,6 +77,17 @@ test('changed private archive rejects any altered content, filename or extra pat
   wrong.write('x',at,'utf8');
   assert.throws(()=>decode(wrong,archivePaths()),/path|offset|central|filename|checksum|canonical/i);
 });
+test('an otherwise valid ZIP with a rewritten privacy warning is rejected',async()=>{
+  const originalArchive=await createArchive(original,null);
+  const parsed=decode(originalArchive.bytes,archivePaths());
+  const altered=parsed.entries.map(entry=>entry.name===README ?
+    {name:entry.name,bytes:Buffer.from('PRIVATE REVIEW ONLY\nunsafe edited instructions\n','utf8')} :
+    entry);
+  // A new ZIP with recalculated CRCs must still fail exact notice validation.
+  const recreated=encode(altered,archivePaths());
+  assert.equal(decode(recreated,archivePaths()).entryCount,419);
+  await assert.rejects(verifyArchive(recreated,original,null),/altered private source confidentiality warning/);
+});
 test('stale source and draft are rejected before any archive creation',async()=>{
   await assert.rejects(createArchive(Buffer.concat([original,Buffer.from('x')]),draft),
     /exact original|SHA/i);
