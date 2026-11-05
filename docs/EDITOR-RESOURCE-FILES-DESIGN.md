@@ -97,6 +97,18 @@ The read-only `editor/tools/audit-full-checkout.cjs` enumerates the **complete G
 **Required approval before migration:** Keep the current generated `site-content.html` serving visitors while the candidate source tree is tested. Review repository size and total duplication, ensure the full tracked checkout plus any relevant private configuration can be restored from a separate backup, and test the generated output in a disposable environment. Only then decide whether to commit `content/legacy/` or combine it with the page/navigation changed-files exporter. Do not silently overwrite the published compatibility file.
 
 
+## Private review ZIP — local-only packaging and independent verification
+
+The candidate 418-file source tree can now be packaged by a **local-only** Node command in `editor/tools/package-private-resource-tree.cjs`. The archive contains **419 files**: the 414 resource fragments, three original layout fragments, the candidate checksum manifest and a prominent `PRIVATE-REVIEW-ONLY-READ-ME-FIRST.txt` warning.
+
+The exporter is deliberately **not part of the webpage's GitHub-ready changed-files ZIP**. It has its own allowlist and a deterministic, uncompressed ZIP/STORE encoder. Verification checks ZIP entry names, duplicates, CRC32, uncompressed sizes, central/local-directory agreement and canonical bytes; it refuses unexpected paths and outright forbids the root `index.html` loader and generated `site-content.html`.
+
+Before any local output is accepted, an **independent extraction into a second private OS temporary folder** rechecks all candidate resource/layout checksums, rebuilds the complete original or deliberately edited website source byte-for-byte and performs a rollback to the pinned original SHA-256. Temporary verification directories are deleted after success or failure.
+
+The optional manual command requires an explicit **absolute output path outside the repository**, with an existing private parent folder; it exclusively creates the file with restrictive permissions and refuses to overwrite an existing archive. A pinned `naxx-local-resource-draft-v2` may be supplied separately to inspect approved title/content changes. It does not upload anything or publish GitHub files.
+
+**Security boundary:** This ZIP includes the full original website resource data, not merely the changed resource fields. It must remain private. **Do not commit it, upload it to a public GitHub branch, attach it to CI artifacts, or serve it from GitHub Pages.** It is not a complete backup of the entire repository, has no Git history or external app state, and does not replace the current website's compatibility file. The final decision on committing separately managed resource files and the duplicated ~31 MB remains with CosmicCuddle.
+
 ## Proposed long-term source layout
 
 A possible future repository layout, only after tests and owner approval:
