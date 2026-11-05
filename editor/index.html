@@ -49,8 +49,8 @@
     <p>Download and extract the <strong>development branch</strong> of your Resource Hub, then open this <code>editor/index.html</code> file in Microsoft Edge or Google Chrome.</p>
     <label for="folder">Choose the extracted Naxxramas-Resource-Hub folder</label>
     <input id="folder" type="file" webkitdirectory multiple aria-describedby="folder-help">
-    <p id="folder-help" class="hint">This reads only three HTML pages from your chosen folder. It does not upload, overwrite or publish anything.</p>
-    <p class="notice"><strong>First-stage coverage:</strong> New Players, Server Rules and Apply to Join (existing text and link addresses). Game Clients, menu icons, old resource records and full backup export are not yet implemented here.</p>
+    <p id="folder-help" class="hint">This reads only four HTML page files from your chosen folder. It does not upload, overwrite or publish anything.</p>
+    <p class="notice"><strong>First-stage coverage:</strong> New Players, Server Rules, Apply to Join and Game Clients (existing text and link addresses). Menu icons, old resource records and full backup export are not yet implemented here.</p>
   </section>
   <section class="panel" aria-labelledby="edit-title">
     <h2 id="edit-title">2. Edit your page</h2>
@@ -72,7 +72,7 @@
       <button id="export-changes" type="button" disabled>Export Changed Files (.zip)</button>
       <input id="draft-file" type="file" accept=".json,application/json" hidden>
     </div>
-    <p class="hint">A saved draft contains just your edits and the fingerprints of the original three files. Keep it private until reviewed. The changed-files ZIP preserves GitHub folder paths and includes a manifest and review instructions.</p>
+    <p class="hint">A saved draft contains just your edits and the fingerprints of the original four files. Keep it private until reviewed. The changed-files ZIP preserves GitHub folder paths and includes a manifest and review instructions.</p>
     <p class="hint">For a pristine recovery copy, use the separate <a href="https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/tree/backup/pristine-pre-editor-redesign-2026-11-05" target="_blank" rel="noopener noreferrer">preserved GitHub backup branch</a>. A full repository backup is different from this changed-files export.</p>
   </section>
 </main>
