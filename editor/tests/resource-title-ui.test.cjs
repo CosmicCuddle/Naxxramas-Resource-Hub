@@ -11,7 +11,7 @@ const engine=require('../resource-title-core.js');
 
 test('resource-title screen is a separate offline draft panel, without an upload or publish action',()=>{
   for(const id of ['resource-source-file','resource-status','resource-controls',
-    'resource-search','resource-choice','resource-title-edit','resource-save-draft',
+    'resource-search','resource-choice','resource-title-edit','resource-content-edit','resource-save-draft',
     'resource-load-draft','resource-draft-file','resource-clear','resource-revert',
     'resource-apply','resource-count','resource-result-count','resource-selected-caption'])
     assert.match(html,new RegExp('id="'+id+'"'));
@@ -42,7 +42,7 @@ function harness(){
   }
   const ids=[
     'resource-source-file','resource-draft-file','resource-search','resource-choice',
-    'resource-title-edit','resource-controls','resource-status',
+    'resource-title-edit','resource-content-edit','resource-controls','resource-status',
     'resource-apply','resource-revert','resource-save-draft','resource-load-draft',
     'resource-clear','resource-count','resource-result-count','resource-selected-caption'
   ];
@@ -52,7 +52,8 @@ function harness(){
   const document={getElementById(id){return nodes.get(id)||null;},
     createElement(type){return node(type);},body};
   const resources=Array.from({length:414},(_,index)=>({
-    index,id:'test-'+index,title:'Resource '+index,section:'Test Section'
+    index,id:'test-'+index,title:'Resource '+index,section:'Test Section',
+    content:'Original content '+index+'\nSecond line'
   }));
   const verified={baselineSha256:engine.BASE_SHA,resources};
   const core={...engine,open:async()=>verified};
@@ -82,9 +83,10 @@ test('a verified source populates resource controls and exports just changed-tit
   assert.match(get('resource-count').textContent,/1 title edits/);
   get('resource-save-draft').listeners.click();
   assert.equal(h.downloads.length,1);
-  assert.equal(h.downloads[0].filename,'naxxramas-resource-title-draft.json');
+  assert.equal(h.downloads[0].filename,'naxxramas-resource-draft.json');
   const json=JSON.parse(await h.urls.blob.text());
   assert.equal(json.baselineSha256,engine.BASE_SHA);
+  assert.equal(json.format,'naxx-local-resource-draft-v2');
   assert.deepEqual(json.changes,[{index:0,title:'New Sample Title'}]);
   assert.equal(json.content,undefined);
   assert.equal(json.resources,undefined);
@@ -162,4 +164,52 @@ test('import mismatch after a verified source never discards existing title edit
   assert.match(get('resource-status').textContent,/Source hash mismatch/);
   assert.match(get('resource-count').textContent,/1 title edits/);
   assert.equal(get('resource-title-edit').value,'Kept Title');
+});
+
+
+test('multiline content changes export in v2 and preserve the original title',async()=>{
+  const h=harness(),get=id=>h.nodes.get(id);
+  get('resource-source-file').files=[{
+    name:'site-content.html',size:engine.BASE_LENGTH,text:async()=>'<verified>'
+  }];
+  await get('resource-source-file').listeners.change();
+  assert.equal(get('resource-content-edit').value,'Original content 0\nSecond line');
+  get('resource-content-edit').value='First edited paragraph.\n\nSecond edited paragraph.';
+  get('resource-apply').listeners.click();
+  assert.match(get('resource-count').textContent,/1 content edits/);
+  assert.match(get('resource-count').textContent,/0 title edits/);
+  get('resource-save-draft').listeners.click();
+  const json=JSON.parse(await h.urls.blob.text());
+  assert.equal(json.format,'naxx-local-resource-draft-v2');
+  assert.deepEqual(json.changes,[{
+    index:0,content:'First edited paragraph.\n\nSecond edited paragraph.'
+  }]);
+  assert.ok(!Object.hasOwn(json.changes[0],'title'));
+  get('resource-draft-file').files=[{size:512,text:async()=>JSON.stringify(json)}];
+  await get('resource-draft-file').listeners.change();
+  assert.equal(get('resource-content-edit').value,'First edited paragraph.\n\nSecond edited paragraph.');
+});
+test('clearing existing content requires confirmation, but originally empty resources can remain empty',async()=>{
+  const h=harness(),get=id=>h.nodes.get(id);
+  get('resource-source-file').files=[{name:'site-content.html',size:engine.BASE_LENGTH,text:async()=>'<verified>'}];
+  await get('resource-source-file').listeners.change();
+  get('resource-content-edit').value='';
+  h.window.confirm=()=>false;
+  get('resource-apply').listeners.click();
+  assert.match(get('resource-count').textContent,/0 content edits/);
+  h.window.confirm=()=>true;
+  get('resource-apply').listeners.click();
+  assert.match(get('resource-count').textContent,/1 content edits/);
+  get('resource-save-draft').listeners.click();
+  const data=JSON.parse(await h.urls.blob.text());
+  assert.deepEqual(data.changes,[{index:0,content:''}]);
+});
+test('HTML-like markup cannot be inserted into resource content drafts',async()=>{
+  const h=harness(),get=id=>h.nodes.get(id);
+  get('resource-source-file').files=[{name:'site-content.html',size:engine.BASE_LENGTH,text:async()=>'<verified>'}];
+  await get('resource-source-file').listeners.change();
+  get('resource-content-edit').value='<script>alert(1)</script>';
+  get('resource-apply').listeners.click();
+  assert.match(get('resource-status').textContent,/Content must be plain text/);
+  assert.match(get('resource-count').textContent,/0 content edits/);
 });
