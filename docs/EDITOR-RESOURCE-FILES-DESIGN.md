@@ -38,6 +38,23 @@ The temporary tool refuses to accept missing, altered, or swapped fragments. It 
 
 GitHub Actions has verified the byte-exact reconstruction from **414 separately written temporary files** and deletes the temporary folder afterward. This proves reversible packaging of the original, unchanged source. It is **not yet a user-facing export or GitHub-ready collection**.
 
+## Multi-resource changed-fragment staging — protected development milestone
+
+A new read-only-to-production test tool, `editor/tools/rehearse-resource-change-set.cjs`, now accepts the exact pinned original `site-content.html` and a **v2 resource draft**. It validates the complete original SHA-256 fingerprint and all 414 records, checks the draft against the verified original titles/content, and generates a **deterministic in-memory changed-fragment manifest**.
+
+The manifest records:
+
+- Each of the 414 **original and staged** fragment SHA-256 hashes, with stable position indexes rather than identifiers drawn from resource content.
+- Only genuinely changed paths under the **temporary** `resources/0001.fragment` through `resources/0414.fragment` layout; which approved fields changed (`title`, `content`, or both).
+- The unchanged prefix, suffix and all 415 separator checksums, the original source SHA-256, and the expected fully reconstructed source hash and byte length.
+- Explicit flags `publishable:false`, `githubReady:false`, `deployable:false`. The manifest contains **no source text, private resource IDs, titles or content**.
+
+The tool first reconstructs the original package to prove the baseline matches. It then edits **only the selected files** in a private OS temporary directory, verifies every staged file against its checksum and intended title/content update, checks 414 index positions and the untouched layout, and rebuilds the expected complete HTML bytes. The original immutable manifest must reject the changed fragments; the development-only changed manifest validates only the intended edits. Test directories are removed even on failure.
+
+Regression tests cover simultaneous first/middle/last resource changes, title and content in the same object, deterministic results, altered fragments, unrelated file changes, duplicate/forged paths, changed drafts after staging, unsafe values, and wrong baseline fingerprints. No editor source file, output archive or GitHub repository file is written by this test.
+
+**Still not authorised:** These temporary paths are **not yet the final GitHub paths**. A real migration to `content/legacy/resources/` requires complete repository-tree backup and recovery verification, changed source/version conflict handling, review of duplication/size, a publishable deterministic compatibility builder, visitor/admin acceptance, and CosmicCuddle's explicit approval. The existing review ZIP remains a *draft-only* package and should not be installed.
+
 ## Proposed long-term source layout
 
 A possible future repository layout, only after tests and owner approval:
