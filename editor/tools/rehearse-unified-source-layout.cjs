@@ -85,7 +85,9 @@ function sparseInventory(root,expected){
 function verifyAssembled(root,source,resourcePlan,pagePlan,expectedPreview){
   const expected=new Set([...expectedPaths(),...TRACKED]);
   const count=sparseInventory(root,expected);
-  const split=splitInMemory(source);
+  if(!source||typeof source.root!=='string'||!Buffer.isBuffer(source.bytes))
+    throw Error('Verified original source descriptor missing.');
+  const split=splitInMemory(source.bytes);
   const manifest=JSON.parse(readFile(root,MANIFEST).toString('utf8'));
   if(manifest.resources?.length!==414||
      manifest.changedPaths?.length!==resourcePlan.fragments.size||
@@ -208,7 +210,7 @@ async function rehearseUnified(root,drafts,receipt,pageZip,resourceZip){
     const reviewedPreview=resourceFiles.get(RESOURCE_PREVIEW);
     if(!reviewedPreview)throw Error('Missing reviewed full compatibility preview.');
     writeFile(temp,'site-content.html',reviewedPreview,true);
-    staged=verifyAssembled(temp,{root},resources,pages,resources.expected);
+    staged=verifyAssembled(temp,{root,bytes:original},resources,pages,resources.expected);
     rolledBack=restoreOriginal(temp,originals);
     if(!rolledBack.originalTrackedFilesByteExact||
        !rolledBack.originalResourceSourceRestored||
