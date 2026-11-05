@@ -46,3 +46,5 @@ jobs:
         run: node editor/tools/audit-legacy-media.cjs
       - name: Rehearse 414 separate resource files and delete temporary package
         run: node editor/tools/rehearse-resource-files.cjs
+      - name: Verify one safe resource-title edit leaves 413 others untouched
+        run: node editor/tools/rehearse-title-edit.cjs
