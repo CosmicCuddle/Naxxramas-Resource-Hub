@@ -64,6 +64,12 @@ These tests cover ZIP paths, hashes and CRC; edits against the actual content fr
 
 These are **not** production migration, full browser equivalence, or permission to delete repeated images. All original structures and values remain untouched. Detailed results and remaining gates: docs/EDITOR-LEGACY-DATA-INVENTORY.md.
 
+**Separate-file rehearsal:** The CI now writes 414 independent resource fragments, the exact prefix and suffix, a separator layout file and a checksum manifest into a **private temporary directory**. It reads the files back, rebuilds the original website byte-for-byte, rejects missing/altered/swapped fragments, verifies the output hash and removes the temporary directory. Nothing is committed or uploaded.
+
+**Single-resource editing experiment:** A controlled change to one synthetic resource title in memory preserved the other 413 records exactly and left source content outside the resource array unchanged. This is not a working resource editor and is not an approved production edit.
+
+See docs/EDITOR-RESOURCE-FILES-DESIGN.md for the proposed eventual GitHub folder layout, stability rules and release gates.
+
 
 ## Original large website audit (read-only)
 
