@@ -111,6 +111,18 @@ The optional manual command requires an explicit **absolute output path outside 
 
 [Editor CI run 42066172796](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42066172796) passed **142/142 automated tests**, including 419-entry private source ZIP creation, archive path/CRC checks, two-stage extraction/reconstruction, byte-exact rollback, invalid source/draft refusal, replacement of the confidentiality notice, external-path-only output, no overwrites and cleanup of disposable working files. These tests verify packaging and recoverability of **candidate resource data**, not GitHub deployment or complete repository recovery.
 
+## Git-history restore prerequisite — separate from the resource archive
+
+The earlier **127-file tracked checkout inventory** was a source-snapshot preflight, **not** a Git backup. The editor branch now has a dedicated Git history/recovery layer, separated from the 419-entry resource review ZIP.
+
+`editor/tools/rehearse-full-git-recovery.cjs` refuses shallow or partial clones, dirty/untracked/ignored files, symlinks/submodules and Git LFS pointers. It generates a private temporary `git bundle` with all **locally fetched refs** plus `HEAD`, then independently restores a bare mirror and detached working checkout. It proves the restored HEAD commit, root tree, tracked-file hashes/bytes, local refs and reachable Git commit count match the input. The bundle and restore folders are deleted after testing.
+
+The optional `editor/tools/create-local-git-backup.cjs` creates a durable **local** Git bundle only when a person explicitly passes an absolute private `--output` path outside the repository. It refuses overwrite or symlink-alias paths, verifies the saved archive by **another independent restore**, and writes a private receipt and recoverability instructions using restrictive permissions. A dedicated full-depth CI job runs the saved-bundle procedure only within an OS temporary directory, immediately deletes all outputs, and publishes no artifact.
+
+**Important exclusions:** A locally fetched Git bundle is a backup of Git objects and refs represented in that checkout—not a backup of GitHub-hosted Issues or PR discussions, settings, secrets, Pages deployment state, external forms/services, server databases, unknown remote refs never fetched or reflog-only objects. Untracked/ignored files, Git LFS pointers, submodules and partial/shallow clones are refused rather than silently assumed covered. Git history may itself contain confidential content; keep any locally saved bundle private.
+
+**Decision gate before adopting independently editable resources:** Make and independently retain an owner-approved, verified backup for the Git repository plus any other relevant private systems, review the ~31 MB additional resource-data duplication, then test a *non-production* rebuild and rollback. This implementation does not merge, publish, commit a source-tree migration or authorise deployment.
+
 ## Proposed long-term source layout
 
 A possible future repository layout, only after tests and owner approval:
