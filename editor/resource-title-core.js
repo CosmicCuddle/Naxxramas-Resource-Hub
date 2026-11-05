@@ -181,7 +181,9 @@
   }
   function resourceDraft(titles,contents,model){
     if(!model||model.baselineSha256!==BASE_SHA||!Array.isArray(model.resources)||
-       model.resources.length!==COUNT||!(titles instanceof Map)||!(contents instanceof Map))
+       model.resources.length!==COUNT||!titles||!contents||
+       typeof titles.keys!=='function'||typeof titles.has!=='function'||typeof titles.get!=='function'||
+       typeof contents.keys!=='function'||typeof contents.has!=='function'||typeof contents.get!=='function')
       throw Error('Verified source and both edit collections are required.');
     var indices=new Set([...titles.keys(),...contents.keys()]);
     var edits=[];
