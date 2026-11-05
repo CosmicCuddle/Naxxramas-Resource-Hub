@@ -277,6 +277,21 @@ A forged ZIP with valid ZIP CRCs, a ZIP from a different review of the **same Gi
 
 The command prints **only hashes, counts and review status**. It creates **no new package or backup**, writes no Git files, and makes no online call. Two matching archives are a **complete offline review pair only**, **not a merged GitHub-ready file tree or deployable website**. The resource directory is still a proposal, and a separately retained backup, preview tests and CosmicCuddle's explicit approval remain required.
 
+## Unified sparse 425-file source-layout rehearsal — no installation
+
+The next protected milestone is `editor/tools/rehearse-unified-source-layout.cjs`. It does **not** change the current browser editor, download a full client, or create a deployable source ZIP.
+
+Given two **already reviewed private ZIPs**, their exact v3 page draft, v2 resource draft and one verified Git-commit receipt, it:
+
+1. Revalidates the ZIP pair against the same clean Git commit, including exact ZIP bytes and source hashes.
+2. Creates a **private OS temporary directory** and stages **actual ZIP entries**, not only re-created test values, into a proposed sparse source tree: **418** resource-source files under `content/legacy/`, **four** page `content.html` files, `content/navigation.json`, the original root `index.html`, and a **generated** `site-content.html` for this test only (**425 total files**).
+3. Checks the resource manifest, all 414 resource fragments, the unchanged prefix/suffix/separators, four page HTML files, navigation JSON and original root loader. It reconstructs the complete compatibility website **from the staged fragments** and compares it byte-for-byte with the full preview contained in the verified resource ZIP.
+4. Restores all **seven original tracked files** exactly, removes the candidate resource directory, checks that the workspace contains no extra files, deletes the entire temporary directory, and rechecks the actual Git checkout commit and tracked-file fingerprint.
+
+The staging folder is intentionally **sparse**: it is **not a complete website checkout** and does not include every image, script, asset or browser dependency. Passing this check proves file layout, reconstruction and rollback consistency, **not** website runtime behaviour or production readiness.
+
+There is no CLI that permanently writes this layout, and no GitHub Actions artifact contains the 31 MB generated source. Approval to commit `content/legacy/`, retain a final Git backup, choose a storage strategy, verify a real browser preview and deploy must come separately from CosmicCuddle. All current outputs remain `candidateOnly:true`, `githubReady:false`, `publishable:false` and `deployable:false`.
+
 ## Remaining development
 
 1. Test the local preview and all revert buttons in Edge/Chrome on a disposable copy, including draft restore, ZIP validation, icons and keyboard access.
