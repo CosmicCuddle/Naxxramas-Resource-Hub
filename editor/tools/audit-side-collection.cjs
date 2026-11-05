@@ -63,8 +63,9 @@ function summarizeSideCollection(source,arrayBegin) {
     unexpectedValueTypes:unknownFieldTypes
   };
 }
-function audit(bytes) {
-  // Verifies the entire original source against its known Git object fingerprint.
+function findSideCollection(bytes) {
+  // Uses only the exact verified source; exposes source to local in-process audits,
+  // never in their aggregate reports or in stdout.
   const {source}=findSourceArray(bytes);
   const cloneMatches=[...source.matchAll(/\b(?:const|let|var)\s+DATA\s*=\s*JSON\s*\.\s*parse\s*\(\s*JSON\s*\.\s*stringify\s*\(\s*(window\s*\.\s*[A-Za-z_$][\w$]*)\s*\)\s*\)/g)];
   if (cloneMatches.length!==1) throw new Error('Original DATA clone not uniquely identified.');
@@ -90,7 +91,11 @@ function audit(bytes) {
   const side=collections.filter(x=>x.count===29);
   if (side.length!==1||side[0].memberIndex!==17)
     throw new Error('Expected exactly one 29-object side collection in the verified baseline.');
-  const summary=summarizeSideCollection(source,side[0].begin);
+  return {source, arrayBegin:side[0].begin, directRootMembers:root.segments.length, arrayMemberIndex:side[0].memberIndex};
+}
+function audit(bytes) {
+  const found=findSideCollection(bytes);
+  const summary=summarizeSideCollection(found.source,found.arrayBegin);
   if (summary.recordCount!==29||summary.nameFields!==29||summary.idFields!==0)
     throw new Error('Original 29-item collection contract changed.');
   return {
@@ -98,8 +103,8 @@ function audit(bytes) {
     originalSourceVerified:true,
     readOnly:true,
     sourceCodeExecuted:false,
-    directRootMembers:root.segments.length,
-    arrayMemberIndex:side[0].memberIndex,
+    directRootMembers:found.directRootMembers,
+    arrayMemberIndex:found.arrayMemberIndex,
     ...summary,
     valuesOrNamesEmitted:false,
     note:'Syntactic shape only; purpose, references and runtime behaviour still unverified.'
@@ -114,4 +119,4 @@ if (require.main===module) {
     process.exitCode=1;
   }
 }
-module.exports={audit,summarizeSideCollection,literalString};
+module.exports={audit,findSideCollection,summarizeSideCollection,literalString};
