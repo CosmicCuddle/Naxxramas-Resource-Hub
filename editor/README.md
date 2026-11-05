@@ -27,7 +27,7 @@ The newer-menu script reads metadata from content/navigation.json. It retains or
 3. Open editor/index.html with Microsoft Edge or Google Chrome on your computer.
 4. In the editor, choose the extracted Resource Hub folder.
 5. Use the page search/edit controls or the separate navigation editor.
-6. Press Preview Current Page to inspect a simplified offline rendering of your edits. Press Revert Page Edits or Revert Navigation Edits to discard only that area; Revert All Unexported Edits discards all local edits after confirmation.
+6. Use Show only fields I have changed for a shorter review. Press Preview Current Page to inspect a simplified offline rendering of your edits. Press Revert Page Edits or Revert Navigation Edits to discard only that area; Revert All Unexported Edits discards all local edits after confirmation.
 7. Save Draft downloads a JSON file. Export Changed Files downloads only changed content paths, a SHA-256 manifest and review instructions.
 
 The editor only reads local user-selected files; it neither overwrites them nor uploads or publishes changes. Its preview is a **simplified visual approximation**, not the full website. A sandboxed iframe with a restrictive Content Security Policy excludes external images, clickable links, scripts, videos, and the application iframe. It cannot submit real applications. Do not treat the preview as proof that the public page will look or behave identically. The website's Game Clients and menu scripts separately fetch public same-origin content when a visitor loads the site.
@@ -43,7 +43,7 @@ The editor only reads local user-selected files; it neither overwrites them nor 
 - Navigation changes are limited to approved text/icon fields; existing slugs, links and grouping are fixed. Icon names must be existing WoW JPG filenames, not URLs.
 - Browser folder selection uses webkitdirectory. Edge and Chrome are the intended browsers; all browser versions have not been tested.
 - No authentication, private online publishing, rich-text formatting, new download cards, image uploading, full site backups, layout editing, or editing of the original 31 MB resource DATA yet.
-- Revert buttons discard local unsaved edits after explicit confirmation; they do not change files on disk. Preview does not auto-refresh while typing—press Preview Current Page again after editing.
+- Revert buttons discard local edits after explicit confirmation; they do not change files on disk. An invalid folder import preserves your existing work; selecting a different valid folder first asks whether you wish to discard current edits. Preview does not auto-refresh while typing—press Preview Current Page again after editing.
 - The local editor should remain privately distributed. A public GitHub Pages UI lock cannot protect confidential admin operations.
 - To preserve a full copy, separately use the untouched GitHub backup branch and download the complete repository ZIP.
 - Do not put applications, passwords, account information, private realm addresses or proprietary WoW game binaries into public content.
