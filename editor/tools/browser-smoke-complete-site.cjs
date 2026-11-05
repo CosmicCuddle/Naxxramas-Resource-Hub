@@ -199,8 +199,14 @@ async function inspectBrowser(site,work){
         return;
       }
       if(x.method==='Network.responseReceived'){
-        if(!permittedRequest(x.params.response.url,
-          x.params.response.requestHeaders?.[':method']||'GET',origin))
+        // data:/blob:/about: are self-contained browser resources, not
+        // network responses. Count any real HTTP(S) reply from another
+        // origin, and any unexpected file: reply, as a release-blocker.
+        const responseUrl=x.params.response.url;
+        let parsed;
+        try{parsed=new URL(responseUrl);}catch(_){metrics.nonLocalResponses++;return;}
+        if(['http:','https:','file:'].includes(parsed.protocol)&&
+           parsed.origin!==origin)
           metrics.nonLocalResponses++;
       }
       if(x.method==='Fetch.requestPaused'){
