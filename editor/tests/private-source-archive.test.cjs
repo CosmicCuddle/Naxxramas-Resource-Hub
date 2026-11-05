@@ -30,7 +30,7 @@ test('private source ZIP includes all 418 exact candidate files, readme and no d
   assert.equal(packageData.report.exactReconstruction,true);
   assert.equal(packageData.report.exactRollback,true);
   assert.equal(packageData.report.changedFragments,3);
-  assert.ok(packageData.report.archiveBytes>30*1024*1024);
+  assert.ok(packageData.report.archiveBytes>30_000_000);
   const parsed=decode(packageData.bytes,archivePaths());
   assert.equal(parsed.entryCount,419);
   assert.equal(new Set(parsed.entries.map(e=>e.name)).size,419);
@@ -75,7 +75,7 @@ test('changed private archive rejects any altered content, filename or extra pat
   const at=wrong.indexOf(Buffer.from('content/legacy/resources/0001.fragment'));
   assert.ok(at>=0);
   wrong.write('x',at,'utf8');
-  assert.throws(()=>decode(wrong,archivePaths()),/path|offset|central|filename/i);
+  assert.throws(()=>decode(wrong,archivePaths()),/path|offset|central|filename|checksum|canonical/i);
 });
 test('stale source and draft are rejected before any archive creation',async()=>{
   await assert.rejects(createArchive(Buffer.concat([original,Buffer.from('x')]),draft),
