@@ -68,6 +68,11 @@ These are **not** production migration, full browser equivalence, or permission 
 
 **Single-resource editing experiment:** A controlled change to one synthetic resource title in memory preserved the other 413 records exactly and left source content outside the resource array unchanged. This is not a working resource editor and is not an approved production edit.
 
+**Single edited fragment on disk (temporary test only):** A second rehearsal now changes a controlled title in one of the 414 individual resource fragment files, then validates the assembled full site against the expected in-memory source. The other 413 fragments, the original scripts, images, the separate 29-record collection and all other content outside the main resources are unchanged. The immutable original manifest properly rejects the altered fragment, and the temporary files are deleted. [Editor checks run 42047956345](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42047956345) passed **83/83 tests**. Run from an original complete checkout with \`node editor/tools/rehearse-edited-resource-files.cjs\`.
+
+This test **does not** save an edited file to the repository or provide a user-facing resource editing screen. Changed-file export, approved edited manifests, actual browser validation and safe GitHub publication remain separate future tasks.
+
+
 See docs/EDITOR-RESOURCE-FILES-DESIGN.md for the proposed eventual GitHub folder layout, stability rules and release gates.
 
 **Part 08 data-consumer safety checks:** All 29 side records remain separate from the 414 main resources. An aggregate-only lexical scan classified 13 possible direct accesses to the side collection (two known mutator-call patterns, one shallow member assignment, ten other accesses) and 31 to the main resources. These are code-pattern candidates only, not evidence of executed write paths. In-memory synthetic title edits of the first and last resources leave the full original source outside the resources array unchanged and preserve the code-access candidate counts. [GitHub editor run 42047159391](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42047159391) passed 78/78 tests.
