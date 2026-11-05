@@ -159,6 +159,22 @@ This reads only the local site-content.html file and prints its byte length, has
 
 The editor CI workflow runs this aggregate-only inventory on its complete GitHub checkout. Do not proceed with a data split until we have a trustworthy complete record of IDs, categories, class/dungeon associations, embedded images and overlay dependencies. Existing original resource DATA and all custom features must remain unchanged until separately reviewed.
 
+## Private source-tree ZIP (offline-only candidate, not a website patch)
+
+The new `editor/tools/package-private-resource-tree.cjs` can build a **private ZIP containing 419 files**: all 418 proposed `content/legacy/` source-tree files and a `PRIVATE-REVIEW-ONLY-READ-ME-FIRST.txt` notice. It accepts the pinned original `site-content.html`, and optionally a verified `naxx-local-resource-draft-v2` JSON file. It never imports arbitrary resource IDs into paths.
+
+The ZIP is **uncompressed** so the complete original source can be verified byte-for-byte. The writer checks a strict path allowlist, ZIP local/central directories and CRC32. It then **independently extracts the package into a different private temporary folder**, verifies all 414 resource hashes, reconstructs the intended full website, and rolls back to the original SHA-256 before approving the bytes. No ZIP from this tool is uploaded to CI artifacts or GitHub releases.
+
+For later **explicit local use**, from a full reviewed repository checkout:
+
+```bash
+node editor/tools/package-private-resource-tree.cjs --output "/absolute/private/path/Naxxramas-Resource-Review.zip"
+```
+
+To stage a v2 resource draft locally, add `--draft "/absolute/private/path/naxxramas-resource-draft.json"` to that command. The output folder must already exist and must be **outside the repository**, including outside symlinked aliases. The tool creates a new file with restrictive permissions, refuses overwrites and rejects invalid source/draft input. **Do not run it on a public/shared computer or publish the resulting ZIP.** It contains real source data.
+
+This is **not** a complete repository backup, GitHub-ready changed-files archive, deployable website, replacement `site-content.html` or permission to migrate to the 418-file layout. A later implementation must independently validate a whole-repository recovery package and decide how to maintain a generated compatibility website.
+
 ## Remaining development
 
 1. Test the local preview and all revert buttons in Edge/Chrome on a disposable copy, including draft restore, ZIP validation, icons and keyboard access.
