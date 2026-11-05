@@ -138,8 +138,10 @@
     var slugs = ['new-players', 'rules', 'apply'];
     if (!doc || doc.format !== 'naxx-navigation-v1' || !Array.isArray(doc.pages) ||
         doc.pages.length !== slugs.length) throw new Error('Unrecognised navigation data.');
+    if (Object.keys(doc).sort().join(',') !== 'format,pages') throw new Error('Unexpected navigation metadata.');
     doc.pages.forEach(function (p, i) {
       if (!p || p.slug !== slugs[i] || p.group !== 'General') throw new Error('Navigation routes and group cannot change.');
+      if (Object.keys(p).sort().join(',') !== 'group,icon,intro,label,slug,title') throw new Error('Unexpected navigation fields.');
       ['label', 'title', 'intro'].forEach(function (field) {
         var v = p[field], max = field === 'intro' ? 280 : field === 'title' ? 90 : 50;
         if (typeof v !== 'string' || !v.trim() || v.length > max || /[\x00-\x1f\x7f]/.test(v)) {
@@ -398,6 +400,7 @@
           };
         })
       };
+      if (replacements.size !== PATHS.length) throw new Error('Draft has missing or duplicate page edits.');
       PATHS.forEach(function (path) { state.get(path).edits = replacements.get(path); });
       navState.current = restoredNav;
       showFields();
