@@ -34,3 +34,5 @@ jobs:
         run: node --test editor/tests/*.test.cjs
       - name: Read-only inventory of original website file
         run: node editor/tools/inspect-legacy.cjs
+      - name: Read-only lexical audit of legacy DATA shape
+        run: node editor/tools/audit-legacy-shape.cjs
