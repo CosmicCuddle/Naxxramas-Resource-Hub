@@ -21,6 +21,38 @@
   var path = location.pathname.replace(/\/+$/,"/"), active = pages.find(function(p){
     return path === new URL(p.slug+"/",root).pathname;
   });
+  function validNavPage(p, original) {
+    function text(s, limit) {
+      return typeof s === "string" && s.length > 0 && s.length <= limit &&
+        !/[\x00-\x1f\x7f]/.test(s);
+    }
+    return p && p.slug === original.slug && p.group === "General" &&
+      text(p.label, 50) && text(p.title, 90) && text(p.intro, 280) &&
+      typeof p.icon === "string" && /^[a-z0-9_]+\.jpg$/i.test(p.icon) &&
+      p.icon.length <= 90;
+  }
+  function loadNavigationSettings() {
+    fetch(new URL("content/navigation.json", root), { cache: "default" })
+      .then(function(res) {
+        if(!res.ok) throw new Error("Navigation metadata unavailable");
+        return res.json();
+      })
+      .then(function(doc) {
+        if(!doc || doc.format !== "naxx-navigation-v1" ||
+           !Array.isArray(doc.pages) || doc.pages.length !== pages.length ||
+           !doc.pages.every(function(p, i){return validNavPage(p,pages[i]);})) {
+          throw new Error("Unrecognised navigation configuration");
+        }
+        pages = doc.pages;
+        active = pages.find(function(p){return path === new URL(p.slug+"/",root).pathname;});
+        syncNavigation();
+        refreshGuideChrome();
+      })
+      .catch(function(err) {
+        // Use original, verified labels and icons if the optional JSON fails.
+        if(window.console) console.error("Naxxramas navigation: using built-in fallback",err);
+      });
+  }
   function pageUrl(p){return new URL(p.slug+"/",root).href;}
   function makeLink(example,p) {
     var button = example.cloneNode(true);
@@ -55,6 +87,16 @@
     });
     return button;
   }
+  function refreshNavLink(item, page) {
+    if(item.getAttribute("title") !== page.title) item.setAttribute("title", page.title);
+    var label = item.querySelector(".nav-button-main > span:last-child");
+    if(label && label.textContent !== page.label) label.textContent = page.label;
+    var icon = item.querySelector(".nav-icon img");
+    if(icon) {
+      var wanted = "https://wow.zamimg.com/images/wow/icons/large/" + page.icon;
+      if(icon.src !== wanted) icon.src = wanted;
+    }
+  }
   function syncNavigation(){
     ["mainNav","mobileNav"].forEach(function(id){
       var nav=document.getElementById(id);
@@ -70,6 +112,7 @@
         } else if (item.previousElementSibling!==last) {
           last.insertAdjacentElement("afterend",item);
         }
+        refreshNavLink(item,page);
         last=item;
       });
       // The original HTML snapshot may mark Change Notes active by default.
@@ -230,4 +273,5 @@
     }
   });
   window.addEventListener("pageshow",mount);
+  loadNavigationSettings();
 })();
