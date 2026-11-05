@@ -360,16 +360,22 @@
   }
 
   filePicker.addEventListener('change', async function () {
+    if (hasChanges() && !window.confirm(
+      'Load a different folder and discard your current local edits? Save Draft first if needed.'
+    )) {
+      filePicker.value = '';
+      say('Folder change cancelled. Your current edits are still here.');
+      return;
+    }
     try {
       say('Reading the selected local folder…');
       await importFolder(filePicker.files);
     } catch (err) {
-      state = new Map();
-      navState = null;
-      showFields();
-      showNavigation();
+      // Import runs in a temporary map; a failed folder selection must not
+      // discard an already loaded page collection or its unsaved edits.
+      filePicker.value = '';
       setButtons();
-      say(err.message, true);
+      say('Folder not loaded: ' + err.message + ' Existing editor content was kept.', true);
     }
   });
   $('page').addEventListener('change', function () {
