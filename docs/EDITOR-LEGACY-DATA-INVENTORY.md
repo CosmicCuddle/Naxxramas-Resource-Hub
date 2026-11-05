@@ -152,7 +152,7 @@ The title-only panel in \`editor/index.html\` now accepts a user-selected origin
 
 The separate \`naxx-local-resource-title-draft-v1\` download contains only changed title positions and the exact source fingerprint. Import is verified against the same baseline, with strict duplicate/index/key/text validation. The existing page/navigation editor has its own separate save/export system; the resource-title draft is not a GitHub-ready archive.
 
-[Editor test run 42050830392](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42050830392) passed **94/94 tests**, including component-level resource title controls and malformed draft rejection. **Manual browser acceptance, actual changed-resource export, full-site restore and a verified runtime compatibility test are still outstanding.** No original website file or public GitHub page was altered.
+[Editor test run 42050830392](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42050830392) passed **94/94 tests**, including component-level resource title controls and malformed draft rejection. The separate [Chrome functional smoke run 42051908181](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42051908181) passed end-to-end local source loading, a safe title edit, JSON draft download/restore and wrong-source refusal, without modifying the original site. **Owner manual visual/accessibility acceptance, actual changed-resource export, full-site restore and visitor/admin runtime compatibility remain outstanding.** No original website file or public GitHub page was altered.
 
 ## Field and association audit
 
