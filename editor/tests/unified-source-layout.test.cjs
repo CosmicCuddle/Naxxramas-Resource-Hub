@@ -122,3 +122,50 @@ test('candidate-only migration guard refuses a previously adopted resource folde
       /proposed resource source-tree path already exists/);
   }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });
+
+const {trackedPaths,safeTrackedSource,rehearseCompleteSnapshot}=
+  require('../tools/rehearse-complete-site-snapshot.cjs');
+test('complete private site snapshot preserves every unchanged tracked asset while staging reviewed page and resource changes',async()=>{
+  const x=await inputs();
+  const report=await rehearseCompleteSnapshot(
+    root,x.d,x.receipt,x.pages.bytes,x.resources.bytes);
+  assert.equal(report.format,'naxx-private-complete-site-snapshot-rehearsal-v1');
+  assert.equal(report.reviewedGitCommit,gitHead());
+  assert.equal(report.originalTrackedFiles,trackedPaths(root).length);
+  assert.equal(report.sourceTreeFiles,418);
+  assert.equal(report.completeTemporaryFileCount,report.originalTrackedFiles+418);
+  assert.equal(report.changedExistingFiles,3);
+  assert.equal(report.unchangedTrackedFilesByteExact,report.originalTrackedFiles-3);
+  assert.equal(report.changedResourceFragments,2);
+  assert.equal(report.completeResourceCompatibilitySha256,
+    x.receipt.proposedGeneratedSiteSha256);
+  assert.equal(report.allOriginalTrackedFilesCopied,true);
+  assert.equal(report.completeSourceRebuildExact,true);
+  assert.equal(report.originalLoaderByteExact,true);
+  assert.equal(report.temporaryPreviewDeleted,true);
+  assert.equal(report.realGitCheckoutUnchanged,true);
+  assert.equal(report.browserTested,false);
+  assert.equal(report.activeFormsOrExternalRequests,false);
+  assert.equal(report.repositoryFilesWritten,0);
+  assert.equal(report.githubReady,false);
+  assert.equal(report.deployable,false);
+  assert.equal(report.ownerApproved,false);
+});
+test('full-site source copy refuses unsafe paths and filesystem symlinks',()=>{
+  assert.throws(()=>safeTrackedSource(root,'../private'),/Unsafe source path/);
+  assert.throws(()=>safeTrackedSource(root,'content/../site-content.html'),/Unsafe source path/);
+  if(process.platform==='win32')return;
+  const temp=fs.mkdtempSync(path.join(os.tmpdir(),'naxx-preview-source-guard-'));
+  try{
+    fs.mkdirSync(path.join(temp,'real'));
+    fs.writeFileSync(path.join(temp,'real','data.txt'),'safe fixture');
+    fs.symlinkSync(path.join(temp,'real','data.txt'),path.join(temp,'linked.txt'));
+    fs.symlinkSync(path.join(temp,'real'),path.join(temp,'linked-dir'));
+    assert.throws(()=>safeTrackedSource(temp,'linked.txt'),
+      /Expected regular tracked website file/);
+    assert.throws(()=>safeTrackedSource(temp,'linked-dir/data.txt'),
+      /Unsafe source parent directory/);
+    assert.equal(fs.readFileSync(safeTrackedSource(temp,'real/data.txt'),'utf8'),
+      'safe fixture');
+  }finally{fs.rmSync(temp,{recursive:true,force:true});}
+});
