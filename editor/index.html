@@ -26,6 +26,9 @@
   .actions {display:flex;flex-wrap:wrap;gap:12px;margin:16px 0}
   .field {border:1px solid #4c4032;padding:14px;border-radius:10px;margin:12px 0}
   .field.edited {border-color:var(--focus)}
+  .preview-frame {width:100%;height:560px;border:1px solid #aa8b60;border-radius:10px;background:#100e0d}
+  .preview-wrap {margin-top:16px}
+  .preview-wrap[hidden] {display:none}
   .field label {font-size:.93rem}
   .grid {display:grid;grid-template-columns:1fr 1fr;gap:16px}
   .status {padding:12px 14px;border-left:4px solid #6db8ab;background:#191f1d;margin:12px 0}
@@ -36,6 +39,7 @@
   @media (max-width:720px) {.grid {grid-template-columns:1fr} main {padding:14px} .panel {padding:14px}}
 </style>
 <script defer src="export-zip.js"></script>
+<script defer src="preview.js"></script>
 <script defer src="editor.js"></script>
 </head>
 <body>
@@ -62,6 +66,16 @@
     <div id="status" class="status" role="status" aria-live="polite">No files loaded. Choose your extracted folder above.</div>
     <h2 id="page-title">New Players</h2>
     <div id="fields"></div>
+    <div class="actions">
+      <button id="preview-page" type="button" disabled>Preview Current Page</button>
+      <button id="revert-page" type="button" disabled>Revert Page Edits</button>
+    </div>
+    <div id="preview-wrap" class="preview-wrap" hidden>
+      <h2>Local Page Preview</h2>
+      <p class="hint" id="preview-caption">This is a simplified offline preview, not the full live website.</p>
+      <iframe id="preview-frame" class="preview-frame" sandbox="" referrerpolicy="no-referrer" title="Offline preview of the edited page"></iframe>
+      <p class="hint">Links, images, embedded applications and scripts cannot run in this preview. Nothing is published or sent online.</p>
+    </div>
   </section>
   <section class="panel" aria-labelledby="nav-title-heading">
     <h2 id="nav-title-heading">3. Edit sidebar navigation</h2>
@@ -83,6 +97,7 @@
       <p class="hint">Enter an existing WoW icon filename ending in .jpg, not a website link.
       The editor will reject unsafe icon names before exporting.</p>
     </div>
+    <div class="actions"><button type="button" id="revert-nav" disabled>Revert Navigation Edits</button></div>
   </section>
   <section class="panel" aria-labelledby="save-title">
     <h2 id="save-title">4. Save locally or export changes</h2>
@@ -91,6 +106,7 @@
       <button id="save-draft" type="button" disabled>Save Draft (.json)</button>
       <button id="load-draft" type="button" disabled>Load Saved Draft</button>
       <button id="export-changes" type="button" disabled>Export Changed Files (.zip)</button>
+      <button id="revert-all" type="button" disabled>Revert All Unexported Edits</button>
       <input id="draft-file" type="file" accept=".json,application/json" hidden>
     </div>
     <p class="hint">A saved draft contains just your edits and the fingerprints of the original four HTML files and navigation JSON. Keep it private until reviewed. The changed-files ZIP preserves GitHub folder paths and includes a manifest and review instructions.</p>
