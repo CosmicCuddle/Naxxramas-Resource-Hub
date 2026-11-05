@@ -119,6 +119,8 @@ function inspectJsonInitializer(bytes){
   const report={reportFormat:'naxx-legacy-static-json-v1',sourceGitBlobSha:baseline.gitBlobSha,
     sourceVerified:true,initializerKind:'unknown',staticJsonDecoded:false,
     parsedJson:false,jsonUtf16Length:null,parseFailureClass:null,structure:null,
+    argumentExpressionFamily:null,argumentLeadingCharCode:null,argumentSymbolAfterToken:null,
+    argumentIdentifierCharCount:null,
     resourceRecordsVerified:false,
     note:'Candidate arrays and ID counts require gameplay/editor relationship verification. Values and identifiers are never printed.'};
   const source=bytes.toString('utf8');
@@ -128,6 +130,24 @@ function inspectJsonInitializer(bytes){
   const call=/^JSON\s*\.\s*parse\s*\(/.exec(source.slice(start,start+70));
   if(!call){report.parseFailureClass='notJsonParseCall';return report;}
   let at=space(source,start+call[0].length);
+  report.argumentLeadingCharCode=source.charCodeAt(at);
+  const argumentHead=source.slice(at,at+220);
+  const allowedCalls=[
+    'atob','decodeURIComponent','unescape','JSON.stringify',
+    'document.getElementById','document.querySelector','localStorage.getItem',
+    'String.raw','LZString.decompressFromBase64',
+    'LZString.decompressFromEncodedURIComponent','pako.inflate'
+  ];
+  const id=/^[A-Za-z_$][\w$]*(?:\s*\.\s*[A-Za-z_$][\w$]*)*/.exec(argumentHead);
+  if(id){
+    const key=id[0].replace(/\s/g,'');
+    report.argumentIdentifierCharCount=key.length;
+    report.argumentExpressionFamily=allowedCalls.includes(key)?key:'otherIdentifierExpression';
+    const next=space(source,at+id[0].length);
+    report.argumentSymbolAfterToken=source[next]==='('?'call':
+      source[next]==='['?'index':source[next]==='.'?'property':'other';
+  }else report.argumentExpressionFamily=source[at]==='('?'parenthesized':
+    source[at]==='['?'array':'otherExpression';
   report.initializerKind=source[at]==='"'?'doubleQuoted':source[at]==="'"?'singleQuoted':
     source[at]===String.fromCharCode(96)?'template':'otherExpression';
   const literal=readJsString(source,at);
