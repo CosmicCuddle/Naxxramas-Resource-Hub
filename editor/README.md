@@ -12,7 +12,7 @@ This prototype belongs to the staged editor/save redesign proposed in PR #55.
 - Download a **Changed Files ZIP** containing the changed page files in their exact GitHub paths, a SHA-256 manifest for review, and manual publishing instructions.
 - Save without modifying the selected folder, the GitHub repository or the published site.
 
-Only text and link attribute byte ranges are replaced. Unedited text, HTML structure, CSS classes, IDs, embedded application markup and scripts are left in the original source. Link protocols are validated before export. Edits that unexpectedly alter the number of editable text runs fail closed.
+Only text and link attribute byte ranges are replaced. Unedited text, HTML structure, CSS classes, IDs, embedded application markup and scripts are left in the original source. Link protocols are validated before export. Clearing a field is allowed without removing surrounding HTML tags.
 
 ## How to open the prototype (not a live-site test)
 
@@ -39,9 +39,9 @@ If you change the website files between sessions, load a fresh starting folder. 
 
 Run from the repository root:
 
-    node --test editor/tests/export.test.cjs
+    node --test editor/tests/export.test.cjs editor/tests/pages.test.cjs
 
-Automated tests cover ZIP container structure, stored-file CRC, UTF-8, folder paths, blocked traversal/duplicates, SHA-256, and basic script compilation. **Browser-level edit/draft/export tests have not yet been run**, and no end-to-end deployment test has been performed.
+Automated tests cover ZIP container structure, stored-file CRC, UTF-8, folder paths, blocked traversal/duplicates, SHA-256, basic script compilation and source-preservation checks against the three real page files. **Browser-level edit/draft/export tests have not yet been run**, and no end-to-end deployment test has been performed.
 
 ## Next planned stages
 
