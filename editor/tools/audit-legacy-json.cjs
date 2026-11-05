@@ -4,6 +4,7 @@
  * or output of source strings/record values/IDs/URLs. Requires baseline blob.
  */
 const fs=require('node:fs');
+const crypto=require('node:crypto');
 const path=require('node:path');
 const {inspectSource,MAIN_BASELINE_BLOB_SHA}=require('./inspect-legacy.cjs');
 const {enclosingParts,property}=require('./audit-legacy-shape.cjs');
@@ -112,6 +113,39 @@ function summarizeData(data){
   }
   visit(data,0,'root');
   return report;
+}
+function summarizeLexicalRecordObjects(source,segments){
+  const fields={}, ids=new Set();
+  let objects=0,withId=0,missingId=0,duplicateLiteralIds=0,unknownFields=0;
+  let unparsedFields=0,nonliteralIds=0;
+  for(const item of segments){
+    const p=space(source,item[0]);
+    if(source[p]!=='{')continue;
+    objects++;
+    const group=enclosingParts(source,p);
+    let foundId=false;
+    for(const range of group.segments){
+      const field=property(source,range);
+      if(!field.key){unparsedFields++;continue;}
+      if(RECORD_FIELDS.has(field.key))
+        fields[field.key]=(fields[field.key]||0)+1;
+      else unknownFields++;
+      if(field.key==='id'){
+        foundId=true;
+        const raw=source.slice(space(source,field.valueStart),range[1]).trim();
+        // Only compare literal IDs, not expressions such as new Date() or calls.
+        const literal=/^(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[0-9]+)$/.test(raw);
+        if(!literal||raw.length>1024){nonliteralIds++;continue;}
+        const hash=crypto.createHash('sha256').update(raw).digest('hex');
+        if(ids.has(hash))duplicateLiteralIds++;else ids.add(hash);
+      }
+    }
+    if(foundId)withId++;else missingId++;
+  }
+  return {objectItemsInspected:objects,withIdField:withId,missingIdField:missingId,
+    verifiedLiteralIdUniqueness:false,lexicallyRepeatedIdLiterals:duplicateLiteralIds,
+    uniqueLiteralIdHashes:ids.size,nonliteralIds,knownFieldOccurrences:fields,
+    unknownFieldOccurrences:unknownFields,unparsedFieldOccurrences:unparsedFields};
 }
 function inspectJsonInitializer(bytes){
   const baseline=inspectSource(bytes);
@@ -222,8 +256,10 @@ function inspectJsonInitializer(bytes){
                           else if(first==='"'||first==="'")strings++;
                           else other++;
                         }
+                        const recordShape=objects>0 ? summarizeLexicalRecordObjects(source,child.segments) : null;
                         summary.directArrays.push({memberIndex:idx+1,itemCount:child.segments.length,
-                          objectItems:objects,stringItems:strings,nestedArrayItems:nestedArrays,otherItems:other});
+                          objectItems:objects,stringItems:strings,nestedArrayItems:nestedArrays,otherItems:other,
+                          recordShape});
                         summary.directArrayTotalElements+=child.segments.length;
                       }
                     }
@@ -264,4 +300,4 @@ if(require.main===module){
   try {process.stdout.write(JSON.stringify(inspectJsonInitializer(fs.readFileSync(filename)),null,2)+'\n');}
   catch(_) {process.stderr.write('Static JSON audit stopped safely. Source content was not printed.\n');process.exitCode=1;}
 }
-module.exports={readJsString,summarizeData,inspectJsonInitializer};
+module.exports={readJsString,summarizeData,inspectJsonInitializer,summarizeLexicalRecordObjects};
