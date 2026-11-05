@@ -1,7 +1,8 @@
 'use strict';
 const test=require('node:test');
 const assert=require('node:assert/strict');
-const {readJsString,summarizeData,inspectJsonInitializer}=require('../tools/audit-legacy-json.cjs');
+const {readJsString,summarizeData,inspectJsonInitializer,summarizeLexicalRecordObjects}=require('../tools/audit-legacy-json.cjs');
+const {enclosingParts}=require('../tools/audit-legacy-shape.cjs');
 
 test('safely decodes escaped JSON in a JavaScript single-quoted literal',()=>{
   const sample = "'{\\\"resources\\\":[{\\\"id\\\":1,\\\"title\\\":\\\"Book\\\"}]}'";
@@ -32,4 +33,20 @@ test('aggregates only preapproved key names and counts duplicate/missing IDs',()
 });
 test('baseline guard rejects arbitrary input rather than parsing it',()=>{
   assert.throws(()=>inspectJsonInitializer(Buffer.from('const DATA=JSON.parse("PRIVATE")')));
+});
+
+test('lexical resource schema reports counts without exposing titles or IDs',()=>{
+  const secret='HIDDEN-TITLE-KEEP-PRIVATE';
+  const sample='{resources:[{id:"a",title:"'+secret+'",url:"https://secret.test"},'+
+    '{id:"a",title:"Different"},{title:"No ID"}]}';
+  const root=enclosingParts(sample,0);
+  const values=enclosingParts(sample,sample.indexOf('[',root.segments[0][0]));
+  const report=summarizeLexicalRecordObjects(sample,values.segments);
+  assert.equal(report.objectItemsInspected,3);
+  assert.equal(report.withIdField,2);
+  assert.equal(report.missingIdField,1);
+  assert.equal(report.lexicallyRepeatedIdLiterals,1);
+  assert.equal(report.knownFieldOccurrences.title,3);
+  assert.ok(!JSON.stringify(report).includes(secret));
+  assert.ok(!JSON.stringify(report).includes('secret.test'));
 });
