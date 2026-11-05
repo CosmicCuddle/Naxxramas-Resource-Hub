@@ -132,7 +132,7 @@
     return result;
   }
   function titleValid(v){
-    return typeof v==='string'&&v.length>0&&v.length<=160&&!/[<>\x00-\x1f\x7f]/.test(v);
+    return typeof v==='string'&&v.trim().length>0&&v.length<=160&&!/[<>\x00-\x1f\x7f]/.test(v);
   }
   async function open(source,cryptoObj){
     if(typeof source!=='string'||source.length<1000000)throw Error('Choose the original site-content.html file.');
@@ -174,5 +174,5 @@
     return values;
   }
   return {BASE_SHA:BASE_SHA,BASE_LENGTH:BASE_LENGTH,COUNT:COUNT,open:open,
-    titleValid:titleValid,draft:draft,restore:restore,parseVerified:records};
+    titleValid:titleValid,draft:draft,restore:restore};
 });
