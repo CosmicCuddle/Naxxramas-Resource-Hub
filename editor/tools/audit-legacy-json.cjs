@@ -121,6 +121,7 @@ function inspectJsonInitializer(bytes){
     parsedJson:false,jsonUtf16Length:null,parseFailureClass:null,structure:null,
     argumentExpressionFamily:null,argumentLeadingCharCode:null,argumentSymbolAfterToken:null,
     argumentIdentifierCharCount:null,
+    nestedArgumentKind:null,nestedArgumentLeadingCharCode:null,nestedIdentifierCharCount:null,
     resourceRecordsVerified:false,
     note:'Candidate arrays and ID counts require gameplay/editor relationship verification. Values and identifiers are never printed.'};
   const source=bytes.toString('utf8');
@@ -148,6 +149,25 @@ function inspectJsonInitializer(bytes){
       source[next]==='['?'index':source[next]==='.'?'property':'other';
   }else report.argumentExpressionFamily=source[at]==='('?'parenthesized':
     source[at]==='['?'array':'otherExpression';
+  if(report.argumentExpressionFamily==='JSON.stringify' && report.argumentSymbolAfterToken==='call'){
+    const prefix=/^JSON\s*\.\s*stringify\s*\(/.exec(source.slice(at,at+70));
+    if(prefix){
+      const inner=space(source,at+prefix[0].length);
+      report.nestedArgumentLeadingCharCode=source.charCodeAt(inner);
+      report.nestedArgumentKind=source[inner]==='{'?'objectLiteral':
+        source[inner]==='['?'arrayLiteral':
+        source[inner]==='('?'parenthesized':
+        source[inner]==='"'||source[inner]==="'"?'quotedString':
+        source[inner]===String.fromCharCode(96)?'templateLiteral':'otherExpression';
+      if(report.nestedArgumentKind==='otherExpression'){
+        const id=/^[A-Za-z_$][\w$]*(?:\s*\.\s*[A-Za-z_$][\w$]*)*/.exec(source.slice(inner,inner+220));
+        if(id){
+          report.nestedIdentifierCharCount=id[0].replace(/\s/g,'').length;
+          report.nestedArgumentKind='identifierOrCall';
+        }
+      }
+    }
+  }
   report.initializerKind=source[at]==='"'?'doubleQuoted':source[at]==="'"?'singleQuoted':
     source[at]===String.fromCharCode(96)?'template':'otherExpression';
   const literal=readJsString(source,at);
