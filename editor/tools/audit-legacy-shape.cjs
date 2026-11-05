@@ -99,7 +99,10 @@ function analyzeStructure(bytes) {
   const report = {
     reportFormat:'naxx-legacy-shape-v1', sourceGitBlobSha:base.gitBlobSha,
     verifiedBaseline:true, assignmentCandidates:matches.length,
-    candidateRootType:'unknown', parseMethod:'read-only lexical scan; no JavaScript execution',
+    candidateRootType:'unknown', initializerCharCode:null,
+    initializerTokenClass:'unclassified', initializerWordLength:null,
+    initializerNextSymbolClass:null,
+    parseMethod:'read-only lexical scan; no JavaScript execution',
     directRootMembers:null, permittedTopLevelKeyMatches:{},
     unknownTopLevelPropertyCount:null, unparsedTopLevelMemberCount:null,
     directTopLevelArrayItems:null, arrayItemShapes:null,
@@ -109,6 +112,28 @@ function analyzeStructure(bytes) {
   if (matches.length !== 1) return report;
   const p = whitespace(source,matches[0].index+matches[0][0].length);
   const first = source[p];
+  report.initializerCharCode = source.charCodeAt(p);
+  if (first === '{' || first === '[') {
+    report.initializerTokenClass = 'literal';
+  } else if (first === '(') {
+    report.initializerTokenClass = 'parenthesis';
+  } else if (first === '"' || first === "'") {
+    report.initializerTokenClass = 'string';
+  } else {
+    const prefix = source.slice(p,p+240);
+    const word = /^([A-Za-z_$][\w$]*)(?:\s*\.\s*[A-Za-z_$][\w$]*)*/.exec(prefix);
+    if (word) {
+      report.initializerTokenClass = 'identifierOrPropertyExpression';
+      report.initializerWordLength = word[0].replace(/\s/g,'').length;
+      let after = whitespace(source,p+word[0].length);
+      report.initializerNextSymbolClass = source[after] === '(' ? 'call' :
+        source[after] === '[' ? 'indexed' : source[after] === '?' ? 'conditional' :
+        source[after] === '.' ? 'property' : 'other';
+      if (/^JSON\s*\.\s*parse\b/.test(word[0])) report.initializerTokenClass = 'jsonParseCall';
+      if (/^Object\s*\.\s*freeze\b/.test(word[0])) report.initializerTokenClass = 'frozenObject';
+      if (/^function\b/.test(word[0])) report.initializerTokenClass = 'function';
+    } else report.initializerTokenClass = 'otherExpression';
+  }
   if (first !== '{' && first !== '[') {
     report.candidateRootType = 'expression';
     return report;
