@@ -20,6 +20,14 @@ test('original website images stay separate from the resource records',()=>{
   assert.equal(result.sourceBaselineVerified,true);
   assert.equal(result.readOnly,true);
   assert.equal(result.imageMarkersFound,95);
+  assert.equal(result.distinctImagePayloadsByHash,71);
+  assert.equal(result.validDeclaredImageHeaders,95);
+  assert.equal(result.completeBase64RoundTrips,95);
+  assert.equal(result.invalidOrUnrecognizedHeaders,0);
+  assert.equal(result.totalDecodedImageBytes,19598519);
+  assert.equal(result.mimeCounts.png,47);
+  assert.equal(result.mimeCounts.jpeg,32);
+  assert.equal(result.mimeCounts.webp,16);
   assert.equal(result.originalPositions.withinResources,0);
   assert.equal(result.resourcesWithMarkerOccurrences,0);
   assert.equal(result.imageMarkersFound,result.originalPositions.beforeResources+
