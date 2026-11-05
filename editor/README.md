@@ -127,6 +127,16 @@ A local **multi-file review ZIP** now saves both editor areas in one download wh
 
 [Editor run 42058261964](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42058261964) passed **113/113 component tests**: both-draft packages, page-only or resource-only packages, integrity hashes, duplicate/unsafe paths, baseline mismatch and protection against adding production HTML. A later Chrome browser smoke also downloaded a resource-only review ZIP with no deployable website file. This proves draft packaging only; it is not the final separate-resource source-file migration or update mechanism.
 
+## Deterministic resource change-set staging (development tests only)
+
+The new `node editor/tools/rehearse-resource-change-set.cjs` test rehearses **multiple resource-title/content edits at once**, using a pinned original `site-content.html` and a validated `naxx-local-resource-draft-v2`. It does not read or change the published site.
+
+It computes a deterministic in-memory manifest of 414 original/staged resource fragment SHA-256 hashes, a list of only changed `resources/NNNN.fragment` paths, and checksums for the untouched original prefix, suffix and separators. It stages edits inside a private, temporary folder, validates the **exact reconstructed complete source**, detects tampered or omitted files, and deletes the folder afterward.
+
+Original content IDs, title values, embedded images and confidential source strings are **not printed** in reports. The manifest explicitly says it is **not publishable**, **not GitHub-ready**, and **not deployable**. No final source fragment paths have been added to this repository; existing live `site-content.html` and small root `index.html` remain untouched.
+
+This is an internal proof for the future reviewed multi-file resource exporter. Do not copy temporary paths into GitHub or confuse the in-memory change-set with the downloadable private review ZIP.
+
 ## Original large website audit (read-only)
 
 Before any migration of the large original site file, run this from the repository root:
