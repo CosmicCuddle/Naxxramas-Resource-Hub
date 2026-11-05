@@ -40,13 +40,15 @@ test('ZIP keeps exact relative paths and Unicode content', async () => {
   const entries = await localEntries(zip.makeZip([
     { path: 'new-players/content.html', content: '<p>Progression ✓</p>' },
     { path: 'game-clients/content.html', content: '<p>Game Clients</p>' },
+    { path: 'content/navigation.json', content: '{"format":"naxx-navigation-v1"}' },
     { path: 'UPDATE-MANIFEST.json', content: '{"ok":true}' }
   ]));
-  assert.equal(entries.length, 3);
+  assert.equal(entries.length, 4);
   assert.equal(entries[0].filename, 'new-players/content.html');
   assert.equal(entries[0].content, '<p>Progression ✓</p>');
   assert.equal(entries[1].filename, 'game-clients/content.html');
-  assert.equal(entries[2].filename, 'UPDATE-MANIFEST.json');
+  assert.equal(entries[2].filename, 'content/navigation.json');
+  assert.equal(entries[3].filename, 'UPDATE-MANIFEST.json');
   assert.equal(entries[0].method, 0, 'ZIP is intentionally uncompressed');
   assert.equal(entries[0].flags & 0x800, 0x800, 'UTF-8 filename flag should be set');
 });
@@ -80,5 +82,6 @@ test('the isolated editor compiles and does not modify the site loader', () => {
   assert.match(ui, /rules\/content\.html/);
   assert.match(ui, /apply\/content\.html/);
   assert.match(ui, /game-clients\/content\.html/);
+  assert.match(ui, /content\/navigation\.json/);
   assert.doesNotMatch(ui, /fetch\s*\(|XMLHttpRequest|sendBeacon\s*\(/);
 });
