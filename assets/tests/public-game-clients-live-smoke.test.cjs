@@ -103,9 +103,23 @@ async function main() {
     "LIVE_GUIDE_NOT_RENDERED: Game Clients route did not mount the guide");
   assert.ok(dom.includes('id="naxx-client-explainer-title"'),
     "LIVE_EXPLANATION_BANNER_MISSING");
-  assert.ok(dom.includes("ChromieCraft") && dom.includes("Warmane"),
-    "LIVE_DOWNLOAD_CARDS_MISSING");
-  assert.ok(dom.includes("adminPasswordInput"),
+  const guideStart = dom.indexOf('<article id="naxx-game-client-guide"');
+  const guideEnd = dom.indexOf("</article>", guideStart);
+  assert.ok(guideStart >= 0 && guideEnd > guideStart,
+    "LIVE_GUIDE_ARTICLE_INCOMPLETE");
+  const guideMarkup = dom.slice(guideStart, guideEnd);
+  const cardCount = (guideMarkup.match(/class="naxx-client-download-card"/g) || []).length;
+  assert.equal(cardCount, 2, "LIVE_DOWNLOAD_CARD_COUNT_MISMATCH");
+  const chromieAt = guideMarkup.indexOf("<h4>ChromieCraft</h4>");
+  const warmaneAt = guideMarkup.indexOf("<h4>Warmane</h4>");
+  assert.ok(chromieAt >= 0 && warmaneAt > chromieAt,
+    "LIVE_DOWNLOAD_CARD_ORDER_INCORRECT");
+  assert.ok(guideMarkup.includes('href="https://chromiecraft.com/en/downloads/"'),
+    "LIVE_CHROMIECRAFT_LINK_MISSING");
+  assert.ok(guideMarkup.includes('href="https://web.archive.org/web/20260228080116/https://www.warmane.com/download"'),
+    "LIVE_WARMANE_ARCHIVE_LINK_MISSING");
+  assert.ok(!guideMarkup.includes("Eternion"), "LIVE_DEFERRED_SOURCE_VISIBLE");
+  assert.ok(dom.includes('id="adminPasswordInput"'),
     "LIVE_ORIGINAL_ADMIN_CONTROL_MISSING");
   console.log("PASS: public Game Clients page renders the guide and preserves native admin controls");
   console.log("PASS: public live smoke test finished (read-only; actual admin sign-in NOT attempted)");
