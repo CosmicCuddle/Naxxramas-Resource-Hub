@@ -113,9 +113,13 @@ async function launch(binary,url,work){
       const doc=await send('DOM.getDocument',{depth:1});
       const target=await send('DOM.querySelector',{nodeId:doc.root.nodeId,selector});
       if(!target.nodeId)throw Error('Missing private editor file input.');
+      const previousStatus=await evalPage('document.getElementById("resource-status").textContent');
       await send('DOM.setFileInputFiles',{nodeId:target.nodeId,files:[filename]});
-      // Ensure all supported Chrome versions dispatch change.
-      await evalPage('(function(){var el=document.querySelector('+JSON.stringify(selector)+');el.dispatchEvent(new Event("change",{bubbles:true}));return true;})()');
+      await wait(200);
+      // Only dispatch manually if the browser did not run its change handler.
+      const nextStatus=await evalPage('document.getElementById("resource-status").textContent');
+      if(nextStatus===previousStatus)
+        await evalPage('(function(){var el=document.querySelector('+JSON.stringify(selector)+');el.dispatchEvent(new Event("change",{bubbles:true}));return true;})()');
     }
     return {send,evalPage,until,chooseFile,close};
   }catch(err){await close();throw err;}
