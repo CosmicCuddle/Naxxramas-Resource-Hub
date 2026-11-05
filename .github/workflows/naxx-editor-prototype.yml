@@ -66,3 +66,5 @@ jobs:
         run: node editor/tools/rehearse-content-edit.cjs
       - name: Rehearse one changed resource fragment in a private temp tree and verify complete rebuild
         run: node editor/tools/rehearse-edited-resource-files.cjs
+      - name: Rehearse multiple draft edits as separately checksummed resource fragments with safe rollback
+        run: node editor/tools/rehearse-resource-change-set.cjs
