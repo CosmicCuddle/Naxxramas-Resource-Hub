@@ -201,6 +201,32 @@ function inspectJsonInitializer(bytes){
                     }
                     summary.allowedKeyCount=known;summary.unknownKeyCount=unknown;
                     summary.unparsedKeyCount=unparsed;
+                    summary.memberValueTypes={object:0,array:0,string:0,numberLike:0,expression:0,other:0};
+                    summary.recognizedKeyTypes={};
+                    summary.directArrays=[];
+                    summary.directArrayTotalElements=0;
+                    for(let idx=0;idx<parts.segments.length;idx++){
+                      const field=property(source,parts.segments[idx]);
+                      if(!field.key)continue;
+                      if(summary.memberValueTypes[field.type]!==undefined)
+                        summary.memberValueTypes[field.type]++;
+                      if(KNOWN_TOP_KEYS.has(field.key))
+                        summary.recognizedKeyTypes[field.key]=field.type;
+                      if(field.type==='array'){
+                        const child=enclosingParts(source,space(source,field.valueStart));
+                        let objects=0,strings=0,nestedArrays=0,other=0;
+                        for(const item of child.segments){
+                          const first=source[space(source,item[0])];
+                          if(first==='{')objects++;
+                          else if(first==='[')nestedArrays++;
+                          else if(first==='"'||first==="'")strings++;
+                          else other++;
+                        }
+                        summary.directArrays.push({memberIndex:idx+1,itemCount:child.segments.length,
+                          objectItems:objects,stringItems:strings,nestedArrayItems:nestedArrays,otherItems:other});
+                        summary.directArrayTotalElements+=child.segments.length;
+                      }
+                    }
                   }
                   if(report.nestedStaticLiteralSummaries.length<6)
                     report.nestedStaticLiteralSummaries.push(summary);
