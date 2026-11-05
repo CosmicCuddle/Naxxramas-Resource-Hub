@@ -46,6 +46,7 @@
 <script defer src="resource-title-core.js"></script>
 <script defer src="resource-title-ui.js"></script>
 <script defer src="editor.js"></script>
+<script defer src="review-package.js"></script>
 </head>
 <body>
 <main>
@@ -147,6 +148,15 @@
       <button id="export-changes" type="button" disabled>Export Changed Files (.zip)</button>
       <button id="revert-all" type="button" disabled>Discard All Local Edits</button>
       <input id="draft-file" type="file" accept=".json,application/json" hidden>
+    </div>
+    <div class="field" aria-labelledby="review-package-heading">
+      <h3 id="review-package-heading" style="margin:0;color:var(--gold)">Combined private editing review package</h3>
+      <p>Save resource edits and page/navigation edits together as <strong>separate drafts inside one ZIP</strong>. The package includes a review manifest with hashes. It is <strong>NOT a GitHub-ready website update</strong> or a full repository backup.</p>
+      <div class="actions">
+        <button type="button" id="save-review-package">Save Combined Review Package (.zip)</button>
+      </div>
+      <div id="review-package-status" class="status" role="status" aria-live="polite">Load and edit either area before saving a review package.</div>
+      <p class="hint">You can unzip the package later and use the existing individual Load Draft buttons for each editor area. No file is sent online or automatically installed.</p>
     </div>
     <p class="hint">A saved draft contains just your edits and the fingerprints of the original four HTML files and navigation JSON. Keep it private until reviewed. The changed-files ZIP preserves GitHub folder paths and includes a manifest and review instructions.</p>
     <p class="hint">For a pristine recovery copy, use the separate <a href="https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/tree/backup/pristine-pre-editor-redesign-2026-11-05" target="_blank" rel="noopener noreferrer">preserved GitHub backup branch</a>. A full repository backup is different from this changed-files export.</p>
