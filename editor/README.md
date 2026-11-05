@@ -175,6 +175,8 @@ To stage a v2 resource draft locally, add `--draft "/absolute/private/path/naxxr
 
 This is **not** a complete repository backup, GitHub-ready changed-files archive, deployable website, replacement `site-content.html` or permission to migrate to the 418-file layout. A later implementation must independently validate a whole-repository recovery package and decide how to maintain a generated compatibility website.
 
+**Verified milestone:** [Editor test run 42066172796](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42066172796) passed **142/142 tests**, including creating baseline and edited source archives, independent extraction, exact reconstruction and rollback, canonical ZIP validation, corrupt path/content rejection, privacy-warning protection, and an explicitly requested local output with overwrite and repository-path refusal. Only temporary test files were produced; no source archive was uploaded as a CI artifact.
+
 ## Remaining development
 
 1. Test the local preview and all revert buttons in Edge/Chrome on a disposable copy, including draft restore, ZIP validation, icons and keyboard access.
