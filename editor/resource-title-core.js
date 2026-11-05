@@ -1,4 +1,4 @@
-/* Private, browser-compatible resource-title draft engine.
+/* Private, browser-compatible resource title and multiline content draft engine.
  * No network requests, source execution, local file writes or publishing.
  * Input must match the exact preserved 30,976,969-byte original site.
  * This is not a runtime parser for arbitrary JavaScript.
@@ -115,17 +115,17 @@
       var important={};
       fields.ranges.forEach(function(segment){
         var f=property(s,segment);
-        if(f.key==='id'||f.key==='title'||f.key==='section'){
+        if(f.key==='id'||f.key==='title'||f.key==='section'||f.key==='content'){
           if(important[f.key])throw Error('Repeated resource field.');
           important[f.key]={...literal(s,f.begin,segment[1]),start:f.begin};
         }
       });
-      if(!important.id||!important.title||!important.section)throw Error('Missing resource identifier, title or section.');
+      if(!important.id||!important.title||!important.section||!important.content)throw Error('Missing resource identifier, title, content or section.');
       if(ids.has(important.id.value))throw Error('Repeated resource identifier.');
       ids.add(important.id.value);
       result.push({
         index:index,id:important.id.value,title:important.title.value,
-        section:important.section.value,
+        content:important.content.value,section:important.section.value,
         titleStart:important.title.start,titleEnd:important.title.end
       });
     });
@@ -133,6 +133,12 @@
   }
   function titleValid(v){
     return typeof v==='string'&&v.trim().length>0&&v.length<=160&&!/[<>\x00-\x1f\x7f]/.test(v);
+  }
+  function contentValid(v){
+    // Original content is plain text with intentional newlines and empty entries.
+    // Markup insertion is excluded in this initial draft-only content workflow.
+    return typeof v==='string'&&v.length<=30000&&
+      !/[<>\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/.test(v);
   }
   async function open(source,cryptoObj){
     if(typeof source!=='string'||source.length<1000000)throw Error('Choose the original site-content.html file.');
@@ -173,6 +179,69 @@
     });
     return values;
   }
+  function resourceDraft(titles,contents,model){
+    if(!model||model.baselineSha256!==BASE_SHA||!Array.isArray(model.resources)||
+       model.resources.length!==COUNT||!(titles instanceof Map)||!(contents instanceof Map))
+      throw Error('Verified source and both edit collections are required.');
+    var indices=new Set([...titles.keys(),...contents.keys()]);
+    var edits=[];
+    indices.forEach(function(index){
+      if(!Number.isInteger(index)||index<0||index>=COUNT)
+        throw Error('A resource draft targets an unknown position.');
+      var original=model.resources[index],entry={index:index};
+      if(typeof original.title!=='string'||typeof original.content!=='string')
+        throw Error('A resource is missing verified editable fields.');
+      if(titles.has(index)){
+        var t=titles.get(index);
+        if(!titleValid(t))throw Error('Invalid proposed title.');
+        if(t!==original.title)entry.title=t;
+      }
+      if(contents.has(index)){
+        var v=contents.get(index);
+        if(!contentValid(v))throw Error('Content must be plain text with a 30,000-character limit.');
+        if(v!==original.content)entry.content=v;
+      }
+      if(Object.keys(entry).length>1)edits.push(entry);
+    });
+    edits.sort((a,b)=>a.index-b.index);
+    return {format:'naxx-local-resource-draft-v2',baselineSha256:BASE_SHA,changes:edits};
+  }
+  function restoreResourceDraft(data,model){
+    if(!data||!model||model.baselineSha256!==BASE_SHA||
+       !Array.isArray(model.resources)||model.resources.length!==COUNT)
+      throw Error('A verified original website must be loaded first.');
+    // Older title-only drafts remain importable, without modifying content.
+    if(data.format==='naxx-local-resource-title-draft-v1')
+      return {titles:restore(data,model),contents:new Map(),legacyTitleOnly:true};
+    if(Object.keys(data).sort().join(',')!=='baselineSha256,changes,format'||
+       data.format!=='naxx-local-resource-draft-v2'||data.baselineSha256!==BASE_SHA||
+       !Array.isArray(data.changes)||data.changes.length>COUNT)
+      throw Error('Unsupported or mismatched resource draft.');
+    var titles=new Map(),contents=new Map(),seen=new Set();
+    data.changes.forEach(function(item){
+      if(!item||typeof item!=='object'||Array.isArray(item)||
+         !Number.isInteger(item.index)||item.index<0||item.index>=COUNT||
+         seen.has(item.index))throw Error('Invalid or duplicate resource position.');
+      seen.add(item.index);
+      var keys=Object.keys(item).sort().join(',');
+      if(keys!=='index,title'&&keys!=='content,index'&&keys!=='content,index,title')
+        throw Error('Unexpected draft field.');
+      var original=model.resources[item.index];
+      if(!original||typeof original.content!=='string')throw Error('Missing verified content.');
+      if(Object.hasOwn(item,'title')){
+        if(!titleValid(item.title)||item.title===original.title)
+          throw Error('Invalid or unchanged draft title.');
+        titles.set(item.index,item.title);
+      }
+      if(Object.hasOwn(item,'content')){
+        if(!contentValid(item.content)||item.content===original.content)
+          throw Error('Invalid or unchanged draft content.');
+        contents.set(item.index,item.content);
+      }
+    });
+    return {titles:titles,contents:contents,legacyTitleOnly:false};
+  }
   return {BASE_SHA:BASE_SHA,BASE_LENGTH:BASE_LENGTH,COUNT:COUNT,open:open,
-    titleValid:titleValid,draft:draft,restore:restore};
+    titleValid:titleValid,contentValid:contentValid,draft:draft,restore:restore,
+    resourceDraft:resourceDraft,restoreResourceDraft:restoreResourceDraft};
 });
