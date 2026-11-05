@@ -1,0 +1,40 @@
+name: Naxxramas private Git recovery rehearsal
+
+on:
+  pull_request:
+    paths:
+      - 'editor/tools/rehearse-full-git-recovery.cjs'
+      - 'editor/tests/full-git-recovery.test.cjs'
+      - '.github/workflows/naxx-private-git-recovery.yml'
+  push:
+    branches:
+      - 'feature/multi-file-editor-export-2026-11-05'
+    paths:
+      - 'editor/tools/rehearse-full-git-recovery.cjs'
+      - 'editor/tests/full-git-recovery.test.cjs'
+      - '.github/workflows/naxx-private-git-recovery.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-private-git-recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout entire fetched history without credentials
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          lfs: false
+          submodules: false
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test Git recovery, shallow refusal and dirty-checkout safeguards
+        run: node --test editor/tests/full-git-recovery.test.cjs
+      - name: Independently restore complete fetched Git refs and original tracked website
+        run: node editor/tools/rehearse-full-git-recovery.cjs
+      # Intentionally NO artifact upload, GitHub release, push or external sink.
