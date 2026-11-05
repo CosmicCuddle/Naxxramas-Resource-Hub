@@ -120,3 +120,46 @@ test('wrong local file cannot overwrite an already verified editing session',asy
   assert.match(get('resource-status').textContent,/Select the original site-content.html/);
   assert.match(get('resource-count').textContent,/1 title edits/);
 });
+
+
+test('loading a saved title draft validates the fingerprint and preserves edits after rejection',async()=>{
+  const h=harness(),get=id=>h.nodes.get(id);
+  get('resource-source-file').files=[{name:'site-content.html',size:engine.BASE_LENGTH,text:async()=>'<verified>'}];
+  await get('resource-source-file').listeners.change();
+  get('resource-title-edit').value='First In-Memory Title';
+  get('resource-apply').listeners.click();
+  assert.match(get('resource-count').textContent,/1 title edits/);
+  const verified={
+    format:'naxx-local-resource-title-draft-v1',
+    baselineSha256:engine.BASE_SHA,
+    changes:[{index:413,title:'Restored Last Title'}]
+  };
+  get('resource-draft-file').files=[{size:128,text:async()=>JSON.stringify(verified)}];
+  await get('resource-draft-file').listeners.change();
+  assert.match(get('resource-status').textContent,/Verified resource draft loaded: 1 title edits/);
+  get('resource-search').value='Restored Last Title';
+  get('resource-search').listeners.input();
+  assert.equal(get('resource-choice').children.length,1);
+  assert.equal(get('resource-title-edit').value,'Restored Last Title');
+  const bad={...verified,baselineSha256:'0'.repeat(64)};
+  get('resource-draft-file').files=[{size:128,text:async()=>JSON.stringify(bad)}];
+  await get('resource-draft-file').listeners.change();
+  assert.match(get('resource-status').textContent,/Resource draft rejected/);
+  assert.match(get('resource-count').textContent,/1 title edits/);
+  assert.equal(get('resource-title-edit').value,'Restored Last Title');
+});
+
+test('import mismatch after a verified source never discards existing title edits',async()=>{
+  const h=harness(),get=id=>h.nodes.get(id);
+  const picker=get('resource-source-file');
+  picker.files=[{name:'site-content.html',size:engine.BASE_LENGTH,text:async()=>'<verified>'}];
+  await picker.listeners.change();
+  get('resource-title-edit').value='Kept Title';
+  get('resource-apply').listeners.click();
+  h.window.NaxxResourceTitles.open=async()=>{throw Error('Source hash mismatch.');};
+  picker.files=[{name:'site-content.html',size:engine.BASE_LENGTH,text:async()=>'<unverified>'}];
+  await picker.listeners.change();
+  assert.match(get('resource-status').textContent,/Source hash mismatch/);
+  assert.match(get('resource-count').textContent,/1 title edits/);
+  assert.equal(get('resource-title-edit').value,'Kept Title');
+});
