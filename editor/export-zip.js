@@ -36,11 +36,15 @@
     'content/navigation.json',
     'UPDATE-MANIFEST.json', 'HOW_TO_APPLY.txt'
   ]);
-  function makeZip(entries) {
+  var ALLOWED_REVIEW_PATHS = new Set([
+    'REVIEW-PAGE-DRAFT.json', 'REVIEW-RESOURCE-DRAFT.json',
+    'REVIEW-MANIFEST.json', 'READ_ME_FIRST.txt'
+  ]);
+  function buildZip(entries,allowed) {
     if (!Array.isArray(entries) || !entries.length || entries.length > 100) throw new Error('Invalid ZIP file list.');
     var parts = [], central = [], offset = 0, seen = new Set();
     entries.forEach(function (item) {
-      if (!item || !safePath(item.path) || !ALLOWED_EXPORT_PATHS.has(item.path) || seen.has(item.path.toLowerCase())) throw new Error('Unsafe, unapproved or duplicate ZIP path.');
+      if (!item || !safePath(item.path) || !allowed.has(item.path) || seen.has(item.path.toLowerCase())) throw new Error('Unsafe, unapproved or duplicate ZIP path.');
       seen.add(item.path.toLowerCase());
       var filename = enc.encode(item.path);
       var data = bytes(item.content);
@@ -73,10 +77,22 @@
     u32(v, 12, centralSize); u32(v, 16, offset);
     return new Blob(parts.concat(central, [end]), { type: 'application/zip' });
   }
+  // Keep the GitHub-path changed-files writer STRICTLY separate from the
+  // non-publishable review-package writer; never mix these path allowlists.
+  function makeZip(entries) { return buildZip(entries, ALLOWED_EXPORT_PATHS); }
+  function makeReviewZip(entries) {
+    if(!Array.isArray(entries)||entries.length<3||entries.length>4)
+      throw new Error('Review package needs a manifest, instructions and at least one draft.');
+    var names=entries.map(function(e){return e.path;});
+    if(!names.includes('REVIEW-MANIFEST.json')||!names.includes('READ_ME_FIRST.txt')||
+       (!names.includes('REVIEW-PAGE-DRAFT.json')&&!names.includes('REVIEW-RESOURCE-DRAFT.json')))
+      throw new Error('Review package is incomplete.');
+    return buildZip(entries, ALLOWED_REVIEW_PATHS);
+  }
   async function sha256(text) {
     if (!root.crypto || !root.crypto.subtle) throw new Error('This browser does not support secure SHA-256 hashing.');
     var buffer = await root.crypto.subtle.digest('SHA-256', bytes(text));
     return Array.from(new Uint8Array(buffer), function (n) { return n.toString(16).padStart(2, '0'); }).join('');
   }
-  root.NaxxEditorZip = { makeZip: makeZip, sha256: sha256, safePath: safePath };
+  root.NaxxEditorZip = { makeZip: makeZip, makeReviewZip: makeReviewZip, sha256: sha256, safePath: safePath };
 })(typeof window === 'undefined' ? globalThis : window);
