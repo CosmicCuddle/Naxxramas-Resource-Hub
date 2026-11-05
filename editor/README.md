@@ -88,7 +88,7 @@ These are **not** production migration, full browser equivalence, or permission 
 
 **Single edited fragment on disk (temporary test only):** A second rehearsal now changes a controlled title in one of the 414 individual resource fragment files, then validates the assembled full site against the expected in-memory source. The other 413 fragments, the original scripts, images, the separate 29-record collection and all other content outside the main resources are unchanged. The immutable original manifest properly rejects the altered fragment, and the temporary files are deleted. [Editor checks run 42047956345](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42047956345) passed **83/83 tests**. Run from an original complete checkout with \`node editor/tools/rehearse-edited-resource-files.cjs\`.
 
-This test **does not** save an edited file to the repository or provide a user-facing resource editing screen. Changed-file export, approved edited manifests, actual browser validation and safe GitHub publication remain separate future tasks.
+That earlier fragment-only rehearsal did not provide a browser editor. A separate private title/content draft screen now exists and has passed a Chrome functional smoke test. It **still does not** produce an edited resource file or write to the repository. Changed-file export, approved edited manifests, complete website recovery, owner visual acceptance and safe GitHub publishing remain future work.
 
 
 See docs/EDITOR-RESOURCE-FILES-DESIGN.md for the proposed eventual GitHub folder layout, stability rules and release gates.
