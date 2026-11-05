@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'editor/**'
+      - '.github/workflows/naxx-editor-prototype.yml'
       - 'game-clients/content.html'
       - 'assets/naxx-game-clients-guide.js'
       - 'index.html'
@@ -12,6 +13,7 @@ on:
       - 'feature/multi-file-editor-export-2026-11-05'
     paths:
       - 'editor/**'
+      - '.github/workflows/naxx-editor-prototype.yml'
       - 'game-clients/content.html'
       - 'assets/naxx-game-clients-guide.js'
       - 'index.html'
@@ -42,6 +44,8 @@ jobs:
         run: node editor/tools/check-legacy-roundtrip.cjs
       - name: Inventory resource field and association types without values
         run: node editor/tools/audit-resource-schema.cjs
+      - name: Audit separate 29-item side collection without printing values
+        run: node editor/tools/audit-side-collection.cjs
       - name: Audit inline image preservation without exporting media
         run: node editor/tools/audit-legacy-media.cjs
       - name: Rehearse 414 separate resource files and delete temporary package
