@@ -30,11 +30,15 @@
       /^[a-zA-Z0-9._/-]+$/.test(path) &&
       !path.endsWith('/');
   }
+  var ALLOWED_EXPORT_PATHS = new Set([
+    'new-players/content.html', 'rules/content.html', 'apply/content.html',
+    'UPDATE-MANIFEST.json', 'HOW_TO_APPLY.txt'
+  ]);
   function makeZip(entries) {
     if (!Array.isArray(entries) || !entries.length || entries.length > 100) throw new Error('Invalid ZIP file list.');
     var parts = [], central = [], offset = 0, seen = new Set();
     entries.forEach(function (item) {
-      if (!item || !safePath(item.path) || seen.has(item.path.toLowerCase())) throw new Error('Unsafe or duplicate ZIP path.');
+      if (!item || !safePath(item.path) || !ALLOWED_EXPORT_PATHS.has(item.path) || seen.has(item.path.toLowerCase())) throw new Error('Unsafe, unapproved or duplicate ZIP path.');
       seen.add(item.path.toLowerCase());
       var filename = enc.encode(item.path);
       var data = bytes(item.content);
