@@ -7,7 +7,7 @@ const {rehearseEditedTitle,validateStagedEdit}=require('../tools/rehearse-edited
 const {withTemporaryPackage,resourcePath}=require('../tools/rehearse-resource-files.cjs');
 const {replaceTitleInRecord}=require('../tools/rehearse-title-edit.cjs');
 const {splitInMemory}=require('../tools/check-legacy-roundtrip.cjs');
-const original=fs.readFileSync(path.resolve(__dirname,'..','site-content.html'));
+const original=fs.readFileSync(path.resolve(__dirname,'..','..','site-content.html'));
 
 for(const position of [0,413]){
   test('one edited temporary resource at position '+position+' rebuilds exactly and cleans up',()=>{
