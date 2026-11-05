@@ -148,6 +148,16 @@ Later receipt validation **recomputes the whole plan** at the originally specifi
 
 This clears a **review-time conflict-detection prerequisite**, not the resource migration or production release. Original files and draft-only combined ZIP handling remain unchanged. A final update package still requires the owner-approved resource tree, verified generated compatibility file, retained recovery package, explicit diff and owner sign-off.
 
+## Existing-path page/navigation ZIP — commit-review gate implemented
+
+`editor/tools/package-reviewed-page-update.cjs` provides the first **receipt-gated, review-only ZIP of genuine tracked source paths**. It requires the existing v3 page/navigation draft and the exact Git-commit review receipt, reruns all source/draft hash and checkout checks, computes changed page/navigation bytes via the independently tested static editor parser, and writes a deterministic ZIP containing only changed tracked paths plus `REVIEWED-PAGE-UPDATE-MANIFEST.json` and `READ_ME_BEFORE_GIT_REVIEW.txt`.
+
+A draft reviewed together with v2 resource edits can also be verified, **but the resource edits are explicitly excluded from this ZIP**. The manifest says how many resource-fragment changes are absent and marks the package as a **partial website update**. This avoids a misleading single-file export or adding speculative `content/legacy/resources/` paths to the deployable file list.
+
+Verification rejects modified draft payloads, stale commits, unexpected relative paths, forged review receipts, incorrect original/updated hashes, tampered ZIP contents and altered safety instructions. Only original tracked page/navigation paths are allowed; neither root `index.html` nor the 31 MB `site-content.html` may appear. An optional private CLI saves a new ZIP only **outside** the repository, with no overwrite, Git push, publication or server access.
+
+**Status:** This crosses the **reviewed existing Git path** milestone, not a production release gate. The reviewed receipt is not an authentication signature and the ZIP's manifest explicitly records `ownerApproved:false`, `githubReadyForDeployment:false`, `publishable:false`, `deployable:false` and `completeRepositoryBackup:false`. The complete mixed page/resource update is still blocked on the owner-approved separate resource source tree, generated compatibility build, independently retained recovery data and owner inspection.
+
 ## Proposed long-term source layout
 
 A possible future repository layout, only after tests and owner approval:
