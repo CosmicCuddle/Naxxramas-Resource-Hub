@@ -32,6 +32,12 @@ const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
 const ORIGINAL='34455f6d901c538e2491a8c16681692e4c02d918b1984d7d0ba081aacb1049e8';
 const TRACKED=[...PAGES,NAV,'site-content.html','index.html'];
 const SPARSE_COUNT=expectedPaths().size+TRACKED.length;
+function assertCandidateTreeUnadopted(root){
+  const proposed=path.join(root,...ROOT.split('/'));
+  if(fs.existsSync(proposed))
+    throw Error('The proposed resource source-tree path already exists. Revalidate the approved migration before testing.');
+  return true;
+}
 function safePath(root,relative){
   if(!expectedPaths().has(relative)&&!TRACKED.includes(relative))
     throw Error('Unexpected candidate workspace path.');
@@ -147,6 +153,7 @@ function restoreOriginal(root,originals){
 async function rehearseUnified(root,drafts,receipt,pageZip,resourceZip){
   if(typeof root!=='string'||!path.isAbsolute(root))
     throw Error('An absolute local Git checkout root is required.');
+  assertCandidateTreeUnadopted(root);
   const matched=await verifyPairedArchives(root,drafts,receipt,pageZip,resourceZip);
   if(!matched.pairCompleteForReview||matched.finalGitHubPackage!==false)
     throw Error('The two private review archives do not form one reviewed plan.');
@@ -244,4 +251,4 @@ async function rehearseUnified(root,drafts,receipt,pageZip,resourceZip){
 if(require.main===module){
   process.stderr.write('Private unified candidate workspace only; not a deployer or GitHub export.\n');
 }
-module.exports={TRACKED,SPARSE_COUNT,verifyAssembled,rehearseUnified};
+module.exports={TRACKED,SPARSE_COUNT,assertCandidateTreeUnadopted,verifyAssembled,rehearseUnified};
