@@ -33,6 +33,7 @@
   var ALLOWED_EXPORT_PATHS = new Set([
     'new-players/content.html', 'rules/content.html', 'apply/content.html',
     'game-clients/content.html',
+    'content/navigation.json',
     'UPDATE-MANIFEST.json', 'HOW_TO_APPLY.txt'
   ]);
   function makeZip(entries) {
