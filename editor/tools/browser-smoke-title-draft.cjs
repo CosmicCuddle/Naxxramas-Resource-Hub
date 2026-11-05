@@ -1,6 +1,6 @@
 'use strict';
 /*
- * Browser-only QA for the PRIVATE resource title draft editor.
+ * Browser-only QA for the PRIVATE resource title and multiline content draft editor.
  * Runs a local loopback HTTP server and a fresh headless Chrome profile.
  * No server deployment, application submission, GitHub publication, or
  * changes to original website files. Downloaded draft stays in OS temp.
@@ -143,31 +143,33 @@ async function verify(browser,work){
     await chrome.until('document.getElementById("resource-count").textContent.includes("414 resources loaded")',
       '414 verified resources loaded');
     assert.equal(await chrome.evalPage('document.getElementById("resource-choice").options.length'),414);
-    await chrome.evalPage('(function(){var input=document.getElementById("resource-title-edit");input.value="Browser Safety Trial Title";input.dispatchEvent(new Event("input",{bubbles:true}));document.getElementById("resource-apply").click();return true;})()');
-    await chrome.until('document.getElementById("resource-count").textContent.includes("1 title edits")',
+    await chrome.evalPage('(function(){var input=document.getElementById("resource-title-edit");input.value="Browser Safety Trial Title";input.dispatchEvent(new Event("input",{bubbles:true}));var body=document.getElementById("resource-content-edit");body.value="Browser-safe multiline content.\\n\\nSecond paragraph.";body.dispatchEvent(new Event("input",{bubbles:true}));document.getElementById("resource-apply").click();return true;})()');
+    await chrome.until('document.getElementById("resource-count").textContent.includes("1 title edits and 1 content edits")',
       'resource title staged in browser');
     await chrome.evalPage('document.getElementById("resource-save-draft").click()');
-    const draft=path.join(downloadDir,'naxxramas-resource-title-draft.json');
+    const draft=path.join(downloadDir,'naxxramas-resource-draft.json');
     for(let i=0;i<70&&!fs.existsSync(draft);i++)await wait(150);
     assert.equal(fs.existsSync(draft),true,'Local resource title JSON draft must download.');
     const data=JSON.parse(fs.readFileSync(draft,'utf8'));
-    assert.equal(data.format,'naxx-local-resource-title-draft-v1');
+    assert.equal(data.format,'naxx-local-resource-draft-v2');
     assert.equal(data.baselineSha256,'34455f6d901c538e2491a8c16681692e4c02d918b1984d7d0ba081aacb1049e8');
-    assert.deepEqual(data.changes,[{index:0,title:'Browser Safety Trial Title'}]);
+    assert.deepEqual(data.changes,[{index:0,title:'Browser Safety Trial Title',content:'Browser-safe multiline content.\n\nSecond paragraph.'}]);
     assert.ok(!Object.hasOwn(data,'siteContent'));
     await chrome.evalPage('window.confirm=function(){return true;};document.getElementById("resource-clear").click();');
-    await chrome.until('document.getElementById("resource-count").textContent.includes("0 title edits")','title reverted');
+    await chrome.until('document.getElementById("resource-count").textContent.includes("0 title edits and 0 content edits")','title reverted');
     await chrome.chooseFile('#resource-draft-file',draft);
-    await chrome.until('document.getElementById("resource-count").textContent.includes("1 title edits")','downloaded draft restored');
+    await chrome.until('document.getElementById("resource-count").textContent.includes("1 title edits and 1 content edits")','downloaded draft restored');
     assert.equal(await chrome.evalPage('document.getElementById("resource-title-edit").value'),
       'Browser Safety Trial Title');
+    assert.equal(await chrome.evalPage('document.getElementById("resource-content-edit").value'),
+      'Browser-safe multiline content.\n\nSecond paragraph.');
     const wrongPath=path.join(work,'site-content.html');
     fs.writeFileSync(wrongPath,'Not the verified website.',{mode:0o600,flag:'wx'});
     await chrome.chooseFile('#resource-source-file',wrongPath);
     await chrome.until('document.getElementById("resource-status").textContent.includes("Select the original site-content.html")',
       'invalid original refused');
-    assert.equal(await chrome.evalPage('document.getElementById("resource-count").textContent.includes("1 title edits")'),true);
-    console.log('PASS: real Chrome loaded 414 verified resources; changed title; downloaded/restored draft; rejected wrong source while retaining edits.');
+    assert.equal(await chrome.evalPage('document.getElementById("resource-count").textContent.includes("1 title edits and 1 content edits")'),true);
+    console.log('PASS: real Chrome loaded 414 verified resources; changed title and multiline content; downloaded/restored v2 draft; rejected wrong source while retaining edits.');
     console.log('PASS: no public website, original source file, GitHub repo or external form was modified.');
   }finally{
     if(chrome)await chrome.close();
