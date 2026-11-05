@@ -72,3 +72,16 @@ jobs:
         run: node editor/tools/rehearse-resource-change-set.cjs
       - name: Rehearse proposed GitHub resource tree with 414 paths and exact original rollback
         run: node editor/tools/rehearse-proposed-resource-tree.cjs
+
+  complete-site-private-chrome:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout protected draft source (read only)
+        uses: actions/checkout@v4
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify complete disposable site in isolated local Chrome
+        run: node editor/tools/browser-smoke-complete-site.cjs
