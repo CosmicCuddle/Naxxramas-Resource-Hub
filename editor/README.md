@@ -147,6 +147,8 @@ No source fragments are committed or made downloadable by this rehearsal. A cand
 
 Both commands are covered by the protected editor workflow. Do not run these against the live website or treat their output as instructions to replace the current `site-content.html` or root `index.html`.
 
+[Editor CI 42063283544](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42063283544) passed **135/135 tests**, including source-tree rollback, malicious/extra path checks and the clean whole-checkout inventory. The tracked checkout at that revision contained **127 files / 94,404,901 bytes**. **These figures describe a tested checkout, not a saved full-repository archive.**
+
 ## Original large website audit (read-only)
 
 Before any migration of the large original site file, run this from the repository root:
