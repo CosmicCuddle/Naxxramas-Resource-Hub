@@ -22,6 +22,16 @@ test('full source schema preserves all records and accounts for every property',
   for(const key of ['id','title','section','classes','content'])
     assert.equal(report.resourceFieldOccurrences[key],414);
   assert.equal(report.idFieldPresent,414);
+  assert.deepEqual(report.idNormalization,{
+    decodedDistinctIdCount:414,repeatedDecodedIdCount:0,missingIdFields:0,unparseableIdValues:0
+  });
+  assert.equal(report.sectionNormalization.distinctSectionValues,7);
+  assert.equal(report.sectionNormalization.unparseableSectionValues,0);
+  assert.equal(report.classAssociationShape.decodedDistinctClassTokens,41);
+  assert.equal(report.classAssociationShape.decodedClassTokenOccurrences,393);
+  assert.equal(report.classAssociationShape.unparseableClassReferences,0);
+  assert.equal(report.inlineImageMarkers.markersWithinResourceFragments,0);
+  assert.equal(report.unknownFieldOccurrences,13821);
   assert.equal(report.unknownFieldOccurrences>0,true);
   assert.equal(report.fieldsCouldNotBeParsed,0);
   assert.equal(report.sourceCodeEvaluated,false);
