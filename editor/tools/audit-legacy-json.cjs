@@ -122,6 +122,8 @@ function inspectJsonInitializer(bytes){
     argumentExpressionFamily:null,argumentLeadingCharCode:null,argumentSymbolAfterToken:null,
     argumentIdentifierCharCount:null,
     nestedArgumentKind:null,nestedArgumentLeadingCharCode:null,nestedIdentifierCharCount:null,
+    nestedIsWindowProperty:false,nestedNextSymbolClass:null,nestedAssignmentCandidates:null,
+    nestedAssignmentValueClass:null,
     resourceRecordsVerified:false,
     note:'Candidate arrays and ID counts require gameplay/editor relationship verification. Values and identifiers are never printed.'};
   const source=bytes.toString('utf8');
@@ -162,8 +164,32 @@ function inspectJsonInitializer(bytes){
       if(report.nestedArgumentKind==='otherExpression'){
         const id=/^[A-Za-z_$][\w$]*(?:\s*\.\s*[A-Za-z_$][\w$]*)*/.exec(source.slice(inner,inner+220));
         if(id){
-          report.nestedIdentifierCharCount=id[0].replace(/\s/g,'').length;
+          const full=id[0].replace(/\s/g,'');
+          report.nestedIdentifierCharCount=full.length;
           report.nestedArgumentKind='identifierOrCall';
+          report.nestedIsWindowProperty=/^window\.[A-Za-z_$][\w$]*$/.test(full);
+          const afterId=space(source,inner+id[0].length);
+          report.nestedNextSymbolClass=source[afterId]===')'?'closed':
+            source[afterId]==='('?'call':
+            source.slice(afterId,afterId+2)==='||'?'logicalOr':'otherExpression';
+          if(report.nestedIsWindowProperty){
+            let matches=0, found=-1;
+            for(let x=source.indexOf(full); x!==-1; x=source.indexOf(full,x+full.length)){
+              const afterName=space(source,x+full.length);
+              if(source[afterName]==='=' && source[afterName+1]!=='=' && source[afterName+1]!=='>'){
+                matches++;found=afterName+1;
+              }
+            }
+            report.nestedAssignmentCandidates=matches;
+            if(matches===1){
+              const p=space(source,found);
+              report.nestedAssignmentValueClass=source[p]==='{'?'objectLiteral':
+                source[p]==='['?'arrayLiteral':
+                source[p]==='"'||source[p]==="'"?'quotedString':
+                source[p]===String.fromCharCode(96)?'templateLiteral':
+                source[p]==='('?'parenthesized':'expression';
+            }
+          }
         }
       }
     }
