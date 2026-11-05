@@ -55,7 +55,7 @@ test('known CRC32 of Hello agrees with standard ZIP CRC32', async () => {
 });
 
 test('rejects traversal, absolute, backslash and duplicate names', () => {
-  ['../index.html', '/index.html', 'rules\\content.html', 'rules/../index.html'].forEach((filename) => {
+  ['index.html', '../index.html', '/index.html', 'rules\\content.html', 'rules/../index.html', 'assets/unknown.js'].forEach((filename) => {
     assert.throws(() => zip.makeZip([{ path: filename, content: 'x' }]));
   });
   assert.throws(() => zip.makeZip([
