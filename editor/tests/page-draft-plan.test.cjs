@@ -1,6 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+const vm=require('node:vm');
 const {PAGES,NAV,runs,plan,validHref}=require('../tools/plan-page-draft.cjs');
 const root=path.resolve(__dirname,'..','..');
 const sha=v=>crypto.createHash('sha256').update(v).digest('hex');
@@ -95,4 +96,23 @@ test('script/style/textarea content is never offered as a page text edit',()=>{
   assert.ok(r.some(x=>x.kind==='text'&&x.original==='Read rules'));
   assert.ok(r.some(x=>x.kind==='href'&&x.original==='../rules/'));
   assert.ok(!r.some(x=>x.original.includes('DO_NOT_EDIT')||x.original.includes('.s { a')||x.original.includes('NO')));
+});
+
+test('offline draft scanner matches actual webpage editor token positions in all four original pages',()=>{
+  const editor=fs.readFileSync(path.join(root,'editor','editor.js'),'utf8');
+  const begin=editor.indexOf('  function tagEnd(source, start) {');
+  const end=editor.indexOf('  function editedFields(page) {',begin);
+  assert.ok(begin>=0&&end>begin);
+  // Execute only the trusted editor scanner, NEVER the original website JS.
+  const source='(function(){function decodeText(s){return s;}\n'+
+    editor.slice(begin,end)+'\nreturn scan;})()';
+  const actualScanner=vm.runInNewContext(source,{}, {timeout:2000});
+  for(const rel of PAGES){
+    const html=fs.readFileSync(path.join(root,rel),'utf8');
+    const expected=actualScanner(html);
+    const checked=runs(html);
+    assert.ok(checked.length>=10);
+    assert.deepEqual(checked.map(x=>[x.id,x.kind,x.start,x.end,x.original]),
+      expected.map(x=>[x.id,x.kind,x.start,x.end,x.original]));
+  }
 });
