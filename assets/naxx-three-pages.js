@@ -50,7 +50,7 @@
       })
       .catch(function(err) {
         // Use original, verified labels and icons if the optional JSON fails.
-        if(window.console) console.error("Naxxramas navigation: using built-in fallback",err);
+        if(window.console) window.console.error("Naxxramas navigation: using built-in fallback",err);
       });
   }
   function pageUrl(p){return new URL(p.slug+"/",root).href;}
