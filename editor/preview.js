@@ -37,8 +37,13 @@
     if (typeof html !== 'string' || html.length > 2 * 1024 * 1024) {
       throw new Error('Preview source is unexpectedly large.');
     }
-    if (typeof DOMParser === 'undefined') throw new Error('This browser cannot produce the offline preview.');
-    var input = new DOMParser().parseFromString(html, 'text/html');
+    if (!document || !document.implementation || !document.createElement) {
+      throw new Error('This browser cannot produce the offline preview.');
+    }
+    // Parsing inside an unmounted <template> keeps remote images/iframes inert.
+    // DOMParser's detached HTML document may still load remote resources.
+    var input = document.createElement('template');
+    input.innerHTML = html;
     var output = document.implementation.createHTMLDocument('Naxxramas safe preview');
     var wrapper = output.createElement('main');
     var visited = 0;
@@ -87,7 +92,7 @@
       }
       Array.from(node.childNodes).forEach(function (child) { traverse(child, target); });
     }
-    Array.from(input.body.childNodes).forEach(function (node) { traverse(node, wrapper); });
+    Array.from(input.content.childNodes).forEach(function (node) { traverse(node, wrapper); });
     return wrapper.outerHTML;
   }
   function render(html, label) {
