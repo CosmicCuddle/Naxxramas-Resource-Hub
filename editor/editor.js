@@ -202,17 +202,20 @@
       return;
     }
     var search = $('search').value.trim().toLowerCase();
+    var changedOnly = $('show-changed-only').checked;
     var shown = 0;
     page.runs.forEach(function (run) {
       var current = page.edits.has(run.id) ? page.edits.get(run.id) : run.value;
+      if (changedOnly && !page.edits.has(run.id)) return;
       if (search && !(run.value + ' ' + run.label + ' ' + current).toLowerCase().includes(search)) return;
       shown++;
       var holder = document.createElement('div');
       holder.className = 'field';
       var label = document.createElement('label');
       var id = 'edit-' + shown;
+      var displayLabel = run.label + ' — ' + run.value.replace(/\s+/g, ' ').slice(0, 75);
       label.htmlFor = id;
-      label.textContent = run.label + (page.edits.has(run.id) ? ' • CHANGED' : '');
+      label.textContent = displayLabel + (page.edits.has(run.id) ? ' • CHANGED' : '');
       var input = document.createElement(run.kind === 'href' ? 'input' : 'textarea');
       input.id = id;
       input.value = current;
@@ -222,7 +225,7 @@
       input.addEventListener('input', function () {
         if (input.value === run.value) page.edits.delete(run.id);
         else page.edits.set(run.id, input.value);
-        label.textContent = run.label + (page.edits.has(run.id) ? ' • CHANGED' : '');
+        label.textContent = displayLabel + (page.edits.has(run.id) ? ' • CHANGED' : '');
         holder.classList.toggle('edited', page.edits.has(run.id));
         setButtons();
       });
@@ -232,7 +235,7 @@
     });
     if (!shown) {
       var empty = document.createElement('p');
-      empty.textContent = 'Nothing matches that search. Try a different word.';
+      empty.textContent = changedOnly ? 'No changed fields match this view.' : 'Nothing matches that search. Try a different word.';
       fields.appendChild(empty);
     }
   }
@@ -371,6 +374,7 @@
   });
   $('page').addEventListener('change', function () { activePath = this.value; showFields(); setButtons(); });
   $('search').addEventListener('input', showFields);
+  $('show-changed-only').addEventListener('change', showFields);
   $('save-draft').addEventListener('click', function () {
     if (!hasChanges()) return;
     download(new Blob([JSON.stringify(draftData(), null, 2) + '\n'], { type: 'application/json' }), 'Naxxramas-Editor-Draft.json');
