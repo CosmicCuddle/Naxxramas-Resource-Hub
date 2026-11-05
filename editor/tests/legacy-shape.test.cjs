@@ -19,7 +19,7 @@ test('scanner ignores comments and nested function argument commas', () => {
   const root = enclosingParts(src,0);
   assert.equal(root.segments.length,2);
   assert.equal(property(src,root.segments[0]).key,'resources');
-  assert.equal(enclosingParts(src,property(src,root.segments[0]).valueStart).segments.length,2);
+  assert.equal(enclosingParts(src,src.indexOf('[',property(src,root.segments[0]).valueStart)).segments.length,2);
 });
 test('accepts quoted keys without revealing their contents', () => {
   const source = '{"resources":[], "dungeons":{ "resources": [{}] }, "secretKey":"PRIVATE-NEVER-PRINT"}';
