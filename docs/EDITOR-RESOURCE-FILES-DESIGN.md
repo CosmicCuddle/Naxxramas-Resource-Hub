@@ -83,6 +83,9 @@ The release gate must eventually verify three separate layers:
 
 **E. New editor conflict and recovery checks:** when the future user-facing resource editor is introduced, verify that stale original hashes, altered fragments, removed custom properties and inconsistent output manifests all stop export. A ZIP with only changed resources cannot be described as a whole-site backup; separate validated full-repository snapshots remain a release requirement.
 
+**F. Original mutation compatibility:** the fixed original source contains 13 candidate direct accesses to the separate 29 records (including two recognized array-mutator calls and one shallow member-assignment pattern), and 31 to the 414 main resources (including seven direct-reassignment patterns). These are *lexical patterns*, not a runtime call graph. An editor cannot assume one source collection is read-only or safely disposable. CI now verifies that synthetic first/last resource title edits preserve the original prefix/suffix and the original script-access candidate counts. Browser tests must still exercise genuine admin editing, saving, resource display and rollback without reaching public forms or changing published data.
+
+
 
 ## Publishing and recovery
 
