@@ -1,6 +1,6 @@
-# Naxxramas Game Clients — local draft preview (Windows)
+# Naxxramas Game Clients — local read-only preview (Windows)
 
-**Read-only preview.** This runs the draft website from your own extracted folder on http://127.0.0.1:18765/. It does not publish, upload, or modify the real website.
+**Read-only preview.** This serves a local copy of the website from your own extracted folder at http://127.0.0.1:18765/. It does not publish, upload, or modify the live website. The Game Clients guide was merged into `main` in [PR #52](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/pull/52) on 4 November 2026; the local preview alone cannot verify public GitHub Pages deployment.
 
 1. **Extract the entire ZIP** to a normal folder on your Windows computer.
 2. Double-click tools/local-preview/Start-Preview.cmd.
@@ -12,4 +12,4 @@ The small built-in PowerShell server handles **GET and HEAD only**, binds strict
 
 No extra software is required on a normal Windows installation with Windows PowerShell.
 
-**Safety:** No administrator privileges, new account or external launcher should be needed. Run this helper only from your own official GitHub PR preview package. This is still an unmerged draft.
+**Safety:** No administrator privileges, new account or external launcher should be needed. Run this helper only from an official copy of the Naxxramas Resource Hub repository or its GitHub Actions preview package. A local copy may be different from what GitHub Pages currently serves.

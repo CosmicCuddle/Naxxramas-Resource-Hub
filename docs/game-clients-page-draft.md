@@ -1,6 +1,6 @@
-# Game Clients — page content draft
+# Game Clients — implementation and review record
 
-**Draft only.** This is preparation for the existing Game Clients section, not a published page. No private Naxxramas realm address, realmlist contents or login details belong here.
+**Repository status (4 November 2026):** The Game Clients guide was merged into `main` through [PR #52](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/pull/52). A separate read-only GitHub Pages browser check subsequently passed on 5 November 2026, confirming the public guide rendered. Actual administrator sign-in/editing remains unverified. No private Naxxramas realm address, realmlist contents or login details belong here.
 
 ## Download and Set Up Your Game Client
 
@@ -20,9 +20,9 @@ This banner is rendered as the **first element** of the Game Clients guide, befo
 
 If a download website asks which **expansion** or **patch** you want, choose **Wrath of the Lich King (WotLK)**, **patch 3.3.5a (build 12340)**. Do not choose Vanilla, The Burning Crusade, Classic, or another patch. This is the client Naxxramas uses even during earlier progression stages.
 
-**Main download option — ChromieCraft:** https://chromiecraft.com/en/downloads/ . Look for the **Wrath of the Lich King (WotLK), patch 3.3.5a / build 12340** client. The download provider's own connection settings are not for Naxxramas; accepted applicants follow their private Naxxramas onboarding instructions. The actual archive has not been independently verified by this draft's tests.
+**Main download option — ChromieCraft:** https://chromiecraft.com/en/downloads/ . Look for the **Wrath of the Lich King (WotLK), patch 3.3.5a / build 12340** client. The download provider's own connection settings are not for Naxxramas; accepted applicants follow their private Naxxramas onboarding instructions. The actual archive has not been independently verified by the website's automated tests.
 
-**Alternative — Warmane:** https://web.archive.org/web/20260228080116/https://www.warmane.com/download . This is a **saved 28 February 2026 copy** of Warmane's downloads page. On 4 November 2026, the owner successfully downloaded a file using this exact archived page on their PC. The former **“Currently out of order”** label has therefore been removed from the public Game Clients card. A successful download does **not yet** verify the file's actual WotLK 3.3.5a build 12340 version, contents or compatibility with Naxxramas. Keep the provider description neutral and identify the link as an archived page.
+**Alternative — Warmane:** https://web.archive.org/web/20260228080116/https://www.warmane.com/download . This is a **saved 28 February 2026 copy** of Warmane's downloads page. On 4 November 2026, the owner successfully downloaded a file using this exact archived page on their PC. The former **“Currently out of order”** label has therefore been removed from the public Game Clients card. After downloading, the owner visually checked the login version and reported it looked correct for **Version 3.3.5 (12340)**. This is an owner check, **not** independent archive hash/content verification or a Naxxramas connection test. Keep the provider description neutral and identify the link as an archived page.
 
 Naxxramas does not host or distribute the base game client through this page.
 
@@ -78,25 +78,26 @@ Launch **Wow.exe**, not an automatic updater, and follow the privately supplied 
 - Make download choices easy to distinguish. No source may be labelled independently tested until its actual client archive has been checked.
 - Keep the numbered setup instructions on this page instead of duplicating them across Server Rules and Apply to Join.
 - Cross-link the New Player Guide, Apply to Join and Patch Notes briefly rather than reproducing their full content.
-- Verify all download URLs, patch release details and actual client build before publishing.
+- Before describing a client source as independently verified, check its download link, archive contents, game build and required Naxxramas patch compatibility.
 - Never include a server IP, a prefilled realmlist or any real credentials in public HTML, scripts, data, README files or this guide.
 - Do not package or upload third-party proprietary base game files.
 
-### Draft implementation and review — 4 November 2026
+### Implementation, tests and merge — 4 November 2026
 
-- **Integrated into the existing Game Clients section in PR #52 only.** It uses scoped JS/CSS while leaving the original `site-content.html`, native navigation and editable resource card unchanged. The site has **not** been merged or published from this PR.
-- **Earlier review (superseded by the owner's 4 November 2026 test):** the live [Warmane downloads page](https://www.warmane.com/download) displayed a form but was not verified for a working older-client download. The owner subsequently succeeded in downloading a file using the [28 February 2026 Wayback snapshot](https://web.archive.org/web/20260228080116/https://www.warmane.com/download). The resulting game's build and files remain unverified, so do not describe the client itself as approved or tested.
+- **Merged into `main` via [PR #52](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/pull/52)** at commit [`5064a9d3`](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/commit/5064a9d3cadb7071caa1d0f67e43f87d4b591043) on 4 November 2026 at 22:20 UTC. It uses scoped JS/CSS while retaining the original `site-content.html`, native navigation and editable resource card. The public GitHub Pages Game Clients route later passed a read-only headless-browser deployment check on 5 November 2026 ([Actions #41940661224](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/41940661224)); this does not prove that actual admin sign-in/editing works.
+- **Administrator editing boundary:** the original native ChromieCraft resource remains available in visual-admin mode, but the visitor-facing ChromieCraft and Warmane download cards are generated from `assets/naxx-game-clients-guide.js`. Editing the original native ChromieCraft card does **not** automatically change the new visitor-facing cards. Future public guide copy/link changes require a reviewed source update unless a dedicated editor integration is separately approved. This limitation is source-confirmed; actual admin sign-in has not been tested.
+- **Earlier review (superseded by the owner's 4 November 2026 test):** the live [Warmane downloads page](https://www.warmane.com/download) displayed a form but was not verified for a working older-client download. The owner subsequently succeeded in downloading a file using the [28 February 2026 Wayback snapshot](https://web.archive.org/web/20260228080116/https://www.warmane.com/download). The owner subsequently visually checked the login screen and agreed the displayed build looked correct. The archive hash, full file contents and Naxxramas compatibility remain independently unverified, so do not call the downloaded package independently certified.
 - The [Naxxramas patch README](https://github.com/CosmicCuddle/Naxxramas-Server-Patches/blob/main/README.md) confirms that fresh players need **both** `patch-V.mpq` and `patch-Z.mpq`, potentially from different releases.
-- [Draft-only Actions run #41890147802](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/41890147802) **passed** source integrity, original Home/Game Clients A/B checks, desktop/mobile Chrome layout and keyboard navigation, and privacy-boundary tests.
-- The Game Clients layout passed **1440px desktop** and **390px mobile** browser checks. The run captured extended 3500px/5500px-high screenshots, reviewed for full-guide presentation. It also simulated the actual CSS `visual-admin-active` mode: the old card and native grid remain visible there, while the visitor guide returns after the simulation. **This is not a real administrator sign-in or editing test.**
+- [Final PR-head Actions run #41912423437](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/41912423437) **completed successfully** for commit `f443f454`, checking source integrity, Home/Game Clients A/B navigation, desktop/mobile Chrome layout, keyboard navigation and privacy boundaries. The checks ran on the PR before merge, not against the public GitHub Pages site.
+- The Game Clients layout passed **1440px desktop** and **390px mobile** browser checks. The run captured extended 3500px/5500px-high screenshots, reviewed for full-guide presentation. It also simulated the CSS `visual-admin-active` mode: the old card and native grid remain visible there, while the visitor guide returns after the simulation. CosmicCuddle approved the reviewed Game Clients desktop/mobile presentation on 4 November 2026. **This is not a real administrator sign-in or editing test.**
 - New Players links to this guide for download/install instructions rather than repeating the whole walkthrough.
 
-### Remaining release conditions
+### Post-merge verification and future-source conditions
 
 1. **ChromieCraft is the main listed download option.** Confirm the actual 3.3.5a build 12340 archive and Naxxramas patch compatibility before labelling any downloaded client tested. **Eternion is deferred by the owner and must not appear as a public choice.**
-2. **Warmane archive page download succeeded in the owner's hands.** The outdated outage badge is removed. Before marking the downloaded client as confirmed for Naxxramas, check the actual client build is **WotLK 3.3.5a (12340)**, its contents, and patch compatibility. The Wayback copy may become unavailable independently of Warmane.
-3. Obtain owner's review of the desktop/mobile guide, and confirm real visual-admin editing behaviour before publishing.
-4. Obtain explicit approval before merging or publishing PR #52. Do not release a realmlist, realm address, passwords or third-party client binaries.
+2. **Warmane archive page download succeeded in the owner's hands.** The owner visually confirmed the login version appeared correct for **WotLK 3.3.5a (12340)**; this is not an independent hash/content or Naxxramas compatibility check. The outdated outage badge is removed. The Wayback copy may become unavailable independently of Warmane.
+3. **Visual review approved by the owner.** The public GitHub Pages site passed an additional read-only headless-browser check of the rendered guide, two approved cards, original admin-control presence and direct download links on 5 November 2026 ([Actions #41940877068](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/41940877068)). Actual administrator sign-in/editing still needs a separate no-save test; neither archived client integrity nor player login has been validated.
+4. **Recovery point verified:** [`backup/pre-game-clients-pr52-2026-11-04-main-7739adb`](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/tree/backup/pre-game-clients-pr52-2026-11-04-main-7739adb) matches pre-merge commit `7739adb`. Any further merge/publication requires a separate owner decision. Never release a realmlist, realm address, passwords or third-party client binaries.
 
 ### Deferred research only — not a public download option
 
