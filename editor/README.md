@@ -239,6 +239,28 @@ If the receipt was created for **both** page and resource drafts, you must also 
 
 **This is a reviewed existing-path candidate, not a deployment.** Although the packaged filenames match tracked Git paths, the archive's manifest says `ownerApproved:false`, `githubReadyForDeployment:false` and `deployable:false`. Do not apply it to the live website. Resource updates still require a separately approved `content/legacy/` source-tree migration, correct compatibility source generation, a retained verified backup and owner acceptance testing.
 
+## Receipt-verified resource compatibility preview ZIP — PRIVATE ONLY
+
+The resource half of the separate-file export now has a corresponding **offline preview package** in `editor/tools/package-reviewed-resource-preview.cjs`. This does **not** add or adopt the proposed `content/legacy/` directory in Git.
+
+For a verified `naxx-local-resource-draft-v2` and its exact Git-commit review receipt, it:
+
+- Revalidates the original commit, page/resource draft fingerprints and 414-resource SHA-256 baseline. When page edits were reviewed together with resource edits, the exact page draft must also be supplied for receipt verification.
+- Stages the candidate resource changes in a disposable **418-file private source tree**, verifies the reconstructed compatibility source **byte-for-byte**, then verifies exact rollback to the original complete website before deleting the tree.
+- Creates a deterministic, uncompressed private ZIP containing **only changed** resource object fragments named `CANDIDATE-RESOURCE-FRAGMENTS/0001.fragment` etc., `PREVIEW-ONLY-generated-site-content.html` (the complete ~31 MB *offline preview*, NOT the live path), `RESOURCE-PREVIEW-REVIEW-MANIFEST.json` and `READ_ME_PRIVATE_RESOURCE_PREVIEW.txt`.
+- Re-opens the ZIP and verifies all fragment data, original and changed hashes, reconstructed complete HTML, checksum manifest and private-use warning. Page/navigation changes are **explicitly excluded and counted** so the package is not represented as a complete website update.
+- Never includes root `index.html`, live-path `site-content.html`, public GitHub source-tree paths, resource IDs in manifest output, or a deployment script. It makes no repository write.
+
+For **later explicit local review** from a clean matching checkout, after saving a commit-bound review receipt:
+
+```bash
+node editor/tools/package-reviewed-resource-preview.cjs --resources "/private/path/resource-draft.json" --receipt "/private/path/review.review.json" --output "/private/path/Private-Resource-Preview.zip"
+```
+
+If the original receipt covered **both** editing areas, add `--pages "/private/path/page-draft.json"` to verify the page half too. The output must be a **new absolute private path outside Git**. No existing ZIP may be overwritten.
+
+**Protect this ZIP.** Unlike the small changed-pages ZIP, it contains the complete generated website resource source and may include confidential custom content. **Do not upload or publish it, attach it to a public Issue, place it in GitHub Pages, or copy the preview file over the live website.** It is not a complete repository backup or a permitted production update. The owner-approved resource source-tree migration, preview/rollback review and final integrated export are still separate decisions.
+
 ## Remaining development
 
 1. Test the local preview and all revert buttons in Edge/Chrome on a disposable copy, including draft restore, ZIP validation, icons and keyboard access.
