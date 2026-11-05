@@ -221,6 +221,24 @@ node editor/tools/create-draft-review-receipt.cjs --commit FULL_REVIEWED_GIT_COM
 
 **Critical distinction:** This proves that the **selected drafts and source files matched a specific Git commit at review time**. It does not establish when the browser drafts were authored, authenticate who wrote them, sign the receipt, prove the presence of a complete external backup, approve the proposed `content/legacy/` resource paths or authorise publishing. Every receipt explicitly says `authoredAtThisCommitProven:false`, `cryptographicallySigned:false`, `githubReady:false` and `approvedByOwner:false`. It must be regenerated/reverified after changes. This is not a final GitHub-ready combined website export.
 
+## Reviewed export of EXISTING page/navigation Git paths — offline only
+
+The new `editor/tools/package-reviewed-page-update.cjs` turns a **verified review receipt** and its matching local `naxx-local-draft-v3` page/navigation draft into a private ZIP. It includes **only actually changed files that already exist in Git**: `new-players/content.html`, `rules/content.html`, `apply/content.html`, `game-clients/content.html` and/or `content/navigation.json`. Each file keeps its **exact original Git relative path**.
+
+The ZIP also contains `REVIEWED-PAGE-UPDATE-MANIFEST.json` with the selected Git commit/tree, review receipt SHA-256, original/updated SHA-256 per changed path and an explicit list of **excluded proposed resource edits**, plus `READ_ME_BEFORE_GIT_REVIEW.txt` with safety and review instructions.
+
+**Safety gates:** The tool independently revalidates the receipt against the clean checkout and exact draft payloads before packaging, compares every file to its originally reviewed checksum, and decodes the final ZIP to confirm all expected entries and bytes. It refuses stale commits, changed drafts, forged paths, altered archive instructions and unexpected files. The root `index.html` loader, `site-content.html`, all proposed resource fragments and any other repository files are forbidden.
+
+For **later explicit private local use**, create the review receipt first (see the section above), then run a command like:
+
+```bash
+node editor/tools/package-reviewed-page-update.cjs --pages "/private/path/page-draft.json" --receipt "/private/path/approved-commit.review.json" --output "/private/path/Reviewed-Pages.zip"
+```
+
+If the receipt was created for **both** page and resource drafts, you must also supply the same `--resources "/private/path/resource-draft.json"` when packaging. This verifies that the receipt truly matches both drafts; **resource changes are never packaged** by this command. The output path must be a new absolute `.zip` **outside the repository**, and an existing file is never overwritten. The archive contains only changed page/navigation files, so it is **not** a full website backup.
+
+**This is a reviewed existing-path candidate, not a deployment.** Although the packaged filenames match tracked Git paths, the archive's manifest says `ownerApproved:false`, `githubReadyForDeployment:false` and `deployable:false`. Do not apply it to the live website. Resource updates still require a separately approved `content/legacy/` source-tree migration, correct compatibility source generation, a retained verified backup and owner acceptance testing.
+
 ## Remaining development
 
 1. Test the local preview and all revert buttons in Edge/Chrome on a disposable copy, including draft restore, ZIP validation, icons and keyboard access.
