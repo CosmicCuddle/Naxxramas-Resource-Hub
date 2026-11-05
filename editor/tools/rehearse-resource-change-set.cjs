@@ -119,6 +119,28 @@ function verifyStagedPackage(root,original,draft,plan) {
      manifest.resources.length!==COUNT||
      !Array.isArray(manifest.changes)||manifest.changes.length!==plan.fragments.size)
     throw Error('Staged resource change-set manifest invalid.');
+  if(!draft||draft.format!=='naxx-local-resource-draft-v2'||
+     draft.baselineSha256!==SOURCE_SHA||!Array.isArray(draft.changes)||
+     draft.changes.length!==manifest.changes.length)
+    throw Error('Draft does not match the original staging plan.');
+  const draftIndices=new Set();
+  for(const requested of draft.changes){
+    if(!requested||!Number.isInteger(requested.index)||
+       requested.index<0||requested.index>=COUNT||
+       draftIndices.has(requested.index))
+      throw Error('Duplicate or invalid draft resource index.');
+    draftIndices.add(requested.index);
+    const keys=Object.keys(requested).sort().join(',');
+    if(keys!=='index,title'&&keys!=='content,index'&&keys!=='content,index,title')
+      throw Error('Unexpected staged draft fields.');
+    if(Object.hasOwn(requested,'title')&&!core.titleValid(requested.title)||
+       Object.hasOwn(requested,'content')&&!core.contentValid(requested.content))
+      throw Error('Staged draft contains unsafe text.');
+    if(!plan.fragments.has(requested.index)||
+       expectedChange(split,new Map([[requested.index,requested]]),requested.index)!==
+       plan.fragments.get(requested.index))
+      throw Error('Staged source no longer matches requested resource edits.');
+  }
   const originalManifest=JSON.parse(fs.readFileSync(fixedFile(root,'manifest.json'),'utf8'));
   if(originalManifest.sourceSha256!==SOURCE_SHA||
      originalManifest.recordCount!==COUNT||originalManifest.sourceLength!==original.length)
@@ -156,8 +178,11 @@ function verifyStagedPackage(root,original,draft,plan) {
     rebuiltRecords.push(staged.toString('utf8'));
     if(!plan.fragments.has(i))untouched++;
   }
+  const listedPositions=new Set();
   for(const item of manifest.changes){
     const index=item.position-1;
+    if(listedPositions.has(index))throw Error('Duplicate changed resource manifest entry.');
+    listedPositions.add(index);
     const expected=plan.fragments.get(index);
     if(typeof expected!=='string'||item.path!==resourcePath(index).split(path.sep).join('/')||
        item.originalSha256!==manifest.resources[index].originalSha256||
@@ -168,6 +193,9 @@ function verifyStagedPackage(root,original,draft,plan) {
     if(JSON.stringify(item.fields)!==JSON.stringify(intendedFields))
       throw Error('Staged changed-field manifest entry invalid.');
   }
+  if(listedPositions.size!==draftIndices.size||
+     [...draftIndices].some(index=>!listedPositions.has(index)))
+    throw Error('Change-set manifest omits a requested resource.');
   const joined=restoreInMemory(split,rebuiltRecords);
   if(!joined.equals(plan.expected)||hash(joined)!==manifest.stagedSourceSha256||
      joined.length!==manifest.stagedSourceBytes)
