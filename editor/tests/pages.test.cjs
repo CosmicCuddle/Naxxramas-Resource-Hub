@@ -8,9 +8,9 @@ const vm = require('node:vm');
 
 const root = path.resolve(__dirname, '..', '..');
 const editorJs = fs.readFileSync(path.join(root, 'editor', 'editor.js'), 'utf8');
-const needle = '  setButtons();\n  showFields();\n})();';
+const needle = '  setButtons();\n  showFields();\n  showNavigation();\n})();';
 assert.ok(editorJs.endsWith(needle + '\n'), 'Editor startup changed: update the test harness.');
-const hookedJs = editorJs.replace(needle, '  window.__test = { scan: scan, applyPage: applyPage, validHref: validHref };\n})();');
+const hookedJs = editorJs.replace(needle, '  window.__test = { scan: scan, applyPage: applyPage, validHref: validHref, validateNavigation: validateNavigation };\n})();');
 function element() {
   return {
     value: '', textContent: '', disabled: true, files: [],
