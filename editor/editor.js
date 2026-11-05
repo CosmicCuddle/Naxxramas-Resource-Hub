@@ -508,6 +508,15 @@
       setButtons();
     });
   });
+  // Read-only bridge for a PRIVATE review package only. No file outputs or
+  // GitHub publication; drafts retain exact original-page fingerprint checks.
+  window.NaxxLocalPageReview = Object.freeze({
+    getDraft: function () {
+      if (state.size !== PATHS.length || !navState) return null;
+      if (!hasChanges()) return null;
+      return draftData();
+    }
+  });
   setButtons();
   showFields();
   showNavigation();
