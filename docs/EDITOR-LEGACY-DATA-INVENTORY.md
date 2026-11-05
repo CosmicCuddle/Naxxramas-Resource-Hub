@@ -54,6 +54,33 @@ The standalone read-only audit now checks this collection against the same exact
 
 No site names, content values, custom property keys or identifiers were printed by the new audit. Its shape counts **do not** reveal what the three nested objects contain, which site features depend on them, or whether any runtime mutations occur. Do not rename, flatten, omit or export this 29-item collection independently until its nested schema and references are fully checked. The original file and visitor code were not modified.
 
+### Nested side-object structure and possible resource references — verified (Part 08 continuation)
+
+Read-only GitHub editor run [42042008445](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42042008445) passed **67/67 tests** with the additional nested-structure audit. The original source fingerprint was verified before any scanning. This work did not execute page code, change website files or export source values.
+
+| Aggregate nested finding | Result |
+| --- | ---: |
+| Outer side-field layouts | 1 (same ordered field-key/type layout across all 29 records) |
+| First-level object fields | 87 |
+| Total nested object containers, including second level | 174 |
+| Direct fields inside the 87 first-level nested objects | 435 |
+| Total properties in all nested objects | 696 |
+| Distinct ordered nested key/type layouts | 4 |
+| Nested array containers | 0 |
+| String-valued nested properties | 435 |
+| Number-like nested properties | 87 |
+| Object-valued nested properties | 87 |
+| Boolean-literal nested properties | 87 |
+| Function/property-call expressions in these positions | 0 |
+| Unparseable nested fields / repeated nested keys | 0 / 0 |
+| Max nested container depth from first-level object | 1 (second level present) |
+| Exact string/numeric-literal matches to 414 resource IDs | 0 |
+
+The zero-match count covers literal values inspected in the side collection, **not** the content of arbitrary HTML, runtime-generated values, names matched through another mapping, or all references elsewhere in site JavaScript. It cannot demonstrate that the 29 records are independent of the main resources. Number-like values were classified by syntax; they were not all proven to be semantically meaningful numbers.
+
+**Preservation rule:** These 29 records and all 174 nested objects must remain unmodified in any upcoming 414-resource export. Do not convert the side records into the main resource archive, rename their keys, or change the seven-property outer layout without separate owner-approved compatibility testing. The next relationship review must inspect the site code that consumes these collections; syntactic scans alone do not establish runtime meaning.
+
+
 
 ## Byte-exact split and rebuild proof (development only)
 
@@ -127,6 +154,8 @@ Run from a complete repository checkout:
     node editor/tools/audit-legacy-json.cjs
     node editor/tools/check-legacy-roundtrip.cjs
     node editor/tools/audit-resource-schema.cjs
+    node editor/tools/audit-side-collection.cjs
+    node editor/tools/audit-side-nested.cjs
     node editor/tools/audit-legacy-media.cjs
     node --test editor/tests/*.test.cjs
 
