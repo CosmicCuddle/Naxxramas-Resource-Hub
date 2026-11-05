@@ -46,6 +46,8 @@ jobs:
         run: node editor/tools/check-legacy-roundtrip.cjs
       - name: Inventory resource field and association types without values
         run: node editor/tools/audit-resource-schema.cjs
+      - name: Verify original 414 content fields and safe edit size limits
+        run: node editor/tools/audit-resource-content.cjs
       - name: Audit separate 29-item side collection without printing values
         run: node editor/tools/audit-side-collection.cjs
       - name: Audit deeper side-object shapes and possible literal cross-references
