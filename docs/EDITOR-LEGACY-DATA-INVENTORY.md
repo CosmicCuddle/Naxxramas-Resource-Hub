@@ -35,6 +35,53 @@ These objects also contain **13,821 occurrences of fields outside the audit's sm
 
 The separate 29-item array has 29 direct objects with a name field and no direct id field. We must not count these as resource records or discard them without determining their purpose.
 
+## Byte-exact split and rebuild proof (development only)
+
+The read-only in-memory splitter now locates the pre-clone window object, isolates all **414 resource object fragments** and retains **415 separator sections**. It reconstructs the complete original HTML without writing a single file.
+
+| Round-trip gate | Verified result |
+| --- | --- |
+| Resources reconstructed | 414 of 414 |
+| Original and reconstructed bytes | 30,976,969 each |
+| Original and reconstructed SHA-256 | 34455f6d901c538e2491a8c16681692e4c02d918b1984d7d0ba081aacb1049e8 |
+| Bytes changed | 0 |
+| Missing record handling | Rejected |
+| Reordered or altered record handling | No longer byte-identical |
+| Repository files written | 0 |
+
+This establishes that source fragments can be separated and reassembled in memory **without loss**. It does **not** prove that new separately stored files have been created, that a modified resource can be safely published, or that the browser/site logic is functionally equivalent after changing how data loads.
+
+## Field and association audit
+
+The 414 object literals were inspected without evaluating their source. All have an id, title, section, classes and content field. All 414 id values are ordinary decodable source strings and are distinct after decoding; none are repeated. These findings concern the **original literal** only, not every potential runtime mutation.
+
+| Finding | Observed |
+| --- | ---: |
+| Decoded distinct resource IDs | 414 |
+| Repeated decoded IDs | 0 |
+| Distinct section values | 7 |
+| Distinct values stored as class associations | 41 |
+| Total class-association entries | 393 |
+| Resource properties per record | 37–43 |
+| Additional property occurrences outside the approved audit allowlist | 13,821 |
+| Image markers inside resource fragments | 0 |
+
+The 41 distinct class-association values are **not** 41 playable character classes. Their exact meaning and relationship to navigation/progression remain under review. All 414 content values are string literals, but these may embed structured HTML or other custom content: do not flatten them into plain text.
+
+## Embedded image baseline
+
+The source contains **95 embedded image references** comprising **71 distinct decoded image payloads**. All 95 passed the declared file-header checks and reversible Base64 decoding.
+
+| Format | References |
+| --- | ---: |
+| PNG | 47 |
+| JPEG | 32 |
+| WebP | 16 |
+
+There are **24 repeated image payload references**. The sum of decoded image bytes, counting repeated references, is 19,598,519. These references occur 20 times before and 75 times after the source resources array; none occur inside the 414 resource fragments.
+
+A *distinct payload* does not necessarily correspond to an already separate image file. Deduplicating or moving images into shared asset files is **only a future option**. All original resource references, display appearance and theme must be retained until proven equivalent.
+
 ## Confidence boundaries
 
 **Confirmed by source syntax:** 27 direct members in the earlier object, 414 direct resource object literals, 29 separate object literals, three empty direct arrays, and the listed field-presence totals.
@@ -58,7 +105,10 @@ Run from a complete repository checkout:
     node editor/tools/inspect-legacy.cjs
     node editor/tools/audit-legacy-shape.cjs
     node editor/tools/audit-legacy-json.cjs
-    node --test editor/tests/legacy-data-contract.test.cjs
+    node editor/tools/check-legacy-roundtrip.cjs
+    node editor/tools/audit-resource-schema.cjs
+    node editor/tools/audit-legacy-media.cjs
+    node --test editor/tests/*.test.cjs
 
 Audit scripts report aggregates and hashes only; they do not evaluate website code, write files, print private content or upload data.
 
