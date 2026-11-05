@@ -173,15 +173,6 @@
     });
     return values;
   }
-  function changedRecord(original,info,title){
-    if(!titleValid(title))throw Error('Invalid proposed title.');
-    if(!info||typeof original!=='string'||original.slice(info.titleStart,info.titleEnd).length===0)
-      throw Error('Invalid selected resource.');
-    var old=literal(original,info.titleStart,original.length);
-    // This helper only works on an isolated record where offsets belong to it.
-    if(old.value===title)return original;
-    return original.slice(0,info.titleStart)+JSON.stringify(title)+original.slice(info.titleEnd);
-  }
   return {BASE_SHA:BASE_SHA,BASE_LENGTH:BASE_LENGTH,COUNT:COUNT,open:open,
     titleValid:titleValid,draft:draft,restore:restore,parseVerified:records};
 });
