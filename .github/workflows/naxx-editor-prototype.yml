@@ -68,3 +68,5 @@ jobs:
         run: node editor/tools/rehearse-edited-resource-files.cjs
       - name: Rehearse multiple draft edits as separately checksummed resource fragments with safe rollback
         run: node editor/tools/rehearse-resource-change-set.cjs
+      - name: Rehearse proposed GitHub resource tree with 414 paths and exact original rollback
+        run: node editor/tools/rehearse-proposed-resource-tree.cjs
