@@ -38,3 +38,5 @@ jobs:
         run: node editor/tools/audit-legacy-shape.cjs
       - name: Safe static-JSON inventory of legacy DATA
         run: node editor/tools/audit-legacy-json.cjs
+      - name: Prove byte-exact reconstruction of the original resources
+        run: node editor/tools/check-legacy-roundtrip.cjs
