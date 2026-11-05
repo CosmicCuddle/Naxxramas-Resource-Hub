@@ -39,7 +39,7 @@ vm.runInNewContext(hookedJs, {
 }, { filename: 'editor/editor.js' });
 const { scan, applyPage, validHref } = window.__test;
 
-['new-players/content.html', 'rules/content.html', 'apply/content.html'].forEach((relative) => {
+['new-players/content.html', 'rules/content.html', 'apply/content.html', 'game-clients/content.html'].forEach((relative) => {
   test(relative + ': preserves all unedited source bytes', () => {
     const source = fs.readFileSync(path.join(root, relative), 'utf8');
     const runs = scan(source);
