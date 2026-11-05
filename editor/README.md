@@ -177,6 +177,26 @@ This is **not** a complete repository backup, GitHub-ready changed-files archive
 
 **Verified milestone:** [Editor test run 42066172796](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42066172796) passed **142/142 tests**, including creating baseline and edited source archives, independent extraction, exact reconstruction and rollback, canonical ZIP validation, corrupt path/content rejection, privacy-warning protection, and an explicitly requested local output with overwrite and repository-path refusal. Only temporary test files were produced; no source archive was uploaded as a CI artifact.
 
+## Full Git-history backup and verified recovery — development-only gate
+
+The resource source-tree ZIP is only one part of the site. A **separate private Git bundle backup tool** now addresses the entire fetched Git repository history:
+
+- `editor/tools/rehearse-full-git-recovery.cjs` verifies the checkout is **not shallow**, not partial/promisor, has **no modified, untracked or ignored files**, no symlink/submodule entries and no Git LFS pointer files. It inventories all tracked files, preserves all locally fetched branch/tag/remote refs and detached `HEAD`, creates a Git bundle in a disposable OS temp directory, and independently clones/restores it to verify commit, tree, full tracked bytes, ref targets and reachable history. The temporary bundle is deleted after verification.
+- `editor/tools/create-local-git-backup.cjs` provides an **optional explicit local save**. It requires a new absolute `.bundle` filename outside the repository, including symlink aliases, and creates exactly three private files: `<filename>.bundle`, `<filename>.bundle.receipt.json` and `<filename>.bundle.READ_ME_FIRST.txt` (the suffixes are added to the chosen bundle filename). It refuses existing files and uses restrictive permissions. It restores the **saved** bundle again before creating its receipt; failed output attempts clean up files they created. It does **not** upload, push, merge, publish or replace the site.
+- `editor/tools/rehearse-saved-git-backup.cjs` runs the optional save tool against the **complete fetched GitHub runner checkout** in a disposable private folder, independently verifies the bundle and sidecars, then deletes them. CI intentionally has **no artifact upload**.
+
+**Only for later explicit owner-approved local use** on a complete, clean checkout:
+
+```bash
+node editor/tools/create-local-git-backup.cjs --output "/absolute/private/folder/Naxxramas-Full-History.bundle"
+```
+
+The command will stop if source history is shallow or incomplete, unsaved/ignored local files are present, or an output already exists. Keep all three generated files together and private. A Git bundle may contain **sensitive material from earlier commits**, even if current public pages do not.
+
+**Scope is narrower than an entire GitHub account or deployed server.** The backup covers only Git history and refs already fetched to the checked-out repository plus the committed tracked files. It does **not** include unknown remote refs never fetched, reflog-only objects, GitHub Issues, pull-request comments, project/settings/secret configuration, GitHub Pages deployment settings, server databases, the game server, external forms, Git LFS data, untracked/ignored files or connected service data. These require separately planned backup procedures.
+
+**Release remains blocked:** Even a validated full Git bundle does not approve migration of `content/legacy/`, publication of the 31 MB source tree, a combined GitHub-ready website update or changes to the live site. CosmicCuddle must approve any production move after a review of backup/recovery coverage and website/browser behaviour.
+
 ## Remaining development
 
 1. Test the local preview and all revert buttons in Edge/Chrome on a disposable copy, including draft restore, ZIP validation, icons and keyboard access.
