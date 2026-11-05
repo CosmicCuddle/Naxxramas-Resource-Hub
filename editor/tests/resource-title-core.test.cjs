@@ -14,6 +14,8 @@ test('local title engine verifies exact 31 MB baseline before showing 414 record
   assert.equal(new Set(model.resources.map(r=>r.id)).size,414);
   assert.ok(model.resources.every(r=>typeof r.title==='string'&&r.title.length>0));
   assert.ok(model.resources.every(r=>typeof r.section==='string'));
+  assert.ok(model.resources.every(r=>typeof r.content==='string'));
+  assert.equal(model.resources.filter(r=>r.content==='').length,121);
   assert.equal(core.BASE_LENGTH,30976969);
 });
 test('editing titles creates only changed-index JSON draft with an exact baseline fingerprint',async()=>{
@@ -59,4 +61,48 @@ test('resource parser does not execute source code or export original HTML',()=>
 
   assert.ok(!Object.hasOwn(core,'exportWebsite'));
   assert.ok(!Object.hasOwn(core,'publish'));
+});
+
+test('v2 resource draft saves multiline text and title changes without copying 414 originals',async()=>{
+  const model=await core.open(source,crypto.webcrypto);
+  const text='One line\n\nAnother line. "Quoted" and backslashes \\ stay as text.';
+  const data=core.resourceDraft(new Map([[0,'Changed Resource Title']]),new Map([[0,text],[413,'']]),model);
+  assert.equal(data.format,'naxx-local-resource-draft-v2');
+  assert.equal(data.baselineSha256,core.BASE_SHA);
+  const expected=[{index:0,title:'Changed Resource Title',content:text}];
+  if(model.resources[413].content!=='')expected.push({index:413,content:''});
+  assert.deepEqual(data.changes,expected);
+  assert.equal(data.changes.some(x=>Object.hasOwn(x,'id')),false);
+  const originalSource=JSON.stringify(data);
+  assert.ok(!originalSource.includes('"resources"'));
+  const restored=core.restoreResourceDraft(JSON.parse(originalSource),model);
+  assert.equal(restored.titles.get(0),'Changed Resource Title');
+  assert.equal(restored.contents.get(0),text);
+  assert.equal(restored.legacyTitleOnly,false);
+});
+test('older title-only v1 JSON drafts remain importable without modifying content',async()=>{
+  const model=await core.open(source,crypto.webcrypto);
+  const older=core.draft(new Map([[0,'Title from old draft']]),model);
+  const restored=core.restoreResourceDraft(older,model);
+  assert.equal(restored.titles.get(0),'Title from old draft');
+  assert.equal(restored.contents.size,0);
+  assert.equal(restored.legacyTitleOnly,true);
+});
+test('v2 resource drafts fail closed on invalid content, stale hashes, duplicates and unknown fields',async()=>{
+  const model=await core.open(source,crypto.webcrypto);
+  const base=core.resourceDraft(new Map([[0,'New Title']]),new Map(),model);
+  const withChanges=(changes)=>({...base,changes});
+  assert.equal(core.contentValid(''),true);
+  assert.equal(core.contentValid('Two\nlines\n\n'),true);
+  assert.equal(core.contentValid('a'.repeat(30001)),false);
+  assert.equal(core.contentValid('<div>markup</div>'),false);
+  assert.equal(core.contentValid('\x00'),false);
+  assert.throws(()=>core.resourceDraft(new Map(),new Map([[0,'<img>']]),model));
+  assert.throws(()=>core.restoreResourceDraft({...base,baselineSha256:'0'.repeat(64)},model));
+  assert.throws(()=>core.restoreResourceDraft({...base,extra:'disallowed'},model));
+  assert.throws(()=>core.restoreResourceDraft(withChanges([{index:0,content:'A'},{index:0,content:'B'}]),model));
+  assert.throws(()=>core.restoreResourceDraft(withChanges([{index:0,content:'<script>alert(1)</script>'}]),model));
+  assert.throws(()=>core.restoreResourceDraft(withChanges([{index:0,content:model.resources[0].content}]),model));
+  assert.throws(()=>core.restoreResourceDraft(withChanges([{index:500,content:'A'}]),model));
+  assert.throws(()=>core.restoreResourceDraft(withChanges([{index:0,title:'Revised',meta:'extra'}]),model));
 });
