@@ -16,6 +16,7 @@ const {bindAtReview}=require('./bind-editor-drafts.cjs');
 const {createPagePackage}=require('./package-reviewed-page-update.cjs');
 const {createResourcePreview}=require('./package-reviewed-resource-preview.cjs');
 const {rehearseCompleteSnapshot}=require('./rehearse-complete-site-snapshot.cjs');
+const {layoutProbe}=require('./private-site-layout-probes.cjs');
 const root=path.resolve(__dirname,'..','..');
 const BASE='34455f6d901c538e2491a8c16681692e4c02d918b1984d7d0ba081aacb1049e8';
 const sha=x=>crypto.createHash('sha256').update(x).digest('hex');
@@ -225,9 +226,14 @@ async function inspectBrowser(site,work){
     const checks=[];
     for(const scenario of [
       {page:'home',route:'/',width:1440},
+      {page:'home',route:'/',width:390},
       {page:'new-players',route:'/new-players/',width:1440},
+      {page:'new-players',route:'/new-players/',width:390},
+      {page:'rules',route:'/rules/',width:1440},
       {page:'rules',route:'/rules/',width:390},
       {page:'apply',route:'/apply/',width:1440},
+      {page:'apply',route:'/apply/',width:390},
+      {page:'clients',route:'/',width:1440},
       {page:'clients',route:'/',width:390}
     ]){
       await send('Emulation.setDeviceMetricsOverride',{
@@ -282,7 +288,21 @@ async function inspectBrowser(site,work){
           '; localReads='+metrics.localReadRequests+
           '; blocked='+metrics.rejectedExternalRequests);
       }
-      checks.push({route:scenario.page,width:scenario.width,passed:Object.keys(last.checks).length});
+      // Inert geometry, native admin-controls and CSS-only visitor/admin
+      // checks. A false result fails closed; no login or content dump.
+      const layout=await send('Runtime.evaluate',{
+        expression:layoutProbe(scenario.page),returnByValue:true
+      });
+      if(layout.exceptionDetails)throw Error('Private layout probe failed.');
+      const measured=layout.result?.value;
+      if(!measured?.ready){
+        const failed=Object.keys(measured?.checks||{}).filter(k=>!measured.checks[k]);
+        throw Error('Private '+scenario.page+' '+scenario.width+
+          'px layout/admin checks did not pass: '+failed.join(', '));
+      }
+      checks.push({route:scenario.page,width:scenario.width,
+        functionalChecks:Object.keys(last.checks).length,
+        layoutAdminChecks:Object.keys(measured.checks).length});
     }
     assert.ok(metrics.localReadRequests>12,'Local resource scripts/assets were not loaded.');
     assert.equal(metrics.formSubmissions,0,'No browser form submission is permitted.');
@@ -343,7 +363,7 @@ async function main(){
     assert.equal(report.temporaryPreviewDeleted,true);
     assert.equal(report.realGitCheckoutUnchanged,true);
     assert.equal(report.stagedFilesUnchangedAfterInspection,true);
-    assert.equal(report.browserInspection.scenarios.length,5);
+    assert.equal(report.browserInspection.scenarios.length,10);
     assert.equal(report.browserInspection.formSubmissions,0);
     assert.equal(report.browserInspection.nonLocalResponses,0);
     assert.equal(report.deployable,false);
