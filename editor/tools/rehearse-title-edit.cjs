@@ -46,8 +46,8 @@ function replaceTitleInRecord(record, newTitle) {
   const revised=enclosingParts(replacement,first);
   if (revised.segments.length!==parsed.segments.length)
     throw new Error('Title edit unexpectedly changed the record structure.');
-  return {record:replacement,originalTitleLiteral:record.slice(from,oldTitle.end),
-    newTitleLiteral:serialized};
+  return {record:replacement,start:from,end:oldTitle.end,
+    originalTitleLiteral:record.slice(from,oldTitle.end),newTitleLiteral:serialized};
 }
 function simulateTitleEdit(bytes,index,newTitle) {
   const split=splitInMemory(bytes);
@@ -61,7 +61,8 @@ function simulateTitleEdit(bytes,index,newTitle) {
   if(rebuilt.equals(bytes))throw new Error('Test did not change the source.');
   const reconstituted=rebuilt.toString('utf8');
   // Only the single original literal is replaced, all other bytes unchanged.
-  const expectedRecord=originalRecord.replace(changed.originalTitleLiteral,changed.newTitleLiteral);
+  const expectedRecord=originalRecord.slice(0,changed.start)+
+    changed.newTitleLiteral+originalRecord.slice(changed.end);
   if(expectedRecord!==changed.record)
     throw new Error('Title replacement unexpectedly touched another field.');
   if(split.source.slice(0,split.arrayBegin)!==reconstituted.slice(0,split.arrayBegin))
