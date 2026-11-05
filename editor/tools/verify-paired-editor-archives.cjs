@@ -13,6 +13,7 @@
 const fs=require('node:fs'),path=require('node:path');
 const crypto=require('node:crypto');
 const {verifyReviewBinding}=require('./bind-editor-drafts.cjs');
+const {verifyCheckout}=require('./plan-mixed-editor-update.cjs');
 const {sourceDraft}=require('./create-draft-review-receipt.cjs');
 const {createPagePackage}=require('./package-reviewed-page-update.cjs');
 const {createResourcePreview}=require('./package-reviewed-resource-preview.cjs');
@@ -67,6 +68,11 @@ async function verifyPairedArchives(root,drafts,receipt,pageZip,resourceZip){
      resourceManifest.deployable!==false||
      resourceManifest.sourceTreeCommitted!==false)
     throw Error('Review-only archives cannot claim deployment approval.');
+  // Recheck the complete tracked checkout after the expensive 31 MB rebuild
+  // so a source file changed mid-review cannot be accepted as a stable pair.
+  const after=verifyCheckout(root,receipt.reviewedGitCommit);
+  if(after.fingerprintSha256!==receipt.checkoutFingerprintSha256)
+    throw Error('The Git source checkout changed during paired archive review.');
 
   return {
     format:'naxx-matched-private-editor-archives-v1',
