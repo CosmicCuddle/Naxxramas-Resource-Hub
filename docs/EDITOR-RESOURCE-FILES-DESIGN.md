@@ -1,0 +1,88 @@
+# Proposed GitHub layout for independently editable legacy resources
+
+**Status: DESIGN ONLY — no live migration, no new resource files in the repository, no merge approval.**
+
+This document extends the approved phased editor direction in PR #55 and the protected development work in PR #56. The website remains on the current original source until CosmicCuddle approves a tested replacement.
+
+## Goal
+
+The owner should eventually edit a single resource in a private/local editor, save a draft, export **only its changed files**, and apply those paths in a GitHub branch without accidentally replacing the site's lightweight root index.html loader or damaging unrelated content.
+
+The current live website loads its original generated site-content.html file. Replacing that loader or silently dropping custom fields is **not** part of this proposal.
+
+## Tested, temporary file structure
+
+The current dry-run tool creates an isolated operating-system temporary directory with this exact structure, deletes it after checking, and commits none of the extracted files:
+
+    manifest.json
+    resources/
+      0001.fragment
+      0002.fragment
+      ...
+      0414.fragment
+    layout/
+      prefix.utf8
+      suffix.utf8
+      separators.json
+
+The numeric filenames are stable *positions in the original collection*, **not** WoW IDs or automatically generated replacements for the original resource IDs.
+
+- The 414 fragment files retain the exact bytes of each existing object literal and all its custom fields.
+- The separator document retains all 415 intervening strings, including formatting, commas, and array brackets.
+- The prefix/suffix retain **all other source content**, including the 29-item separate collection, unrelated pages, scripts, images, styles, and the later window assignment.
+- The manifest contains fixed paths, a checksum for every fragment and supporting part, the baseline file hash, and the expected 414 records.
+
+The temporary tool refuses to accept missing, altered, or swapped fragments. It reconstructs exactly 30,976,969 bytes with SHA-256:
+
+    34455f6d901c538e2491a8c16681692e4c02d918b1984d7d0ba081aacb1049e8
+
+GitHub Actions has verified the byte-exact reconstruction from **414 separately written temporary files** and deletes the temporary folder afterward. This proves reversible packaging of the original, unchanged source. It is **not yet a user-facing export or GitHub-ready collection**.
+
+## Proposed long-term source layout
+
+A possible future repository layout, only after tests and owner approval:
+
+    content/
+      legacy/
+        manifest.json
+        resources/
+          0001.fragment
+          ...
+          0414.fragment
+        layout/
+          prefix.utf8
+          suffix.utf8
+          separators.json
+
+    site-content.html                (reproducibly generated compatibility output)
+    index.html                       (existing small loader — preserved)
+
+The exact paths are **proposed**, not yet in the repository. Before adopting them, confirm repo size, GitHub Pages limitations, and whether a more compact lossless layout is better. Keeping both the original content and the generated compatibility output could temporarily duplicate substantial data; do not commit that duplication without review.
+
+## Planned editing contract
+
+1. A resource's original stable id is **immutable** in the initial editor. The 414 initial IDs are distinct after decoding; changing names/titles never changes these IDs.
+2. The editor can expose safe individual fields such as a title or carefully controlled HTML content only after its schema is verified. The first experimental title edit changed **one** resource in memory while preserving the other **413** exactly.
+3. Unknown/custom fields must remain untouched, byte-for-byte, unless a separately reviewed migration handles them. No general-purpose object reserialization that removes unrecognized fields.
+4. Resource order, class-association arrays, section values, the separate 29-item collection, and all image/script/style content must remain intact.
+5. Every export includes original and updated source hashes, per-file checksums, a changed-path list, the current output builder version and plain-language review instructions.
+6. A stale source hash or conflicting GitHub branch must **stop** the process; never silently overwrite a newer file.
+7. A generated compatibility site-content.html, when still needed for the current visitor website, must be compared against a checked, disposable rebuild before a reviewed PR is merged.
+
+## Required future validation
+
+The release gate must eventually verify three separate layers:
+
+**A. Byte preservation:** when nothing is edited, the generated source must equal the original file byte-for-byte; when one field is edited, only the expected span and generated checksums can change.
+
+**B. Data compatibility:** all 414 original IDs, seven section values, class associations, resource order, 29-item collection, custom properties, and all 95 embedded image references must survive the output generation. A future different source baseline requires an explicitly reviewed inventory update.
+
+**C. Visitor/admin behaviour:** browser tests must check desktop and mobile layouts, original navigation, class/dungeon/raid resource pages, search, media, old admin edit functions, application privacy and Game Clients. A byte-level test alone does not prove runtime compatibility.
+
+## Publishing and recovery
+
+The owner will continue to use a separate GitHub branch and pull request for changes. The pristine backup branch remains untouched. The changed-files ZIP will be separate from an optional **complete, validated repository backup ZIP**. Neither a draft nor a temporary dry-run should be described as a full backup.
+
+The site-wide backup must come from an actual, complete repository tree, not from a handful of selected editor files. The static GitHub Pages admin password is only a visible UI gate, not secure authentication. The long-term editing interface should therefore be distributed locally or privately.
+
+**Current result:** separate-file reconstruction and a synthetic one-resource title edit are proven in tests. A real resource-editing UI, safe production rebuild pipeline, full-site export and browser acceptance tests remain outstanding.
