@@ -93,3 +93,20 @@ test('unsafe href schemes are rejected', () => {
   const href = runs.find((run) => run.kind === 'href');
   assert.throws(() => applyPage({ source, runs, edits: new Map([[href.id, 'javascript:alert(1)']]) }));
 });
+
+test('navigation editor keeps page routes fixed and rejects unsafe icon names', () => {
+  const original = JSON.parse(fs.readFileSync(path.join(root, 'content/navigation.json'), 'utf8'));
+  assert.doesNotThrow(() => window.__test.validateNavigation(original));
+  const wrongRoute = structuredClone(original);
+  wrongRoute.pages[0].slug = '../apply';
+  assert.throws(() => window.__test.validateNavigation(wrongRoute));
+  const badIcon = structuredClone(original);
+  badIcon.pages[1].icon = 'javascript:alert(1)';
+  assert.throws(() => window.__test.validateNavigation(badIcon));
+  const emptyTitle = structuredClone(original);
+  emptyTitle.pages[2].title = '';
+  assert.throws(() => window.__test.validateNavigation(emptyTitle));
+  const extraField = structuredClone(original);
+  extraField.pages[2].privateKey = 'should not export';
+  assert.throws(() => window.__test.validateNavigation(extraField));
+});
