@@ -53,6 +53,10 @@ test('resource parser does not execute source code or export original HTML',()=>
   assert.equal(core.titleValid('a'.repeat(161)),false);
   assert.equal(core.titleValid('no\nnewline'),false);
   assert.equal(core.titleValid('<b>'),false);
+  assert.equal(core.titleValid('   '),false);
+  assert.ok(!Object.hasOwn(core,'parseVerified'));
+  assert.ok(!Object.hasOwn(core,'writeFile'));
+
   assert.ok(!Object.hasOwn(core,'exportWebsite'));
   assert.ok(!Object.hasOwn(core,'publish'));
 });
