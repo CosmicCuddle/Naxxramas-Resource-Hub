@@ -36,3 +36,5 @@ jobs:
         run: node editor/tools/inspect-legacy.cjs
       - name: Read-only lexical audit of legacy DATA shape
         run: node editor/tools/audit-legacy-shape.cjs
+      - name: Safe static-JSON inventory of legacy DATA
+        run: node editor/tools/audit-legacy-json.cjs
