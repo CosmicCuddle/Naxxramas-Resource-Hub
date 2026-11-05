@@ -21,6 +21,12 @@ const {splitInMemory,restoreInMemory}=require('./check-legacy-roundtrip.cjs');
 const {ROOT,MANIFEST,layout,resourcePath,expectedPaths,
   writeCandidate,verifyCandidate}=require('./rehearse-proposed-resource-tree.cjs');
 const {verifyPairedArchives}=require('./verify-paired-editor-archives.cjs');
+const {decode}=require('./private-source-zip.cjs');
+const {MANIFEST:PAGE_MANIFEST,GUIDE:PAGE_GUIDE}=
+  require('./package-reviewed-page-update.cjs');
+const {MANIFEST:RESOURCE_MANIFEST,README:RESOURCE_README,
+  PREVIEW:RESOURCE_PREVIEW,reviewPath}=
+  require('./package-reviewed-resource-preview.cjs');
 const {verifyCheckout}=require('./plan-mixed-editor-update.cjs');
 const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
 const ORIGINAL='34455f6d901c538e2491a8c16681692e4c02d918b1984d7d0ba081aacb1049e8';
@@ -161,18 +167,40 @@ async function rehearseUnified(root,drafts,receipt,pageZip,resourceZip){
   if(pages.changed.length!==matched.existingPageChanges||
      resources.fragments.size!==matched.proposedResourceChanges)
     throw Error('Combined candidate path counts differ from the paired review.');
+  // Decode the VERIFIED INPUT ARCHIVES, not a freshly fabricated replacement.
+  // The pairing verifier already proved every byte matches the same receipt.
+  const pageFiles=new Map(decode(pageZip,new Set([
+    PAGE_MANIFEST,PAGE_GUIDE,...pages.changed.map(item=>item.path)
+  ])).entries.map(item=>[item.name,item.bytes]));
+  const resourceFiles=new Map(decode(resourceZip,new Set([
+    RESOURCE_MANIFEST,RESOURCE_README,RESOURCE_PREVIEW,
+    ...[...resources.fragments.keys()].map(reviewPath)
+  ])).entries.map(item=>[item.name,item.bytes]));
   const temp=fs.mkdtempSync(path.join(os.tmpdir(),'naxx-unified-source-rehearsal-'));
   fs.chmodSync(temp,0o700);
   let staged,rolledBack;
   try{
     // Initial tree is deliberately verified BEFORE other paths are added.
     writeCandidate(temp,original,resources);
+    // Apply resource fragments FROM the reviewed ZIP to their proposed paths.
+    for(const index of resources.fragments.keys()){
+      const reviewed=resourceFiles.get(reviewPath(index));
+      if(!reviewed)throw Error('Missing reviewed resource ZIP fragment.');
+      writeFile(temp,resourcePath(index),reviewed,true);
+    }
     const candidateProof=verifyCandidate(temp,original,resources);
     if(!candidateProof.intendedSourceByteIdentical)
-      throw Error('Candidate resource source tree failed its isolated check.');
+      throw Error('Candidate resource ZIP fragments failed the source-tree check.');
     for(const [relative,bytes] of originals)writeFile(temp,relative,bytes);
-    for(const change of pages.changed)writeFile(temp,change.path,change.bytes,true);
-    writeFile(temp,'site-content.html',resources.expected,true);
+    // Apply existing-path pages and compatibility HTML FROM the reviewed ZIPs.
+    for(const change of pages.changed){
+      const reviewed=pageFiles.get(change.path);
+      if(!reviewed)throw Error('Missing reviewed page ZIP entry.');
+      writeFile(temp,change.path,reviewed,true);
+    }
+    const reviewedPreview=resourceFiles.get(RESOURCE_PREVIEW);
+    if(!reviewedPreview)throw Error('Missing reviewed full compatibility preview.');
+    writeFile(temp,'site-content.html',reviewedPreview,true);
     staged=verifyAssembled(temp,{root},resources,pages,resources.expected);
     rolledBack=restoreOriginal(temp,originals);
     if(!rolledBack.originalTrackedFilesByteExact||
