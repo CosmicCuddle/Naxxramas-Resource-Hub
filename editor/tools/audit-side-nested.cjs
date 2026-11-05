@@ -49,6 +49,7 @@ function scanNested(source,arrayBegin,resourceIds) {
     allNestedFields:0,nestedFieldLayouts:new Set(),
     nestedTypeOccurrences:Object.fromEntries(TYPES.map(k=>[k,0])),
     nestedLiteralCandidates:0,nestedExactResourceIdMatches:0,
+    nestedExpressionForms:{booleanLiteral:0,nullLiteral:0,simpleIdentifier:0,callOrProperty:0,other:0},
     distinctPossibleResourceIds:new Set(),
     unparseableNestedFields:0,duplicateNestedFieldKeys:0,
     maxDepthVisited:0,depthLimitReached:0,nodesVisited:0
@@ -88,6 +89,13 @@ function scanNested(source,arrayBegin,resourceIds) {
           inspect(source,field.valueStart,depth+1);
         } else if(field.type==='string'||field.type==='numberLike'){
           possibleLink(literal(source,field.valueStart,item[1]),false);
+        } else if(field.type==='expression') {
+          const value=source.slice(field.valueStart,item[1]).trim();
+          const kind=/^(?:true|false)$/.test(value)?'booleanLiteral':
+            value==='null'?'nullLiteral':
+            /^[A-Za-z_$][\w$]*$/.test(value)?'simpleIdentifier':
+            /^(?:[A-Za-z_$][\w$]*\s*[.(]|\()/.test(value)?'callOrProperty':'other';
+          s.nestedExpressionForms[kind]++;
         }
       } else {
         const t=kind(source,item[0]);
@@ -133,6 +141,7 @@ function scanNested(source,arrayBegin,resourceIds) {
     totalNestedObjectProperties:s.allNestedFields,
     distinctNestedFieldLayouts:s.nestedFieldLayouts.size,
     nestedPropertyValueTypes:s.nestedTypeOccurrences,
+    nestedExpressionForms:s.nestedExpressionForms,
     nestedLiteralCandidates:s.nestedLiteralCandidates,
     outerLiteralCandidates:s.sideLiteralCandidates,
     exactNestedLiteralMatchesToResourceIds:s.nestedExactResourceIdMatches,
