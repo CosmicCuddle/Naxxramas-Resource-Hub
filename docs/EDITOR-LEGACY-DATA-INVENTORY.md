@@ -95,6 +95,25 @@ This is **evidence of plausible original code usage, not a proven runtime depend
 
 **Implication:** Maintain the 29-item collection and existing script access patterns as-is. Before authoring a new browser resource editor, review read paths, write paths, and runtime tests for this collection; never replace it by trying to merge it into the 414 resource objects.
 
+### Possible direct writes and access compatibility (Part 08 follow-up)
+
+The new read-only consumer classifier separates direct assignments, known array-mutating method calls, shallow member assignments, and all other candidate accesses. Its results were verified on the original fixed Git blob in [editor CI run 42046940102](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42046940102). That run passed 76/76 tests.
+
+| Lexical candidate category in 35 original inline scripts | 29-item side collection | 414-resource collection |
+| --- | ---: | ---: |
+| Direct reassignments | 0 | 7 |
+| Known array-mutating method calls | 2 | 1 |
+| Shallow member assignment patterns | 1 | 1 |
+| Other access patterns | 10 | 22 |
+| **Total** | **13** | **31** |
+
+Four script blocks contain candidate side-collection accesses, nine contain candidate resource accesses, and two contain candidates for both. These totals are limited to inline scripts and syntactically visible \`DATA\` access; indirect aliases, computed property names, template/regex ambiguities, external scripts and real execution paths remain unverified. The table **must not** be interpreted as proof that any operation runs, or that the remaining access patterns are read-only.
+
+A separate synthetic compatibility test now changes only a title within the first resource, then the last resource, entirely **in memory**. In each case, all 413 other resource objects are unchanged, the exact original source prefix/suffix are retained, and the aggregate original collection-access candidate report stays identical. [Editor CI run 42047159391](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42047159391) passed **78/78 tests**.
+
+**Release gate:** Any future editor must preserve the 29-item side collection and all original script consumers; source-text preservation and candidate-count equality are necessary checks but do **not** prove functional browser compatibility. Run actual private/offline browser acceptance tests before enabling export or publication.
+
+
 
 
 
@@ -173,6 +192,7 @@ Run from a complete repository checkout:
     node editor/tools/audit-side-collection.cjs
     node editor/tools/audit-side-nested.cjs
     node editor/tools/audit-side-usage.cjs
+    node editor/tools/audit-side-consumers.cjs
     node editor/tools/audit-legacy-media.cjs
     node --test editor/tests/*.test.cjs
 
