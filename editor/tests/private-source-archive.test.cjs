@@ -1,6 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os');
+const cp=require('node:child_process');
 const {createArchive,verifyArchive,outputOutsideCheckout,saveLocalArchive,
   archivePaths,README,command}=require('../tools/package-private-resource-tree.cjs');
 const {decode,encode}=require('../tools/private-source-zip.cjs');
@@ -31,6 +32,19 @@ test('private source ZIP includes all 418 exact candidate files, readme and no d
   assert.equal(packageData.report.exactRollback,true);
   assert.equal(packageData.report.changedFragments,3);
   assert.ok(packageData.report.archiveBytes>30_000_000);
+  // Cross-check the byte format against a separate installed ZIP reader.
+  // GitHub's Linux runner supplies unzip; Windows local tests can omit it.
+  if(process.platform!=='win32'){
+    const available=cp.spawnSync('unzip',['-v'],{stdio:'ignore'});
+    if(available.status===0){
+      await temp(root=>{
+        const zipFile=path.join(root,'source-review.zip');
+        fs.writeFileSync(zipFile,packageData.bytes,{mode:0o600});
+        const checked=cp.spawnSync('unzip',['-tqq',zipFile],{stdio:'ignore'});
+        assert.equal(checked.status,0,'Independent unzip must accept the private archive.');
+      });
+    }
+  }
   const parsed=decode(packageData.bytes,archivePaths());
   assert.equal(parsed.entryCount,419);
   assert.equal(new Set(parsed.entries.map(e=>e.name)).size,419);
