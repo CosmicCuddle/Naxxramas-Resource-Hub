@@ -231,7 +231,7 @@ async function inspectBrowser(site,work){
         let buttonReady=false;
         for(let n=0;n<100;n++){
           const target=await send('Runtime.evaluate',{
-            expression:'!!document.querySelector("#mainNav button[data-section=\\\"Game Clients\\\"]") && !!document.getElementById("sectionHeading")',
+            expression:'location.pathname==="/" && location.search==="" && document.readyState==="complete" && !!document.getElementById("resourceGrid") && Array.from(document.querySelectorAll("#mainNav button")).some(x=>x.textContent.includes("Browser Preview Server Rules")) && !!document.querySelector("#mainNav button[data-section=\\\"Game Clients\\\"]")',
             returnByValue:true
           });
           if(target.result?.value){buttonReady=true;break;}
