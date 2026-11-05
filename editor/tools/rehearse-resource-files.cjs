@@ -15,6 +15,7 @@ const crypto = require('node:crypto');
 const {splitInMemory} = require('./check-legacy-roundtrip.cjs');
 
 const RECORD_COUNT = 414;
+const ORIGINAL_SOURCE_SHA256 = '34455f6d901c538e2491a8c16681692e4c02d918b1984d7d0ba081aacb1049e8';
 const HASH = /^[a-f0-9]{64}$/;
 function sha256(value) {
   return crypto.createHash('sha256').update(value).digest('hex');
@@ -77,8 +78,9 @@ function reconstructTemporaryPackage(root) {
   const manifest = JSON.parse(fs.readFileSync(manifestFile,'utf8'));
   if (!manifest || manifest.format !== 'naxx-legacy-temporary-package-v1' ||
       manifest.recordCount !== RECORD_COUNT || !Array.isArray(manifest.resources) ||
-      manifest.resources.length !== RECORD_COUNT || !HASH.test(manifest.sourceSha256) ||
-      !manifest.files || !Number.isSafeInteger(manifest.sourceLength))
+      manifest.resources.length !== RECORD_COUNT ||
+      manifest.sourceSha256 !== ORIGINAL_SOURCE_SHA256 ||
+      !manifest.files || manifest.sourceLength !== 30976969)
     throw new Error('Incomplete or unexpected package manifest.');
 
   const prefix = readVerified(root,'layout/prefix.utf8',manifest.files.prefix);
