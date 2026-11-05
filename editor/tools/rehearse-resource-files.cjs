@@ -112,20 +112,26 @@ function withTemporaryPackage(original, callback) {
   }
 }
 function rehearse(original) {
-  return withTemporaryPackage(original,(root,manifest)=>{
+  let temporaryRoot;
+  const report=withTemporaryPackage(original,(root,manifest)=>{
+    temporaryRoot=root;
     const rebuilt = reconstructTemporaryPackage(root);
     if (!rebuilt.equals(original))
       throw new Error('The reconstructed temporary source differs from the original.');
     return {
       format:'naxx-legacy-temporary-package-test-v1',
       rehearsalOnly:true,siteFilesChanged:false,
-      temporaryFolderDeletedAfterTest:true,temporaryPackagePublished:false,
+      temporaryPackagePublished:false,
       separatelyWrittenResourceFragments:manifest.recordCount,
       originalByteCount:original.length,reconstructedByteCount:rebuilt.length,
-      byteExactMatch:true,matchingSha256:sha256(rebuilt),
-      note:'Generated content existed only in a private temporary directory, then was deleted.'
+      byteExactMatch:true,matchingSha256:sha256(rebuilt)
     };
   });
+  if(!temporaryRoot || fs.existsSync(temporaryRoot))
+    throw new Error('Temporary package cleanup was not confirmed.');
+  report.temporaryFolderDeletedAfterTest=true;
+  report.note='Generated content existed only in a private temporary directory, then was deleted.';
+  return report;
 }
 if (require.main === module) {
   try {
