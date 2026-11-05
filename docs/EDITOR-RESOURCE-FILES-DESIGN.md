@@ -59,6 +59,16 @@ A possible future repository layout, only after tests and owner approval:
 
 The exact paths are **proposed**, not yet in the repository. Before adopting them, confirm repo size, GitHub Pages limitations, and whether a more compact lossless layout is better. Keeping both the original content and the generated compatibility output could temporarily duplicate substantial data; do not commit that duplication without review.
 
+## Private title-only draft screen — first working prototype
+
+The protected development branch now includes a separate **offline resource-title panel** in \`editor/index.html\`. It opens a user-selected original \`site-content.html\` file, verifies all 30,976,969 bytes against the fixed SHA-256 baseline, then lists the 414 original resource titles and section labels. It does **not** execute the HTML, upload it, overwrite it, or load arbitrary newer versions. Only the title field can be changed, with an explicit Apply Title Edit control.
+
+The panel has search, selected-title revert, all-title revert, and **Save/Load Resource Draft** actions. The draft format \`naxx-local-resource-title-draft-v1\` saves only changed positional titles plus the pinned baseline hash. Import rejects mismatched baselines, altered keys, duplicate indices, unsafe titles and unchanged entries. Failed imports keep existing in-memory edits. The title draft is **not** included in the four-page/navigation ZIP exporter, cannot generate a modified \`site-content.html\` and is not publishable to GitHub.
+
+Automated Node tests cover baseline hashing, 414-record extraction, malformed inputs, draft round trips, and simulated local UI clicks. [Editor CI run 42050830392](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42050830392) passed **94/94 tests**.
+
+**Boundary:** These are automated component tests, **not** completed visual/browser acceptance. Full original resource-content editing, verified changed-fragment manifests, GitHub-ready export and publishing controls remain unimplemented. The pristine backup and public website have not been changed. A future original-source revision requires an intentional rebaseline and owner review, never a silent bypass of the hash.
+
 ## Planned editing contract
 
 1. A resource's original stable id is **immutable** in the initial editor. The 414 initial IDs are distinct after decoding; changing names/titles never changes these IDs.
@@ -95,4 +105,4 @@ The site-wide backup must come from an actual, complete repository tree, not fro
 
 **Current result:** The original 414 separate files can be reassembled byte-for-byte. A new disposable **edited-fragment** rehearsal successfully changes a title in just one temporary resource fragment and rebuilds the full 30,976,973-byte compatibility source, preserving the other 413 records and every byte outside the original resources array. The unmodified manifest rejects the changed fragment as intended. Tests reject unrelated fragment corruption, unexpected target changes, invalid titles, and a modified source baseline. [Editor CI run 42047956345](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42047956345) passed **83/83 tests**; its temporary test folders were deleted. This is only a private test, not a resource editor, a versioned editable archive, a production output builder, a validated repository backup, an export ZIP or browser acceptance proof.
 
-**Still required:** production-safe edited manifests with source/version conflict detection, a private user-facing resource editor, changed-path GitHub export, whole-repository recovery validation, complete side-collection consumer coverage, visitor/admin browser testing and explicit CosmicCuddle approval before any merge.
+**Still required:** production-safe edited manifests with source/version conflict detection, expansion of the private title-only screen into a verified *full-content* resource editor, changed-path GitHub export, whole-repository recovery validation, complete side-collection consumer coverage, visitor/admin browser testing and explicit CosmicCuddle approval before any merge. The title-only draft cannot be imported into the live website.
