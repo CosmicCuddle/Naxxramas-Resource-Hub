@@ -91,8 +91,9 @@ async function createArchive(original,draft=null){
 }
 async function verifyArchive(archive,original,draft=null){
   const parsed=decode(archive,archivePaths());
-  const sourceCheck=crypto.createHash('sha256').update(original).digest('hex');
-  if(!Buffer.isBuffer(original)||sourceCheck!==BASE)
+  if(!Buffer.isBuffer(original))throw Error('Expected original source bytes.');
+  const sourceCheck=sha(original);
+  if(sourceCheck!==BASE)
     throw Error('Original source cannot verify private archive.');
   if(parsed.entryCount!==419)throw Error('Missing private review archive entries.');
   const notice=parsed.entries.find(item=>item.name===README);
@@ -140,18 +141,22 @@ function outputOutsideCheckout(output,checkout){
 function saveLocalArchive(archive,filename,checkout){
   if(!Buffer.isBuffer(archive))throw Error('Only a verified private archive can be saved.');
   const destination=outputOutsideCheckout(filename,checkout);
-  let opened=false;
+  let created=false,fd=null;
   try{
-    fs.writeFileSync(destination,archive,{flag:'wx',mode:0o600});
-    opened=true;
+    // Exclusive create means neither an existing file nor a symlink can be replaced.
+    fd=fs.openSync(destination,fs.constants.O_WRONLY|fs.constants.O_CREAT|
+      fs.constants.O_EXCL,0o600);
+    created=true;
+    fs.writeFileSync(fd,archive);
+    fs.closeSync(fd);fd=null;
     const bytes=fs.readFileSync(destination);
     if(!bytes.equals(archive)||sha(bytes)!==sha(archive))
       throw Error('Private archive was not saved accurately.');
     return {saved:true,byteCount:bytes.length,sha256:sha(bytes),outsideCheckout:true};
   }catch(error){
-    // Do not leave a partial archive when disk writes or verification fail.
-    // Only remove files that this invocation successfully created.
-    if(opened)fs.rmSync(destination,{force:true});
+    if(fd!==null){try{fs.closeSync(fd);}catch(_){}}
+    // Remove an incomplete archive only if this call exclusively created it.
+    if(created)fs.rmSync(destination,{force:true});
     throw error;
   }
 }
