@@ -67,7 +67,9 @@ The panel has search, selected-title revert, all-title revert, and **Save/Load R
 
 Automated Node tests cover baseline hashing, 414-record extraction, malformed inputs, draft round trips, and simulated local UI clicks. [Editor CI run 42050830392](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42050830392) passed **94/94 tests**.
 
-**Boundary:** These are automated component tests, **not** completed visual/browser acceptance. Full original resource-content editing, verified changed-fragment manifests, GitHub-ready export and publishing controls remain unimplemented. The pristine backup and public website have not been changed. A future original-source revision requires an intentional rebaseline and owner review, never a silent bypass of the hash.
+An independent [headless Chrome workflow run 42051908181](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42051908181) also passed the complete first-stage local draft flow: the original source fingerprint loaded 414 items, one title edit was staged, a JSON draft downloaded and restored, and a wrong replacement source was rejected without losing existing edits. It used a loopback-only test server and disposable browser/download directories. **This is a browser functional smoke test, not final owner visual/accessibility approval or permission to merge.**
+
+**Boundary:** Automated component tests and a first real Chrome functional smoke have passed, but full desktop/mobile visual/accessibility acceptance and owner review have **not**. Full original resource-content editing, verified changed-fragment manifests, GitHub-ready export and publishing controls remain unimplemented. The pristine backup and public website have not been changed. A future original-source revision requires an intentional rebaseline and owner review, never a silent bypass of the hash.
 
 ## Planned editing contract
 
