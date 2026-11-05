@@ -3,7 +3,8 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const {webcrypto}=require('node:crypto');
 const root=path.resolve(__dirname,'..');
-const sandbox={TextEncoder,Blob,Uint8Array,Uint32Array,DataView,Set,Array,crypto:webcrypto,console};
+const sandbox={TextEncoder,Blob,Uint8Array,Uint32Array,DataView,Set,Array,crypto:webcrypto,console,
+  document:{getElementById(){return null;}}};
 vm.runInNewContext(fs.readFileSync(path.join(root,'export-zip.js'),'utf8'),sandbox);
 vm.runInNewContext(fs.readFileSync(path.join(root,'review-package.js'),'utf8'),sandbox);
 const zip=sandbox.NaxxEditorZip,review=sandbox.NaxxEditorReview;
