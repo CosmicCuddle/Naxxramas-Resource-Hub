@@ -104,8 +104,10 @@ function parseArgs(args){
   };
 }
 if(require.main===module){
-  saveReceipt(path.resolve(__dirname,'..','..'),parseArgs(process.argv.slice(2)))
-    .then(summary=>process.stdout.write(JSON.stringify(summary,null,2)+'\n'))
+  (async()=>{
+    const args=parseArgs(process.argv.slice(2));
+    return saveReceipt(path.resolve(__dirname,'..','..'),args);
+  })().then(summary=>process.stdout.write(JSON.stringify(summary,null,2)+'\n'))
     .catch(_=>{
       process.stderr.write('Review receipt rejected: verify the private files and exact clean Git commit. No source data printed.\n');
       process.exitCode=1;
