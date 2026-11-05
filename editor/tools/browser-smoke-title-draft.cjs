@@ -124,13 +124,28 @@ async function launch(binary,url,work){
     return {send,evalPage,until,chooseFile,close};
   }catch(err){await close();throw err;}
 }
+// A fresh runner can fail to start Chrome before DevTools is available.
+// Retry only this startup condition once, never a failed edit/assertion.
+async function launchWithStartupRetry(binary,url,work){
+  for(let attempt=0;attempt<2;attempt++){
+    try{return await launch(binary,url,work);}
+    catch(err){
+      if(attempt!==0||!String(err&&err.message||err).startsWith('Chrome did not provide a debugging port'))
+        throw err;
+      fs.rmSync(path.join(work,'chrome-profile'),{recursive:true,force:true});
+      console.warn('Chrome startup failed before editor testing; retrying once with a fresh profile.');
+      await wait(850);
+    }
+  }
+  throw Error('Browser startup retries unexpectedly exhausted.');
+}
 async function verify(browser,work){
   const server=http.createServer(handler);
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   let chrome;
   try{
     const base='http://127.0.0.1:'+server.address().port+'/editor/index.html';
-    chrome=await launch(browser,base,work);
+    chrome=await launchWithStartupRetry(browser,base,work);
     const downloadDir=path.join(work,'download');
     fs.mkdirSync(downloadDir,{mode:0o700});
     await chrome.send('Runtime.enable');
