@@ -40,3 +40,5 @@ jobs:
         run: node editor/tools/audit-legacy-json.cjs
       - name: Prove byte-exact reconstruction of the original resources
         run: node editor/tools/check-legacy-roundtrip.cjs
+      - name: Inventory resource field and association types without values
+        run: node editor/tools/audit-resource-schema.cjs
