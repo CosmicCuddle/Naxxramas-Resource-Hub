@@ -60,7 +60,11 @@ function createHandler(site,metrics){
     let relative;
     try{
       const encoded=new URL(req.url,'http://127.0.0.1').pathname;
-      relative=decodeURIComponent(encoded).replace(/^\/+/,'');
+      // Original native buttons intentionally navigate to GitHub Pages'
+      // repository-prefixed URLs; map ONLY that exact prefix to the same
+      // isolated temporary folder, as the existing browser QA does.
+      const localRoute=encoded.replace(/^\/Naxxramas-Resource-Hub(?=\/|$)/,'');
+      relative=decodeURIComponent(localRoute).replace(/^\/+/,'');
       if(relative.includes('\0')||relative.includes('\\'))throw Error('bad path');
       if(!relative)relative='index.html';
       const target=path.resolve(site,relative);
