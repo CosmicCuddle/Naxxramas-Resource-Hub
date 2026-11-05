@@ -97,8 +97,11 @@ async function verifyArchive(archive,original,draft=null){
     throw Error('Original source cannot verify private archive.');
   if(parsed.entryCount!==419)throw Error('Missing private review archive entries.');
   const notice=parsed.entries.find(item=>item.name===README);
-  if(!notice||!notice.bytes.toString('utf8').includes('PRIVATE REVIEW ONLY'))
-    throw Error('Missing private source confidentiality warning.');
+  const manifestEntry=parsed.entries.find(item=>item.name===MANIFEST);
+  if(!manifestEntry)throw Error('Missing candidate source manifest.');
+  const manifest=JSON.parse(manifestEntry.bytes.toString('utf8'));
+  if(!notice||!notice.bytes.equals(Buffer.from(instructions(manifest),'utf8')))
+    throw Error('Missing or altered private source confidentiality warning.');
   const plan=draft?await planChangeSet(original,draft):null;
   const temp=fs.mkdtempSync(path.join(os.tmpdir(),'naxx-private-archive-check-'));
   fs.chmodSync(temp,0o700);
