@@ -218,12 +218,33 @@ async function inspectBrowser(site,work){
       {page:'new-players',route:'/new-players/',width:1440},
       {page:'rules',route:'/rules/',width:390},
       {page:'apply',route:'/apply/',width:1440},
-      {page:'clients',route:'/?section=Game%20Clients',width:390}
+      {page:'clients',route:'/',width:390}
     ]){
       await send('Emulation.setDeviceMetricsOverride',{
         width:scenario.width,height:900,deviceScaleFactor:1,mobile:scenario.width<500
       });
       await send('Page.navigate',{url:origin+scenario.route});
+      // Native Game Clients is a section inside the original website, not
+      // one of the new standalone routes. Exercise the actual native button,
+      // rather than assuming the query parameter selected that section.
+      if(scenario.page==='clients'){
+        let buttonReady=false;
+        for(let n=0;n<100;n++){
+          const target=await send('Runtime.evaluate',{
+            expression:'!!document.querySelector("#mainNav button[data-section=\\\"Game Clients\\\"]") && !!document.getElementById("sectionHeading")',
+            returnByValue:true
+          });
+          if(target.result?.value){buttonReady=true;break;}
+          await delay(150);
+        }
+        if(!buttonReady)throw Error('Original Game Clients navigation control missing.');
+        const clicked=await send('Runtime.evaluate',{
+          expression:'(()=>{const b=document.querySelector("#mainNav button[data-section=\\\"Game Clients\\\"]");b.click();return true;})()',
+          returnByValue:true
+        });
+        if(clicked.exceptionDetails||clicked.result?.value!==true)
+          throw Error('Native Game Clients navigation failed to activate.');
+      }
       let last=null;
       for(let attempt=0;attempt<120;attempt++){
         if(eventError)throw eventError;
