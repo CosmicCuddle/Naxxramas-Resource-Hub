@@ -55,6 +55,43 @@ Regression tests cover simultaneous first/middle/last resource changes, title an
 
 **Still not authorised:** These temporary paths are **not yet the final GitHub paths**. A real migration to `content/legacy/resources/` requires complete repository-tree backup and recovery verification, changed source/version conflict handling, review of duplication/size, a publishable deterministic compatibility builder, visitor/admin acceptance, and CosmicCuddle's explicit approval. The existing review ZIP remains a *draft-only* package and should not be installed.
 
+## Candidate source-tree and rollback proof — 5 November 2026
+
+The **proposed** final folder structure has now been instantiated and verified in a **private disposable test directory**. Nothing was committed under `content/legacy/` in this repository and no published website files were changed.
+
+    content/
+      legacy/
+        manifest.json
+        resources/
+          0001.fragment
+          ...
+          0414.fragment
+        layout/
+          prefix.utf8
+          suffix.utf8
+          separators.json
+
+The tested tree contains **418 files**: 414 independently named original resource object literals, one versioned hash manifest and three layout files. The root `index.html` loader and the existing generated `site-content.html` are **not** paths in the candidate source tree.
+
+The private `editor/tools/rehearse-proposed-resource-tree.cjs` verifies all of the following before accepting a candidate:
+
+- The fixed original SHA-256 and exactly 414 resources; expected 418 **files only**, no unexpected paths or symlinks.
+- Each numeric resource path, fixed index, original and staged checksum, and every layout checksum.
+- The baseline resource tree reconstructs the **original complete website byte-for-byte**.
+- A tree with approved v2 title/content edits reconstructs the **exact planned modified compatibility source**, preserving all unchanged records and the full original prefix, suffix and separators.
+- Rollback restores the changed fragments and manifest, after which the reconstruction matches the original SHA-256 again.
+- Missing, extra, corrupted, unapproved, or symlinked files prevent verification; test folders are deleted, including after errors.
+
+The observed two-edit candidate tree size was **31,102,209 bytes**, and the restored original tree **31,102,068 bytes**, including the manifest. The original generated `site-content.html` is **30,976,969 bytes**. Keeping *both* long-term would duplicate approximately 31 MB of source content, before counting the rest of the repository. **This size and maintenance trade-off requires CosmicCuddle's approval**; no choice to duplicate or replace the original has been made.
+
+The candidate manifest deliberately includes `candidateOnly:true`, `publishable:false`, `deployable:false` and `githubReady:false`. The output is an **internal structural proof**, not yet a signed or reviewed release, a GitHub import, a downloadable resource ZIP or permission to publish.
+
+### Backup prerequisite: whole tracked checkout
+
+The read-only `editor/tools/audit-full-checkout.cjs` enumerates the **complete Git-tracked checkout** at its current commit—not merely the resource tree—and checks that it is clean, that the root loader is present, the baseline original source matches SHA-256, paths are safe, files are readable and regular, and no duplicates exist. It calculates an aggregate checksum and reports counts/bytes without emitting file contents or individual names.
+
+**Crucial distinction:** This is **not a backup**. No archive is written. A future real recovery package must separately preserve the intended repository commit/history and other necessary configuration; Git-ignored/untracked content and external services are outside this preflight. The existing pristine branch is preserved but is not, by itself, verification of a complete recoverable new deployment.
+
 ## Proposed long-term source layout
 
 A possible future repository layout, only after tests and owner approval:
