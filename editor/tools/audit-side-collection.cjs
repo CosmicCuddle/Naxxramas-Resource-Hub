@@ -86,12 +86,15 @@ function findSideCollection(bytes) {
     if (field.type!=='array') return;
     const begin=space(source,field.valueStart);
     const parts=enclosingParts(source,begin);
-    collections.push({memberIndex:i+1,begin,count:parts.segments.length});
+    collections.push({memberIndex:i+1,begin,count:parts.segments.length,propertyKey:field.key});
   });
   const side=collections.filter(x=>x.count===29);
   if (side.length!==1||side[0].memberIndex!==17)
     throw new Error('Expected exactly one 29-object side collection in the verified baseline.');
-  return {source, arrayBegin:side[0].begin, directRootMembers:root.segments.length, arrayMemberIndex:side[0].memberIndex};
+  if (!side[0].propertyKey) throw new Error('Unnamed original side collection.');
+  // propertyKey is an internal read-only locator. Audits must NEVER print it.
+  return {source, arrayBegin:side[0].begin, directRootMembers:root.segments.length,
+    arrayMemberIndex:side[0].memberIndex, internalPropertyKey:side[0].propertyKey};
 }
 function audit(bytes) {
   const found=findSideCollection(bytes);
