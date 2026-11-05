@@ -42,3 +42,5 @@ jobs:
         run: node editor/tools/check-legacy-roundtrip.cjs
       - name: Inventory resource field and association types without values
         run: node editor/tools/audit-resource-schema.cjs
+      - name: Audit inline image preservation without exporting media
+        run: node editor/tools/audit-legacy-media.cjs
