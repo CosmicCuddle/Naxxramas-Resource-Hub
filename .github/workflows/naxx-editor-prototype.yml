@@ -62,5 +62,7 @@ jobs:
         run: node editor/tools/rehearse-resource-files.cjs
       - name: Verify one safe resource-title edit leaves 413 others untouched
         run: node editor/tools/rehearse-title-edit.cjs
+      - name: Prove multiline content changes preserve all other resources and original website bytes
+        run: node editor/tools/rehearse-content-edit.cjs
       - name: Rehearse one changed resource fragment in a private temp tree and verify complete rebuild
         run: node editor/tools/rehearse-edited-resource-files.cjs
