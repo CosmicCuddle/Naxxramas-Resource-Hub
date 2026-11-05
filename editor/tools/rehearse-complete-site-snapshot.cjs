@@ -95,7 +95,7 @@ function copyTracked(root,siteRoot,names){
   }
   return inventory(siteRoot,names);
 }
-async function rehearseCompleteSnapshot(root,drafts,receipt,pageZip,resourceZip){
+async function rehearseCompleteSnapshot(root,drafts,receipt,pageZip,resourceZip,inspectTemp=null){
   if(typeof root!=='string'||!path.isAbsolute(root))
     throw Error('An absolute local Git checkout root is required.');
   assertCandidateTreeUnadopted(root);
@@ -125,7 +125,7 @@ async function rehearseCompleteSnapshot(root,drafts,receipt,pageZip,resourceZip)
   const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'naxx-full-site-preview-'));
   fs.chmodSync(tmp,0o700);
   const site=path.join(tmp,'site'),resourceTree=path.join(tmp,'source');
-  let report;
+  let report,inspection=null;
   try{
     fs.mkdirSync(site,{mode:0o700});
     fs.mkdirSync(resourceTree,{mode:0o700});
@@ -179,6 +179,27 @@ async function rehearseCompleteSnapshot(root,drafts,receipt,pageZip,resourceZip)
     if(!fs.readFileSync(outputPath(site,'index.html')).equals(
        fs.readFileSync(safeTrackedSource(root,'index.html'))))
       throw Error('Protected root website loader changed.');
+    // This is a verified candidate, not a browser-ready or deployable website.
+    // A trusted QA-only callback may view it before deletion. Re-hash EVERY file
+    // afterward so a browser test cannot silently alter the candidate.
+    const stagedProof=new Map(stagedNames.map(rel=>[
+      rel,sha(fs.readFileSync(outputPath(site,rel)))
+    ]));
+    if(inspectTemp!==null){
+      if(typeof inspectTemp!=='function')
+        throw Error('Preview inspector must be an explicit local QA function.');
+      inspection=await inspectTemp(site);
+      if(!inspection||inspection.safeLocalBrowserCheck!==true||
+         inspection.formSubmissions!==0||
+         inspection.nonLocalResponses!==0||
+         inspection.pass!==true)
+        throw Error('The private browser check did not satisfy isolation gates.');
+      const afterNames=listFiles(site);
+      if(afterNames.length!==stagedProof.size||
+         afterNames.some(rel=>!stagedProof.has(rel)||
+           sha(fs.readFileSync(outputPath(site,rel)))!==stagedProof.get(rel)))
+        throw Error('The private browser inspection changed staged website files.');
+    }
     report={
       format:'naxx-private-complete-site-snapshot-rehearsal-v1',
       reviewedGitCommit:receipt.reviewedGitCommit,
@@ -193,7 +214,9 @@ async function rehearseCompleteSnapshot(root,drafts,receipt,pageZip,resourceZip)
       completeSourceRebuildExact:true,
       originalLoaderByteExact:true,
       sourceDataOrFilenamesPrinted:false,
-      browserTested:false,
+      browserTested:inspection!==null,
+      browserInspection:inspection,
+      stagedFilesUnchangedAfterInspection:true,
       activeFormsOrExternalRequests:false,
       ownerApproved:false,githubReady:false,publishable:false,deployable:false,
       completeGitHistoryBackup:false,candidateSourceTreeAdopted:false,
