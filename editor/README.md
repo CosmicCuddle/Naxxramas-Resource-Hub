@@ -205,6 +205,22 @@ The new `editor/tools/plan-page-draft.cjs` validates the **actual existing page/
 
 **Release gate:** Page drafts do not yet record an authenticated/verified source commit, and the proposed numeric resource paths are **not committed** to Git. The mixed planner therefore sets `draftBoundToExactCommit:false`, `githubReady:false` and `deployable:false` even when all file hashes and the current checkout match. This must not be mistaken for a ready-to-install GitHub update. Owner approval, safe commit binding, resource source-tree adoption and visitor/admin regression remain required.
 
+## Verified Git-commit review receipts (private, not deployable)
+
+The combined editor now has a **source-commit binding gate** for later Git exports. The tooling **does not** change older browser draft files; `naxx-local-draft-v3` (pages/navigation) and `naxx-local-resource-draft-v2` (resources) remain readable and separate.
+
+`editor/tools/bind-editor-drafts.cjs` requires an explicitly chosen **full Git commit hash**, and checks that the current checkout is clean and at exactly that commit. It reruns all page/navigation draft source-position and SHA-256 checks and, if resource edits are included, the 414-resource reconstruction and exact rollback checks. It creates a deterministic **hash-only receipt** containing the reviewed Git commit and tree, whole tracked checkout fingerprint, six protected source-file hashes, both draft-content hashes and the separate approved existing-page versus candidate-resource changed paths. Its SHA-256 allows later comparison to identify changed receipts or draft files.
+
+`editor/tools/create-draft-review-receipt.cjs` provides an optional **private local file** for this receipt. Its output must have a new absolute `.review.json` path **outside the Git repository** and it refuses overwrites or directory aliases back into the checkout. It requires `--commit`, `--output` and `--pages` and/or `--resources` pointing to private JSON drafts. The saved receipt is readable by the verification library, and includes no original resource text or IDs. The command does not upload anything or create a Git patch.
+
+Example format for **later** use on a clean, verified checkout, after deliberately selecting the exact full commit hash (replace placeholders):
+
+```bash
+node editor/tools/create-draft-review-receipt.cjs --commit FULL_REVIEWED_GIT_COMMIT --pages "/private/path/page-draft.json" --resources "/private/path/resource-draft.json" --output "/private/path/Naxxramas-Editor.review.json"
+```
+
+**Critical distinction:** This proves that the **selected drafts and source files matched a specific Git commit at review time**. It does not establish when the browser drafts were authored, authenticate who wrote them, sign the receipt, prove the presence of a complete external backup, approve the proposed `content/legacy/` resource paths or authorise publishing. Every receipt explicitly says `authoredAtThisCommitProven:false`, `cryptographicallySigned:false`, `githubReady:false` and `approvedByOwner:false`. It must be regenerated/reverified after changes. This is not a final GitHub-ready combined website export.
+
 ## Remaining development
 
 1. Test the local preview and all revert buttons in Edge/Chrome on a disposable copy, including draft restore, ZIP validation, icons and keyboard access.
