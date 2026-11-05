@@ -80,6 +80,22 @@ The zero-match count covers literal values inspected in the side collection, **n
 
 **Preservation rule:** These 29 records and all 174 nested objects must remain unmodified in any upcoming 414-resource export. Do not convert the side records into the main resource archive, rename their keys, or change the seven-property outer layout without separate owner-approved compatibility testing. The next relationship review must inspect the site code that consumes these collections; syntactic scans alone do not establish runtime meaning.
 
+### Original inline JavaScript usage candidates — read-only check
+
+[Editor CI run 42042814397](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42042814397) passed **71/71 tests** with a new lexical usage scanner. The scan checked 35 original inline script blocks for direct access to the original property containing the 29-item collection, using the verified original source. It did not evaluate any website code or print field names.
+
+| Original code pattern, counted as candidates only | Count |
+| --- | ---: |
+| Direct dot-style accesses to the 29-item side collection | 13 |
+| Direct string-bracket accesses to that collection | 0 |
+| Direct dot-style accesses to the 414-resource collection | 31 |
+| Direct string-bracket accesses to the resources | 0 |
+
+This is **evidence of plausible original code usage, not a proven runtime dependency graph**. The scanner excludes quoted text and comments in straightforward cases, but could still count regex or template syntax as code; it can also miss aliases, computed field names, external scripts, and dynamically generated references. Conversely, zero exact literal ID matches between the two collections does **not** mean the side collection is unused.
+
+**Implication:** Maintain the 29-item collection and existing script access patterns as-is. Before authoring a new browser resource editor, review read paths, write paths, and runtime tests for this collection; never replace it by trying to merge it into the 414 resource objects.
+
+
 
 
 ## Byte-exact split and rebuild proof (development only)
@@ -156,6 +172,7 @@ Run from a complete repository checkout:
     node editor/tools/audit-resource-schema.cjs
     node editor/tools/audit-side-collection.cjs
     node editor/tools/audit-side-nested.cjs
+    node editor/tools/audit-side-usage.cjs
     node editor/tools/audit-legacy-media.cjs
     node --test editor/tests/*.test.cjs
 
