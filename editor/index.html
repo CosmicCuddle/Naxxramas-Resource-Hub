@@ -59,7 +59,7 @@
     <label for="folder">Choose the extracted Naxxramas-Resource-Hub folder</label>
     <input id="folder" type="file" webkitdirectory multiple aria-describedby="folder-help">
     <p id="folder-help" class="hint">This reads four HTML page files and one navigation JSON file from your chosen folder. It does not upload, overwrite or publish anything. Resource titles use the separate original-file picker in section 4 below.</p>
-    <p class="notice"><strong>First-stage coverage:</strong> New Players, Server Rules, Apply to Join and Game Clients (existing text and link addresses). Section 4 adds a limited local draft editor for the original resource titles only. Content editing and full backup export are not available yet.</p>
+    <p class="notice"><strong>First-stage coverage:</strong> New Players, Server Rules, Apply to Join and Game Clients (existing text and link addresses). Section 4 adds local drafts for original resource titles and multiline content only. Original IDs, custom fields, page layout, image editing and full backup export are not available.</p>
   </section>
   <section class="panel" aria-labelledby="edit-title">
     <h2 id="edit-title">2. Edit your page</h2>
@@ -106,11 +106,11 @@
     <div class="actions"><button type="button" id="revert-nav" disabled>Revert Navigation Edits</button></div>
   </section>
   <section class="panel" aria-labelledby="resource-title-heading">
-    <h2 id="resource-title-heading">4. Resource titles — private draft trial</h2>
-    <p>Edit the <strong>titles only</strong> of the original 414 resources. These edits are held in memory until you download a separate JSON draft. This screen cannot overwrite the website, create replacement HTML or publish to GitHub.</p>
+    <h2 id="resource-title-heading">4. Resource titles and content — private draft trial</h2>
+    <p>Edit existing <strong>titles and multiline content</strong> of the original 414 resources. Everything else—including IDs, class links, scripts and custom fields—stays protected. Changes remain in browser memory until you download a JSON draft. This screen cannot overwrite the website, create replacement HTML or publish to GitHub.</p>
     <label for="resource-source-file">Choose the original site-content.html file</label>
     <input id="resource-source-file" type="file" accept=".html,text/html" aria-describedby="resource-file-help">
-    <p id="resource-file-help" class="hint">Select the 30.9 MB <code>site-content.html</code> from your extracted website folder. A SHA-256 fingerprint check must pass before titles are shown. No website scripts are run.</p>
+    <p id="resource-file-help" class="hint">Select the 30.9 MB <code>site-content.html</code> from your extracted website folder. A SHA-256 fingerprint check must pass before titles are shown. No original website scripts are run.</p>
     <div id="resource-status" class="status" role="status" aria-live="polite">No original resource file loaded.</div>
     <div id="resource-controls" hidden>
       <label for="resource-search">Find a resource by title, section, or number</label>
@@ -121,18 +121,21 @@
       <p id="resource-selected-caption" class="hint">Choose a resource above.</p>
       <label for="resource-title-edit">Resource title</label>
       <input id="resource-title-edit" type="text" maxlength="160" autocomplete="off" spellcheck="true" disabled>
+      <label for="resource-content-edit" style="margin-top:16px">Resource content (multiline plain text)</label>
+      <textarea id="resource-content-edit" rows="12" maxlength="30000" spellcheck="true" disabled aria-describedby="resource-content-help"></textarea>
+      <p id="resource-content-help" class="hint">Line breaks and intentional empty content are supported. This is a text editor, <strong>not a rich-text/HTML editor</strong>. Formatting is stored as text; HTML markup and scripts cannot be added in a draft. Review before applying—clearing an existing content field requires confirmation.</p>
       <div class="actions">
-        <button type="button" id="resource-apply" disabled>Apply Title Edit</button>
-        <button type="button" id="resource-revert" disabled>Revert Selected Title</button>
+        <button type="button" id="resource-apply" disabled>Apply Resource Edits</button>
+        <button type="button" id="resource-revert" disabled>Revert Selected Resource</button>
       </div>
       <p id="resource-count" class="hint">No original resources loaded.</p>
       <div class="actions">
         <button type="button" id="resource-save-draft" disabled>Save Resource Draft (.json)</button>
         <button type="button" id="resource-load-draft" disabled>Load Resource Draft</button>
-        <button type="button" id="resource-clear" disabled>Discard All Resource Title Edits</button>
+        <button type="button" id="resource-clear" disabled>Discard All Resource Edits</button>
         <input id="resource-draft-file" type="file" accept=".json,application/json" hidden>
       </div>
-      <p class="hint">The resource draft is intentionally <strong>separate</strong> from the page-editing draft below. It contains changed titles only, not all 414 resource records or a full website backup. Loading a draft requires the same verified original website version.</p>
+      <p class="hint">The resource draft is intentionally <strong>separate</strong> from the page-editing draft below. It contains only your changed titles and content—not all 414 resource records, scripts or a full website backup. The new draft format can also load older title-only drafts; loading always requires the same verified original website version.</p>
     </div>
   </section>
   <section class="panel" aria-labelledby="save-title">
