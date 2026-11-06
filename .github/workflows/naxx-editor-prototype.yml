@@ -66,6 +66,8 @@ jobs:
         run: node editor/tools/rehearse-resource-only-overlay.cjs
       - name: Rehearse two source-bound editing sessions and reject stale drafts
         run: node editor/tools/rehearse-versioned-resource-sessions.cjs
+      - name: Independently verify all 414 physical source files and rebuilt website hash before draft review
+        run: node editor/tools/verify-physical-resource-sources.cjs
       - name: Rehearse 414 separate resource files and delete temporary package
         run: node editor/tools/rehearse-resource-files.cjs
       - name: Verify one safe resource-title edit leaves 413 others untouched
