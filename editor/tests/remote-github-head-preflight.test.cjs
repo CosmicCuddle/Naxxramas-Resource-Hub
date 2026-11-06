@@ -4,7 +4,7 @@ const fs=require('node:fs'),path=require('node:path');
 const {
   EXPECTED_REPO,EXPECTED_BRANCH,FORMAT,
   validateIdentity,apiRefPath,parseReference,readReference,
-  observeRemoteHead,fakeResponse,simulate
+  observeRemoteHead,selectCIIdentity,fakeResponse,simulate
 }=require('../tools/rehearse-remote-github-head-preflight.cjs');
 const HEAD='a'.repeat(40),NEW='b'.repeat(40);
 const okLocal=async expectedSha=>({
@@ -146,4 +146,52 @@ test('remote preflight module has a fixed GET-only API host, no write endpoints 
     "method:'DELETE'",'https://github.com/repos/',
     'Authorization: Bearer '+HEAD
   ])assert.equal(source.includes(forbidden),false);
+});
+
+test('exact same-repository PR head and its synthetic merge checkout are not conflated',()=>{
+  const env={
+    GITHUB_EVENT_NAME:'pull_request',
+    GITHUB_REPOSITORY:EXPECTED_REPO,
+    GITHUB_REF:'refs/pull/56/merge',
+    GITHUB_SHA:'c'.repeat(40),
+    PR_HEAD_REPO:EXPECTED_REPO,
+    PR_HEAD_REF:EXPECTED_BRANCH,
+    PR_HEAD_SHA:'d'.repeat(40),
+    PR_NUMBER:'56'
+  };
+  const result=selectCIIdentity(env,'--ci-pr-remote');
+  assert.equal(result.mode,'pull_request');
+  assert.equal(result.headCommit,'d'.repeat(40));
+  assert.equal(result.checkoutCommit,'c'.repeat(40));
+  assert.equal(result.checkoutIsSyntheticPRMerge,true);
+  assert.equal(Object.isFrozen(result),true);
+  for(const value of [
+    {...env,PR_HEAD_REPO:'other/repo'},
+    {...env,PR_HEAD_REF:'main'},
+    {...env,PR_HEAD_SHA:'invalid'},
+    {...env,PR_NUMBER:'55'},
+    {...env,GITHUB_REF:'refs/heads/main'},
+    {...env,GITHUB_EVENT_NAME:'push'}
+  ]){
+    assert.throws(()=>selectCIIdentity(value,'--ci-pr-remote'),
+      /GitHub pull-request branch identity is not permitted/);
+  }
+});
+test('push context pins exact checkout commit and never accepts a PR merge ref',()=>{
+  const env={
+    GITHUB_EVENT_NAME:'push',
+    GITHUB_REPOSITORY:EXPECTED_REPO,
+    GITHUB_REF:'refs/heads/'+EXPECTED_BRANCH,
+    GITHUB_SHA:'e'.repeat(40)
+  };
+  const result=selectCIIdentity(env,'--ci-remote');
+  assert.equal(result.mode,'push');
+  assert.equal(result.checkoutIsSyntheticPRMerge,false);
+  assert.equal(result.checkoutCommit,result.headCommit);
+  assert.throws(()=>selectCIIdentity({
+    ...env,GITHUB_REF:'refs/pull/56/merge'
+  },'--ci-remote'),/push branch identity is not permitted/);
+  assert.throws(()=>selectCIIdentity({
+    ...env,GITHUB_REPOSITORY:'another/repo'
+  },'--ci-remote'),/workflow repository or checked-out commit/);
 });
