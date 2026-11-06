@@ -66,7 +66,7 @@ test('private inventory reports counts only and does not leak label values',()=>
   assert.equal(safe.includes('Log in'),false);
   assert.equal(safe.includes('Administrator settings'),false);
   assert.equal(Object.values(out.visibleButtonProfile).every(x=>typeof x==='boolean'),true);
-  assert.equal(Object.keys(out.visibleButtonProfile).length,16);
+  assert.equal(Object.keys(out.visibleButtonProfile).length,17);
 });
 
 test('read-only browser audit has no submissions, source-value export or write path',()=>{
