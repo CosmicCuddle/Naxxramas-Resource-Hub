@@ -104,7 +104,7 @@ test('missing/swapped fragments, forged manifest and unknown files fail before a
     fs.writeFileSync(manifest,saved);
     const extra=path.join(dir,'unexpected.txt');
     fs.writeFileSync(extra,'unsafe file');
-    assert.throws(()=>save(dir,original,approved),/missing or unapproved/i);
+    assert.throws(()=>save(dir,original,approved),/missing or unexpected/i);
     fs.rmSync(extra);
     assert.equal(verify(dir,original).manifest.revision,0);
     assert.equal(save(dir,original,approved).after.manifest.revision,1);
