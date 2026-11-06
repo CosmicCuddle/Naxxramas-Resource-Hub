@@ -95,3 +95,13 @@ test('unsafe administrator actions and submit buttons are never clicked',async()
     assert.equal(out.ready,true,label);
   }
 });
+
+test('complete-site browser regression must require the original password entry at both widths',()=>{
+  const source=fs.readFileSync(path.resolve(__dirname,
+    '../tools/browser-smoke-complete-site.cjs'),'utf8');
+  assert.match(source,/measured\.unambiguousEntryFound!==true/);
+  assert.match(source,/measured\.gateOpened!==true/);
+  assert.match(source,/Original admin password entry regression/);
+  assert.match(source,/for\(const width of \[1440,390\]\)/);
+  assert.match(source,/actualAdminEditingVerified:false,loginAttempted:false/);
+});
