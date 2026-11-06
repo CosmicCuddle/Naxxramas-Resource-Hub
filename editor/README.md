@@ -2,6 +2,8 @@
 
 **Status: DRAFT. Not approved for merge or publication.**
 
+**Saving architecture, 6 November 2026:** A read-only, exact-source audit measured the full 418-file source tree at **31,102,068 bytes** versus a temporary 414-fragment-plus-manifest overlay at **1,072,527 bytes**, both in addition to the existing 30,976,969-byte compatibility website. The smaller alternative passed exact reconstruction and rollback tests but is **NOT a repeatable or approved production save format**; the source-version transition, custom admin editing and release builder remain unresolved. See [source storage decision (proposed)](../docs/EDITOR-SOURCE-STORAGE-DECISION.md) and [editor CI #42194013982](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42194013982).
+
 Related work: [editor design PR #55](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/pull/55) and [prototype PR #56](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/pull/56).
 
 This prototype exists only on the feature/multi-file-editor-export-2026-11-05 branch. The initial main snapshot is preserved at backup/pristine-pre-editor-redesign-2026-11-05. **Never replace root index.html with an old single-file website export.**
