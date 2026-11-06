@@ -310,9 +310,10 @@ async function inspectBrowser(site,work){
         functionalChecks:Object.keys(last.checks).length,
         layoutAdminChecks:Object.keys(measured.checks).length});
     }
-    // A dedicated no-login functional check of the ORIGINAL admin entry.
-    // This runs after route/layout tests, on a disposable full-site copy.
-    // Do not enter a password or submit the login form.
+    // Discover the original visitor-visible admin entry without forcing
+    // hidden .wh-pro-admin editing controls. Diagnostic-only: a missing
+    // unambiguous login trigger remains UNVERIFIED, not a false pass.
+    // No passwords, login submission or real website writes are attempted.
     const adminGateChecks=[];
     for(const width of [1440,390]){
       await send('Emulation.setDeviceMetricsOverride',{
@@ -339,7 +340,10 @@ async function inspectBrowser(site,work){
         throw Error('Private no-login admin gate '+width+
           'px failed: '+failed.join(', '));
       }
-      adminGateChecks.push({width,checks:Object.keys(measured.checks).length});
+      adminGateChecks.push({width,checks:Object.keys(measured.checks).length,
+        visibleEntryFound:measured.unambiguousEntryFound===true,
+        passwordGateOpened:measured.gateOpened===true,
+        actualAdminEditingVerified:false,loginAttempted:false});
     }
     // Four fictional conflict examples at two screen widths, served only
     // from the same temporary copy. This page has no source import/save
