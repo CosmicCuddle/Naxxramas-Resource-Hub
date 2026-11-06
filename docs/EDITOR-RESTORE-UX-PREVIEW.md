@@ -44,6 +44,27 @@ Files are read only on explicit user interaction. There is no file or browser st
 
 The new pure `editor/restore-file-check-core.js` is covered by independent malformed-input, size-limit, stale/conflict, no-write and actual two-session manifest-format tests. The isolated browser workflow also selects **synthetic** JSON files via Chrome's local File API at **1440px and 390px** and checks the rendered outcomes, private-text non-disclosure and absence of network/form/publish actions. It never selects or exports real user content.
 
+## Independent physical source-file verification (test-only)
+
+To move beyond merely trusting JSON metadata, the protected branch now includes `editor/tools/verify-physical-resource-sources.cjs` and `editor/tests/verify-physical-resource-sources.test.cjs`.
+
+This **read-only Node.js tool** checks a **disposable local source folder** from the existing two-session rehearsal. It is not yet connected to the standalone browser JSON picker or to the working editor.
+
+Before considering a versioned draft, it:
+
+- Verifies the **exact original 30,976,969-byte website HTML checksum** and its known 414-record structure. The original remains the single source of the non-resource HTML, scripts, media and separators.
+- Refuses missing/extra paths, symlinks, unsafe file types, excessive file sizes and malformed manifests.
+- Reads **all 414 individual resource fragments** from disk and checks each file's actual SHA-256 against the verified manifest. No record is silently skipped, swapped or reordered.
+- Rebuilds the **complete HTML in memory**, checks the exact length and final SHA-256 against the manifest, and ensures revision zero matches the original complete website exactly.
+- Only **after** all those checks, compares the draft's expected source revision and edited-fragment checksums. Any stale or conflicting draft remains blocked.
+- Prints **aggregate test results only**: no content values, resource filenames, individual hashes, credentials or screenshots. It writes no files and cannot apply, merge, publish or deploy anything.
+
+Automated tests deliberately corrupt resource fragments, swap records, remove/add files, forge the manifest, supply the wrong website baseline and create a symlink, verifying that every case fails closed. They also exercise two separately saved revisions and the conservative stale-draft rule.
+
+**Scope boundary:** This is **not** a cryptographic signature or independent trust anchor for arbitrary user-provided manifests. It proves that local files match their stated hashes, not that the claimed newer revision was authorised by the owner. It is a local test-only physical source checker, not a persistent browser save/recovery flow.
+
+The browser page `editor/restore-file-check.html` **remains metadata-only** and should not claim to have verified actual files. A user-friendly folder picker and complete browser-side source validation would require another separately reviewed development change. No change to the current working editor is approved.
+
 ## Important limitations
 
 A metadata match **does not prove a draft is trustworthy or safe to save**. The current manifest is an unapproved test structure; its checksums are not authenticated, and this page does **not** reconstruct or verify the actual 31 MB website. **Only a later independently verified source-bound builder** could authorize even a temporary file update, and a real publication needs explicit owner approval.
