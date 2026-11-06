@@ -11,7 +11,7 @@ function adminSurfaceBrowserProbe(){
     const d=document,w=window;
     const password=d.getElementById('adminPasswordInput');
     const editorControl=d.querySelector('button.wh-pro-admin');
-    const entryTerms=/\\b(?:admin(?:istrator)?|log\\s?in|sign\\s?in|editor|manage|control panel)\\b/i;
+    const entryTerms=/\b(?:admin(?:istrator)?|log\s?in|sign\s?in|editor|manage|control panel)\b/i;
     function visible(el){
       if(!el||!el.isConnected||!el.getClientRects().length)return false;
       for(let n=el;n&&n.nodeType===1;n=n.parentElement){
