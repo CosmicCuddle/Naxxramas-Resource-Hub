@@ -113,9 +113,19 @@ test('invalid branch, wrong commit, forged path and malformed receipt are all re
     forged.proposedPaths[0].path='../index.html';
     assert.throws(()=>verifyPinnedLocalBranch(dir,'private-review-check',head,forged),
       /Proposed Git path/);
-    const badDigest={...receipt,proposedPaths:receipt.proposedPaths.map(x=>({...x}))};
-    badDigest.proposedPaths[0].expectedOldSha256='a'.repeat(64);
-    assert.throws(()=>verifyPinnedLocalBranch(dir,'private-review-check',head,badDigest),
+    const badRootDigest={...receipt,proposedPaths:receipt.proposedPaths.map(x=>({...x}))};
+    badRootDigest.proposedPaths.find(x=>x.path==='site-content.html')
+      .expectedOldSha256='a'.repeat(64);
+    // A runtime digest that disagrees with the receipt envelope must fail
+    // before any Git object is inspected.
+    assert.throws(()=>verifyPinnedLocalBranch(dir,'private-review-check',head,badRootDigest),
+      /Review receipt does not cover the expected source files/);
+    const badFragmentDigest={...receipt,proposedPaths:receipt.proposedPaths.map(x=>({...x}))};
+    badFragmentDigest.proposedPaths.find(x=>x.path===recordPath(0))
+      .expectedOldSha256='a'.repeat(64);
+    // A formally consistent receipt with a forged individual file digest
+    // must fail when compared with actual committed Git blob contents.
+    assert.throws(()=>verifyPinnedLocalBranch(dir,'private-review-check',head,badFragmentDigest),
       /reviewed Git file changed/);
     const duplicate={...receipt,proposedPaths:receipt.proposedPaths.map(x=>({...x}))};
     duplicate.proposedPaths[1].path=duplicate.proposedPaths[0].path;
