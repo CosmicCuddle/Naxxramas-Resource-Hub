@@ -121,7 +121,7 @@ test('duplicate and conflicting existing page, navigation or generated-site path
   assert.throws(()=>assertJoinedPlans(v.layout,v.baseline,v.versioned,v.pageReview),
     /Independent page\/navigation source plans disagree/);
   const x=fakeJoined();
-  x.pageReview.proposedPageAndNavigationFiles[0].nextSha256='f'.repeat(64);
+  x.pageReview.proposedPageAndNavigationFiles[0].proposedNewSha256='f'.repeat(64);
   assert.throws(()=>assertJoinedPlans(x.layout,x.baseline,x.versioned,x.pageReview),
     /Independent page\/navigation source plans disagree/);
   const y=fakeJoined();
