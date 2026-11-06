@@ -125,3 +125,21 @@ test('temporary rehearsal demonstrates two version-safe proposals and deletes al
   assert.equal(data.liveWebsiteChanged,false);
   assert.equal(data.githubReady,false);
 });
+
+test('review old manifest fingerprint reflects actual bytes even when verified JSON formatting changes',async()=>{
+  await withTemporaryVersions(original,dir=>{
+    const state=verify(dir,original);
+    const manifestPath=path.join(dir,...MANIFEST.split('/'));
+    const formatted=Buffer.from(JSON.stringify(state.manifest,null,2)+'\n');
+    fs.writeFileSync(manifestPath,formatted);
+    const draft=draftFrom(verify(dir,original),[
+      {index:1,title:'Private formatting-aware receipt'}
+    ]);
+    const report=proposedReceipt(dir,original,draft);
+    const item=report.proposedPaths.find(x=>x.path===MANIFEST);
+    assert.equal(item.expectedOldSha256,sha(formatted));
+    assert.equal(item.oldBytes,formatted.length);
+    assert.equal(report.proposedFileCount,3);
+    assert.equal(verify(dir,original).manifest.revision,0);
+  });
+});
