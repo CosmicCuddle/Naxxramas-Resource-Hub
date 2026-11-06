@@ -2,6 +2,8 @@
 
 **Status: DRAFT. Not approved for merge or publication.**
 
+**JSON size safety (protected review previews):** Both standalone change-review screens enforce their 256 KiB limits using **actual UTF-8 bytes**, not JavaScript character counts. The browser tests reject oversized multibyte filenames/receipts while keeping review-only status. This does not validate the real source, authorise a GitHub update, or replace the current browser editor's draft formats.
+
 **Combined page/resource review screen (private, read only):** Open `editor/unified-review-preview.html` in a disposable draft checkout. It explains separate existing page/navigation paths and unapproved candidate resource paths, with fictional examples or a manually selected `naxx-private-unified-source-layout-review-v1` JSON receipt from the private reconciliation tool. It rejects unsafe/duplicate paths, invalid receipt schemas and forged release permissions; a matching metadata receipt is **not source authentication or permission to save**. This screen cannot overwrite, upload, convert existing v2/v3 drafts, merge or publish. A dismissed preview keeps selected files intact. The current editor's Save/Load controls are unchanged.
 
 **Multi-domain read-only review:** `editor/tools/reconcile-mixed-source-layouts.cjs` checks that a legacy resource-v2 draft and separate page/navigation-v3 draft agree across the old **418-file** and newer **415-file** candidate resource layouts, while preserving the existing tracked page files and runtime. Both resource layouts remain unapproved; this tool cannot Save, upload, commit or publish. See the [source-layout decision record](../docs/EDITOR-SOURCE-STORAGE-DECISION.md).
