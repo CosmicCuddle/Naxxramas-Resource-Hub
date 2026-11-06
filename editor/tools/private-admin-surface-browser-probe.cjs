@@ -87,6 +87,19 @@ function adminSurfaceBrowserProbe(){
       passwordVisibleToVisitor:visible(password),
       passwordInsideForm:!!password&&!!password.closest('form'),
       passwordInsideDialog:!!password&&!!password.closest('dialog,[role="dialog"]'),
+      // Accessibility observations only. Do not print label text, form values
+      // or browser source; a false result is a documented review concern,
+      // not permission to edit authentication or automatically set focus.
+      passwordHasProgrammaticLabel:!!password&&(
+        !!(password.labels&&password.labels.length)||
+        !!password.getAttribute('aria-label')||
+        !!password.getAttribute('aria-labelledby')),
+      passwordKeyboardFocusable:!!password&&visible(password)&&
+        password.disabled!==true&&Number.isInteger(password.tabIndex)&&
+        password.tabIndex>=0,
+      passwordFocusedAfterOpen:!!password&&d.activeElement===password,
+      passwordInsideAriaModal:!!password&&
+        !!password.closest('[aria-modal="true"]'),
       passwordHasAdminNamedAncestor:wrappers.some(x=>/admin/i.test(x)),
       passwordHasModalNamedAncestor:wrappers.some(x=>/modal|dialog|overlay/i.test(x)),
       passwordDirectParentVisible:visible(parent),
