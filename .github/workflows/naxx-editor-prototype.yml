@@ -38,6 +38,8 @@ jobs:
           node editor/tools/rehearse-conditional-github-lease.cjs
       - name: Verify exact expected-old Git ref safety contract (fictional, no network)
         run: node --test editor/tests/exact-head-save-guard.test.cjs
+      - name: Verify uncertain Save outcomes cannot automatically retry or publish
+        run: node --test editor/tests/uncertain-save-outcome.test.cjs
       - name: Quick-check owner-facing proposed Save review and stale receipt safety
         run: node --test editor/tests/save-review-preview.test.cjs
       - name: Quick-check separate unified owner review receipt and path safety
