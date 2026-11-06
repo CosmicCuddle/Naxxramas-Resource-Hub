@@ -2,6 +2,8 @@
 
 **Status: DRAFT. Not approved for merge or publication.**
 
+**Read-only source folder checker (private trial):** `editor/restore-folder-check.html` checks the actual SHA-256 bytes of a selected experimental folder containing 414 resource fragments and a manifest, plus a separate versioned draft. It does **not** authenticate the manifest, rebuild the complete original website HTML, accept current v2 editor drafts, save files, or publish. See [Save/Restore development limits](../docs/EDITOR-RESTORE-UX-PREVIEW.md). No approved folder export exists yet.
+
 **Local JSON version check (private prototype):** Open `editor/restore-file-check.html` inside a disposable development-branch copy. Choose the **experimental versioned resource manifest** and matching **experimental versioned draft** JSON to receive a read-only version/conflict decision. It never imports edits into your working editor, saves, uploads, merges or publishes. It **does not accept the current v2 resource drafts or v3 page drafts**, and a metadata match does **not** prove the source content is safe. Details: [private file-check and formats](../docs/EDITOR-RESTORE-UX-PREVIEW.md).
 
 **Separate Save / Restore conflict demonstration (TEST ONLY):** Open `editor/restore-preflight-preview.html` in a disposable development-branch copy to view four fictional version/conflict scenarios. The screen is accessible, offline, and cannot load real files, import drafts, save or publish. This does **not** change `editor/index.html` or connect the current Save/Load buttons. See [conflict-preview design and limitations](../docs/EDITOR-RESTORE-UX-PREVIEW.md).
