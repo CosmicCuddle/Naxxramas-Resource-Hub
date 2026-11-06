@@ -37,6 +37,24 @@ A draft editing one resource yields **three proposed GitHub paths**: one resourc
 
 A second-session test first proposes revision 1, then writes only to the private disposable simulation, refuses the stale revision-0 draft and successfully proposes revision 2. This proves *review planning logic*, **not** real concurrency control or a working installed editor Save button.
 
+## New milestone 6 safety proof — local Git commit and file-blob preconditions
+
+The draft branch now contains `editor/tools/rehearse-local-git-head-preflight.cjs` and `editor/tests/local-git-head-preflight.test.cjs`. This is a **test-only, read-only local Git review guard**, not an application, migration, exporter or GitHub push tool.
+
+It requires a **specific branch name and independently reviewed commit SHA**. With no network access and no modifications to the repository being inspected, it checks:
+
+- The exact `refs/heads/<branch>` points to the expected commit, not just an ambiguous `HEAD` or cached `FETCH_HEAD`. A different commit is rejected **even if only unrelated files changed**.
+- Every proposed resource fragment, manifest and runtime path already exists at that commit as an ordinary tracked file, never a Git symlink, missing file, or executable blob.
+- The **actual committed Git blob bytes** have the expected size and SHA-256 from the previously physically verified dry-run receipt. Local uncommitted working-tree edits cannot substitute for committed data.
+- The branch ref is re-read after inspecting all affected blobs; if it moves during the check, the review fails. An old manifest's formatting is already accounted for in the dry-run receipt's actual old-blob digest.
+- The receipt is marked **review only**, has one manifest and one generated runtime path, contains only expected resource paths, has no duplicate paths, and explicitly prohibits `canApply`, `canPush`, `canMerge` and `canPublish`.
+
+A synthetic standalone demonstration creates a **throwaway local Git repository**, verifies its initial commit, advances an unrelated commit, refuses the old reviewed head, then permits only a new *explicitly pinned* commit to be reviewed again. One integration test additionally stages the **actual 414-record disposable resource overlay and original runtime** into another **temporary Git repository**, and verifies the exact proposed three-path receipt against its real tracked blobs. Both repositories are deleted after testing. Neither test creates or updates a branch on GitHub.
+
+**Critical difference:** This is a **local snapshot/commit precondition only**. It does **not** authenticate the user's intent, query or lock the remote GitHub branch, make a compare-and-swap atomic push, approve `content/resource-overlays/`, or prove that nobody will push between checking and publishing. A real saving system needs authenticated fresh remote-head comparison and an atomic/ref-safe update strategy alongside owner review and rollback. In the current Resource Hub source repository, the experimental 415 source files have **not been adopted**, so this preflight would **reject** a purported current GitHub changeset that expects those files to already exist. It must not be used to bypass that decision.
+
+This guard is read-only for any inspected existing Git checkout. Git writes performed by the demonstration occur **solely inside OS-private synthetic or disposable test repositories**, never in the website's tracked checkout or `main`.
+
 ## Approval and production-blocking dependencies
 
 A checksum-only receipt is not automatically "GitHub-ready" and carries **no file bytes**. It is also not authenticated by a verified Git commit or approved as a durable source-of-truth format. The tested `content/resource-overlays/` path is a **candidate**, not an accepted repository layout.
