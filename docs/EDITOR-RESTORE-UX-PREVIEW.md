@@ -27,6 +27,23 @@ The examples illustrate these four situations:
 - `editor/tests/restore-preflight.test.cjs` tests malformed drafts, stale different-resource changes, mismatched hashes, safe text, original resource paths, forbidden UI actions and result metadata.
 - The existing isolated Chrome complete-site smoke now additionally visits this standalone preview at desktop **1440px** and mobile **390px**, activates all four examples and checks their visible decisions, responsive overflow, screen-reader status and absence of input/save/publish actions. Browser activity is loopback-only and test copies are deleted.
 
+## New standalone local JSON file check — read-only (6 November 2026)
+
+An additional **private trial**, `editor/restore-file-check.html`, can now open **two JSON files chosen locally by the owner**, without running original website scripts or contacting a server. It **does not modify** the fictional demo at `editor/restore-preflight-preview.html` or the existing working editor at `editor/index.html`.
+
+1. In a **disposable copy of the development branch**, open `editor/restore-file-check.html` in Edge or Chrome.
+2. Choose an **experimental versioned resource manifest** JSON file (maximum **256 KiB**) and an **experimental versioned resource draft** JSON file (maximum **16 MiB**).
+3. Press **Check versions (read only)**. The page reads the two files locally and displays only the classification (`review-only`, `stale`, `record-conflict`, `invalid-draft`, `invalid-source`, size/read failure), revision and aggregate resource counts.
+4. Press **Clear selected files** to clear both selections and the result.
+
+**No file is uploaded, rewritten, merged, exported or published.** Resource title/content strings are never displayed or logged. A match is **metadata only**, not a verified safe update. The manifest/draft checksums are unauthenticated, and the full 414 actual fragment files and original compatibility HTML are **not** loaded or independently rehashed. The page must never be used to approve a release.
+
+**Compatibility warning:** This tool accepts only the **test-only** `naxx-private-versioned-resource-overlay-v1` and `naxx-private-versioned-resource-draft-v1` JSON contracts from the private two-session rehearsal. The current editor's `naxx-local-resource-draft-v2`, previous v1 title drafts, and page/navigation v3 drafts are **not** compatible. They are safely rejected, never rewritten or silently upgraded.
+
+Files are read only on explicit user interaction. There is no file or browser storage persistence, no remote requests, no forms, no deployment action, and no automatic merge. Each file is size-checked before being read. Changes to the file selection clear any old result. The standalone screen is keyboard accessible with labels, controls, a polite status region and a restrictive local Content Security Policy.
+
+The new pure `editor/restore-file-check-core.js` is covered by independent malformed-input, size-limit, stale/conflict, no-write and actual two-session manifest-format tests. The isolated browser workflow also selects **synthetic** JSON files via Chrome's local File API at **1440px and 390px** and checks the rendered outcomes, private-text non-disclosure and absence of network/form/publish actions. It never selects or exports real user content.
+
 ## Important limitations
 
 A metadata match **does not prove a draft is trustworthy or safe to save**. The current manifest is an unapproved test structure; its checksums are not authenticated, and this page does **not** reconstruct or verify the actual 31 MB website. **Only a later independently verified source-bound builder** could authorize even a temporary file update, and a real publication needs explicit owner approval.
