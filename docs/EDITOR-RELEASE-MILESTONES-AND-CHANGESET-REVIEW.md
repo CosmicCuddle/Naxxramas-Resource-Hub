@@ -57,6 +57,26 @@ The CI workflow also executes `node editor/tools/rehearse-local-git-head-preflig
 
 This guard is read-only for any inspected existing Git checkout. Git writes performed by the demonstration occur **solely inside OS-private synthetic or disposable test repositories**, never in the website's tracked checkout or `main`.
 
+## Authenticated read-only GitHub remote branch snapshot (prototype)
+
+New `editor/tools/rehearse-remote-github-head-preflight.cjs` and `editor/tests/remote-github-head-preflight.test.cjs` implement the next **safety rehearsal**, separate from all working Save/Restore controls.
+
+GitHub's [Get a reference REST endpoint](https://docs.github.com/en/rest/git/refs?apiVersion=2022-11-28#get-a-reference) supports a **GET** for the exact `heads/<branch>` Git ref with **Contents: read** permission. It returns a commit ID. The development CI workflow now uses its built-in, short-lived **read-only** `github.token` on **push** events for the exact `CosmicCuddle/Naxxramas-Resource-Hub` development branch only; it performs no `POST`, `PATCH`, `PUT`, `DELETE` or remote Git operation. Pull-request merge checkout IDs are deliberately **not** compared with a feature-branch head.
+
+For each permitted verification:
+
+1. Check the expected repository, branch and commit against exact allowlisted identity rules (no generic URL or arbitrary remote host).
+2. Read GitHub's live branch ref with one authenticated HTTPS GET to `api.github.com`. If the branch is different, the check fails immediately.
+3. Independently verify the current local Git checkout's exact `GITHUB_SHA` and unchanged protected original `site-content.html` blob.
+4. Read the remote branch ref **again** and refuse it if the branch moved while verifying.
+5. Output only a non-secret status receipt. The workflow token, raw API bodies, resource source content and private website values are never printed.
+
+Both remote reads must have the exact expected commit SHA and ref name. Invalid/unavailable responses, wrong object types, unexpected commits, missing permissions and network errors **fail closed**. Unit tests use injected **fictional responses** to prove matching, remote changes before/between reads, wrong ref names, missing local proof, malformed commit metadata and non-disclosure. The independent CI source/ZIP/browser/backup checks remain in place.
+
+**This does not lock GitHub and does not make a save safe by itself.** The branch can move *after* the second GET, before any later write. GitHub write operations must use an approved, expected-head conditional update/lease and ensure the proposed commit's parent is the exact source revision. The `update_ref` connector offers an `expected_sha` precondition, but **no such action has been called or authorised**. The current editor has no remote upload, no canonical source tree and no actual publication pipeline.
+
+An older GitHub Actions run may fail this safety gate if a newer push arrives before the older run's remote-read step. That is correct stale-run refusal, not proof of an application defect; always verify the **exact latest head** before final acceptance. CI uses `permissions: contents: read`, and never needs owner credentials or extra manual tokens.
+
 ## Approval and production-blocking dependencies
 
 A checksum-only receipt is not automatically "GitHub-ready" and carries **no file bytes**. It is also not authenticated by a verified Git commit or approved as a durable source-of-truth format. The tested `content/resource-overlays/` path is a **candidate**, not an accepted repository layout.
