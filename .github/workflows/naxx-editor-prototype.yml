@@ -62,6 +62,8 @@ jobs:
         run: node editor/tools/audit-legacy-media.cjs
       - name: Audit exact storage cost before choosing a source-file layout
         run: node editor/tools/audit-source-storage-budget.cjs
+      - name: Rehearse 414 independent resource files without duplicating the non-resource shell
+        run: node editor/tools/rehearse-resource-only-overlay.cjs
       - name: Rehearse 414 separate resource files and delete temporary package
         run: node editor/tools/rehearse-resource-files.cjs
       - name: Verify one safe resource-title edit leaves 413 others untouched
