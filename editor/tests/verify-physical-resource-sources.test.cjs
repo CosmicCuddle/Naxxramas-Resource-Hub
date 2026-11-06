@@ -78,12 +78,27 @@ test('source and manifest tampering are detected before even a version-matching 
     forged.sourceSha256='c'.repeat(64);
     fs.writeFileSync(mf,JSON.stringify(forged));
     assert.throws(()=>verifyCompleteReadOnly(root,original,draft),
-      /Complete HTML reconstruction does not match/);
+      /Resource manifest has invalid version\/record structure/);
     fs.writeFileSync(mf,originalManifest);
+    // On a legitimate later revision, a plausible forged source hash
+    // must be caught by independently reconstructing the complete HTML.
+    save(root,original,draftFrom(state,[
+      {index:413,title:'New verified resource revision'}
+    ]));
+    const current=verify(root,original),revisedDraft=draftFrom(current,[
+      {index:0,title:'Fresh private source revision'}
+    ]);
+    const revisedManifest=fs.readFileSync(mf);
+    const altered=JSON.parse(revisedManifest.toString('utf8'));
+    altered.sourceSha256='c'.repeat(64);
+    fs.writeFileSync(mf,JSON.stringify(altered));
+    assert.throws(()=>verifyCompleteReadOnly(root,original,revisedDraft),
+      /Complete HTML reconstruction does not match/);
+    fs.writeFileSync(mf,revisedManifest);
     const wrong=Buffer.from(original);wrong[2]^=1;
-    assert.throws(()=>verifyCompleteReadOnly(root,wrong,draft),
+    assert.throws(()=>verifyCompleteReadOnly(root,wrong,revisedDraft),
       /Original website shell fingerprint is incorrect/);
-    assert.equal(verifyCompleteReadOnly(root,original,draft).decision,'review-only');
+    assert.equal(verifyCompleteReadOnly(root,original,revisedDraft).decision,'review-only');
   });
 });
 test('a symlink and malformed, oversized or outdated draft input are never trusted',async()=>{
