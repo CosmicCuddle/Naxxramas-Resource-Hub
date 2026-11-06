@@ -11,6 +11,9 @@ test('source storage audit accounts for every baseline byte and never authorizes
   const x=report();
   assert.equal(x.format,'naxx-source-storage-budget-audit-v1');
   assert.equal(x.originalCompatibilityBytes,30976969);
+  assert.equal(x.originalResourceFragmentBytes,995188);
+  assert.equal(x.originalNonResourceCompatibilityBytes,29981781);
+  assert.equal(x.completeCandidateTreeBytes,31102068);
   assert.equal(x.baselineVerified,true);
   assert.equal(x.canRebuildOriginalByteExact,true);
   assert.equal(x.records,414);
