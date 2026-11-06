@@ -2,6 +2,8 @@
 
 **Status: DRAFT. Not approved for merge or publication.**
 
+**Unknown Save result recovery (private, no real GitHub writes):** `editor/tools/plan-uncertain-save-outcome.cjs` now classifies what a future editor should do if a hypothetical GitHub Save returns a timeout, loses its connection or receives an untrusted acknowledgement. An old, conflicting, unseen, or apparently matching branch head **never permits automatic retry**; the original draft is retained for independent review. Even a matching fictional file/hash receipt does not authenticate the remote result or approve publication. The tests run before heavier browser checks. See [exact-head Save safety](../docs/EDITOR-EXACT-HEAD-SAVE-GUARD.md).
+
 **Exact old GitHub head requirement (private rehearsal):** `editor/tools/plan-exact-head-save-guard.cjs` and its tests now distinguish two read-only branch observations from a server-enforced expected-old-head update. The model binds the reviewed Git commit separately, refuses stale fictional changes even if a future proposed commit could be fast-forward, and records the need for GitHub's documented GraphQL `updateRefs` with `beforeOid`. The module has no network or source writes; it does not make the current Save button work and grants no publish permission. See the [exact-head safety and release requirements](../docs/EDITOR-EXACT-HEAD-SAVE-GUARD.md).
 
 **JSON size safety (protected review previews):** Both standalone change-review screens enforce their 256 KiB limits using **actual UTF-8 bytes**, not JavaScript character counts. The browser tests reject oversized multibyte filenames/receipts while keeping review-only status. This does not validate the real source, authorise a GitHub update, or replace the current browser editor's draft formats.
