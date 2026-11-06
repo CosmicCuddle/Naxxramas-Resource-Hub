@@ -48,11 +48,11 @@ function adminSurfaceBrowserProbe(){
     // website text. These structural booleans support manual classification.
     const visibleButtonProfile={
       uniqueCandidate:!!onlyButton,
-      labelContainsAdmin:/\\badmin(?:istrator)?\\b/i.test(onlyName),
-      labelContainsLogin:/\\blog\\s?in\\b/i.test(onlyName),
-      labelContainsSignIn:/\\bsign\\s?in\\b/i.test(onlyName),
-      labelContainsEditor:/\\beditor\\b/i.test(onlyName),
-      labelContainsManage:/\\bmanage\\b/i.test(onlyName),
+      labelContainsAdmin:/\badmin(?:istrator)?\b/i.test(onlyName),
+      labelContainsLogin:/\blog\s?in\b/i.test(onlyName),
+      labelContainsSignIn:/\bsign\s?in\b/i.test(onlyName),
+      labelContainsEditor:/\beditor\b/i.test(onlyName),
+      labelContainsManage:/\bmanage\b/i.test(onlyName),
       shortLabel:!!onlyButton&&onlyName.length>0&&onlyName.length<=48,
       accessibleNameFromAria:!!onlyButton&&!!onlyButton.getAttribute('aria-label'),
       accessibleNameFromTitle:!!onlyButton&&!!onlyButton.getAttribute('title'),
