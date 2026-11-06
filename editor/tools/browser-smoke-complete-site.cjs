@@ -18,6 +18,7 @@ const {createResourcePreview}=require('./package-reviewed-resource-preview.cjs')
 const {rehearseCompleteSnapshot}=require('./rehearse-complete-site-snapshot.cjs');
 const {layoutProbe}=require('./private-site-layout-probes.cjs');
 const {adminGateBrowserProbe}=require('./private-admin-gate-browser-probe.cjs');
+const {adminSurfaceBrowserProbe}=require('./private-admin-surface-browser-probe.cjs');
 const {restoreBrowserProbe}=require('./private-restore-browser-probe.cjs');
 const {fileReviewBrowserProbe}=require('./private-restore-file-browser-probe.cjs');
 const {folderBrowserProbe}=require('./private-restore-folder-browser-probe.cjs');
@@ -315,6 +316,7 @@ async function inspectBrowser(site,work){
     // unambiguous login trigger remains UNVERIFIED, not a false pass.
     // No passwords, login submission or real website writes are attempted.
     const adminGateChecks=[];
+    const adminSurfaceChecks=[];
     for(const width of [1440,390]){
       await send('Emulation.setDeviceMetricsOverride',{
         width,height:900,deviceScaleFactor:1,mobile:width<500
@@ -344,6 +346,36 @@ async function inspectBrowser(site,work){
         visibleEntryFound:measured.unambiguousEntryFound===true,
         passwordGateOpened:measured.gateOpened===true,
         actualAdminEditingVerified:false,loginAttempted:false});
+      // Read-only topology audit after the no-login discovery. No labels,
+      // private strings, HTML, passwords or user values leave Chrome.
+      const inventory=await send('Runtime.evaluate',{
+        expression:adminSurfaceBrowserProbe(),returnByValue:true
+      });
+      if(inventory.exceptionDetails)throw Error('Admin surface inventory crashed.');
+      const info=inventory.result?.value;
+      if(!info||info.format!=='naxx-private-admin-surface-inventory-v1'||
+        info.pageReady!==true||info.passwordFieldPresent!==true||
+        info.editorControlPresent!==true||info.loginAttempted!==false||
+        info.formSubmitted!==false||info.domModified!==false||
+        info.actualAdminEditingVerified!==false||
+        info.publicationApproved!==false||
+        !info.candidateControls||
+        Object.values(info.candidateControls).some(n=>
+          !Number.isSafeInteger(n)||n<0||n>10000))
+        throw Error('Admin surface inventory did not meet read-only integrity conditions.');
+      adminSurfaceChecks.push({width,
+        editorControlVisibleToVisitor:info.editorControlVisibleToVisitor,
+        passwordVisibleToVisitor:info.passwordVisibleToVisitor,
+        passwordInsideForm:info.passwordInsideForm,
+        passwordInsideDialog:info.passwordInsideDialog,
+        passwordHasAdminNamedAncestor:info.passwordHasAdminNamedAncestor,
+        passwordHasModalNamedAncestor:info.passwordHasModalNamedAncestor,
+        candidateControls:info.candidateControls,
+        inlineScriptBlocks:info.inlineScriptBlocks,
+        inlineScriptsMentioningPassword:info.inlineScriptsMentioningPassword,
+        inlineScriptsMentioningEditorControl:info.inlineScriptsMentioningEditorControl,
+        actualAdminEditingVerified:false});
+
     }
     // Four fictional conflict examples at two screen widths, served only
     // from the same temporary copy. This page has no source import/save
@@ -496,7 +528,7 @@ async function inspectBrowser(site,work){
     assert.equal(metrics.nonLocalResponses,0,'Non-local browser responses are forbidden.');
     return {
       safeLocalBrowserCheck:true,pass:true,
-      scenarios:checks,adminGateChecks,restorePreflightExamples,restoreFileChecks,restoreFolderChecks,saveReviewChecks,unifiedReviewChecks,
+      scenarios:checks,adminGateChecks,adminSurfaceChecks,restorePreflightExamples,restoreFileChecks,restoreFolderChecks,saveReviewChecks,unifiedReviewChecks,
       localReadRequests:metrics.localReadRequests,
       rejectedExternalRequests:metrics.rejectedExternalRequests,
       nonLocalResponses:metrics.nonLocalResponses,
@@ -553,6 +585,7 @@ async function main(){
     assert.equal(report.stagedFilesUnchangedAfterInspection,true);
     assert.equal(report.browserInspection.scenarios.length,10);
     assert.equal(report.browserInspection.adminGateChecks.length,2);
+    assert.equal(report.browserInspection.adminSurfaceChecks.length,2);
     assert.equal(report.browserInspection.restorePreflightExamples.length,2);
     assert.equal(report.browserInspection.restoreFileChecks.length,2);
     assert.equal(report.browserInspection.restoreFolderChecks.length,2);
@@ -568,6 +601,7 @@ async function main(){
       completeTemporaryFileCount:report.completeTemporaryFileCount,
       tests:report.browserInspection.scenarios,
       adminGateChecks:report.browserInspection.adminGateChecks,
+      adminSurfaceChecks:report.browserInspection.adminSurfaceChecks,
       restorePreflightExamples:report.browserInspection.restorePreflightExamples,
       restoreFileChecks:report.browserInspection.restoreFileChecks,
       restoreFolderChecks:report.browserInspection.restoreFolderChecks,
