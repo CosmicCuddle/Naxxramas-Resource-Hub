@@ -17,6 +17,7 @@ const {createPagePackage}=require('./package-reviewed-page-update.cjs');
 const {createResourcePreview}=require('./package-reviewed-resource-preview.cjs');
 const {rehearseCompleteSnapshot}=require('./rehearse-complete-site-snapshot.cjs');
 const {layoutProbe}=require('./private-site-layout-probes.cjs');
+const {adminGateBrowserProbe}=require('./private-admin-gate-browser-probe.cjs');
 const {restoreBrowserProbe}=require('./private-restore-browser-probe.cjs');
 const {fileReviewBrowserProbe}=require('./private-restore-file-browser-probe.cjs');
 const {folderBrowserProbe}=require('./private-restore-folder-browser-probe.cjs');
@@ -309,6 +310,37 @@ async function inspectBrowser(site,work){
         functionalChecks:Object.keys(last.checks).length,
         layoutAdminChecks:Object.keys(measured.checks).length});
     }
+    // A dedicated no-login functional check of the ORIGINAL admin entry.
+    // This runs after route/layout tests, on a disposable full-site copy.
+    // Do not enter a password or submit the login form.
+    const adminGateChecks=[];
+    for(const width of [1440,390]){
+      await send('Emulation.setDeviceMetricsOverride',{
+        width,height:900,deviceScaleFactor:1,mobile:width<500
+      });
+      await send('Page.navigate',{url:origin+'/'});
+      let available=false;
+      for(let n=0;n<120;n++){
+        const state=await send('Runtime.evaluate',{
+          expression:'document.readyState==="complete" && !!document.querySelector("button.wh-pro-admin") && !!document.getElementById("adminPasswordInput") && !!document.getElementById("resourceGrid")',
+          returnByValue:true
+        });
+        if(state.result?.value){available=true;break;}
+        await delay(150);
+      }
+      if(!available)throw Error('Original admin entry did not load in the private browser.');
+      const response=await send('Runtime.evaluate',{
+        expression:adminGateBrowserProbe(),awaitPromise:true,returnByValue:true
+      });
+      if(response.exceptionDetails)throw Error('Original no-login admin probe crashed.');
+      const measured=response.result?.value;
+      if(!measured?.ready){
+        const failed=Object.keys(measured?.checks||{}).filter(k=>!measured.checks[k]);
+        throw Error('Private no-login admin gate '+width+
+          'px failed: '+failed.join(', '));
+      }
+      adminGateChecks.push({width,checks:Object.keys(measured.checks).length});
+    }
     // Four fictional conflict examples at two screen widths, served only
     // from the same temporary copy. This page has no source import/save
     // controls, and the private browser blocks all external connections.
@@ -460,7 +492,7 @@ async function inspectBrowser(site,work){
     assert.equal(metrics.nonLocalResponses,0,'Non-local browser responses are forbidden.');
     return {
       safeLocalBrowserCheck:true,pass:true,
-      scenarios:checks,restorePreflightExamples,restoreFileChecks,restoreFolderChecks,saveReviewChecks,unifiedReviewChecks,
+      scenarios:checks,adminGateChecks,restorePreflightExamples,restoreFileChecks,restoreFolderChecks,saveReviewChecks,unifiedReviewChecks,
       localReadRequests:metrics.localReadRequests,
       rejectedExternalRequests:metrics.rejectedExternalRequests,
       nonLocalResponses:metrics.nonLocalResponses,
@@ -516,6 +548,7 @@ async function main(){
     assert.equal(report.realGitCheckoutUnchanged,true);
     assert.equal(report.stagedFilesUnchangedAfterInspection,true);
     assert.equal(report.browserInspection.scenarios.length,10);
+    assert.equal(report.browserInspection.adminGateChecks.length,2);
     assert.equal(report.browserInspection.restorePreflightExamples.length,2);
     assert.equal(report.browserInspection.restoreFileChecks.length,2);
     assert.equal(report.browserInspection.restoreFolderChecks.length,2);
@@ -530,6 +563,7 @@ async function main(){
       completeOriginalTrackedSnapshot:report.allOriginalTrackedFilesCopied,
       completeTemporaryFileCount:report.completeTemporaryFileCount,
       tests:report.browserInspection.scenarios,
+      adminGateChecks:report.browserInspection.adminGateChecks,
       restorePreflightExamples:report.browserInspection.restorePreflightExamples,
       restoreFileChecks:report.browserInspection.restoreFileChecks,
       restoreFolderChecks:report.browserInspection.restoreFolderChecks,
