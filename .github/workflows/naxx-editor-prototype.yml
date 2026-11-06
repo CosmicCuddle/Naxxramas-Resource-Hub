@@ -32,6 +32,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Quick-check simulated conditional branch saves and last-moment races
+        run: |
+          node --test editor/tests/conditional-github-lease.test.cjs
+          node editor/tools/rehearse-conditional-github-lease.cjs
       - name: Validate editor, ZIP exports and Game Clients
         run: node --test editor/tests/*.test.cjs
       - name: Exercise resource title draft UI in a real local Chrome browser
