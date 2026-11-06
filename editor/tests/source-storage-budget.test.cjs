@@ -33,9 +33,9 @@ test('source storage audit accounts for every baseline byte and never authorizes
   assert.ok(x.originalResourceFragmentBytes>0);
   assert.ok(x.completeCandidateTreeBytes>x.originalResourceFragmentBytes);
 });
-test('candidate 418-file source tree size equals exact storage budget',()=>{
+test('candidate 418-file source tree size equals exact storage budget',async()=>{
   const x=report();
-  const bytes=withCandidateTree(original,null,(directory)=>{
+  const bytes=await withCandidateTree(original,null,(directory)=>{
     let size=0,count=0;
     for(const rel of expectedPaths()){
       const file=path.join(directory,...rel.split('/'));
