@@ -29,14 +29,24 @@ function adminGateBrowserProbe(){
     const beforeAdmin=body.classList.contains('visual-admin-active');
     const beforeUrl=win.location.pathname+win.location.search;
     const beforePassword=password?password.value:null;
-    // Avoid arbitrary buttons, hidden editor controls, submit buttons and
-    // menu links. This is not a general automatic administrator login.
+    // Never force-click the original hidden editing control.
+    // Only a unique, visible, non-submitting, non-destructive entry
+    // button is allowed in this disposable offline browser proof.
     const safeEntry=/^(?:admin(?:istrator)?(?: (?:access|mode|login|panel|sign in))?|log ?in|sign in|editor login)$/i;
-    const candidates=Array.from(d.querySelectorAll('button')).filter(el=>
+    const adminTerm=/\badmin(?:istrator)?\b/i;
+    const dangerous=/\b(?:delete|remove|reset|clear|save|publish|upload|merge|deploy|export|logout|log out|disable|shutdown)\b/i;
+    const buttons=Array.from(d.querySelectorAll('button')).filter(el=>
       el!==editorControl&&!el.disabled&&visible(el)&&
-      el.type!=='submit'&&!el.closest('form')&&safeEntry.test(label(el)));
+      el.type!=='submit'&&!el.closest('form'));
+    const exact=buttons.filter(el=>safeEntry.test(label(el)));
+    const expanded=buttons.filter(el=>{
+      const text=label(el);
+      return text.length>0&&text.length<=48&&adminTerm.test(text)&&
+        !dangerous.test(text)&&el.hasAttribute('onclick');
+    });
+    const candidates=exact.length===1?exact:exact.length===0?expanded:[];
     const trigger=candidates.length===1?candidates[0]:null;
-    if(trigger)trigger.click();
+    if(trigger&&!beforeVisible&&!beforeAdmin)trigger.click();
     await new Promise(resolve=>setTimeout(resolve,120));
     const opened=!!trigger&&!beforeVisible&&visible(password);
     const checks={
