@@ -28,6 +28,7 @@ function adminSurfaceBrowserProbe(){
       return String(el.getAttribute('aria-label')||
         el.getAttribute('title')||el.textContent||'').trim().slice(0,150);
     }
+    const candidates=[];
     const counters={visibleMatchingButtons:0,hiddenMatchingButtons:0,
       visibleMatchingLinks:0,hiddenMatchingLinks:0,
       visibleMatchingRoleButtons:0,hiddenMatchingRoleButtons:0,
@@ -35,11 +36,36 @@ function adminSurfaceBrowserProbe(){
     for(const node of d.querySelectorAll('button,a,[role="button"],summary')){
       if(!entryTerms.test(name(node)))continue;
       const on=visible(node);
+      if(node.tagName==='BUTTON'&&on)candidates.push(node);
       const group=node.tagName==='BUTTON'?'Buttons':
         node.tagName==='A'?'Links':
           node.tagName==='SUMMARY'?'Summaries':'RoleButtons';
       counters[(on?'visibleMatching':'hiddenMatching')+group]++;
     }
+    const onlyButton=candidates.length===1?candidates[0]:null;
+    const onlyName=onlyButton?name(onlyButton):'';
+    // Never emit original labels, CSS selectors, IDs, event handlers or
+    // website text. These structural booleans support manual classification.
+    const visibleButtonProfile={
+      uniqueCandidate:!!onlyButton,
+      labelContainsAdmin:/\\badmin(?:istrator)?\\b/i.test(onlyName),
+      labelContainsLogin:/\\blog\\s?in\\b/i.test(onlyName),
+      labelContainsSignIn:/\\bsign\\s?in\\b/i.test(onlyName),
+      labelContainsEditor:/\\beditor\\b/i.test(onlyName),
+      labelContainsManage:/\\bmanage\\b/i.test(onlyName),
+      shortLabel:!!onlyButton&&onlyName.length>0&&onlyName.length<=48,
+      accessibleNameFromAria:!!onlyButton&&!!onlyButton.getAttribute('aria-label'),
+      accessibleNameFromTitle:!!onlyButton&&!!onlyButton.getAttribute('title'),
+      insideForm:!!onlyButton&&!!onlyButton.closest('form'),
+      insideDialog:!!onlyButton&&!!onlyButton.closest('dialog,[role="dialog"]'),
+      insideHeader:!!onlyButton&&!!onlyButton.closest('header'),
+      insideNavigation:!!onlyButton&&!!onlyButton.closest('nav'),
+      submitType:!!onlyButton&&onlyButton.getAttribute('type')==='submit',
+      disabled:!!onlyButton&&onlyButton.disabled===true,
+      hasExplicitClickAttribute:!!onlyButton&&onlyButton.hasAttribute('onclick'),
+      adminLikeIdOrClass:!!onlyButton&&/admin/i.test(
+        String(onlyButton.id||'')+' '+String(onlyButton.className||''))
+    };
     const parent=password&&password.parentElement;
     const ancestors=[];
     for(let el=parent;el&&ancestors.length<12;el=el.parentElement)
@@ -68,6 +94,7 @@ function adminSurfaceBrowserProbe(){
       editorControlVisibleToVisitor:visible(editorControl),
       visitorAdminVisualState:d.body.classList.contains('visual-admin-active'),
       candidateControls:counters,
+      visibleButtonProfile,
       inlineScriptBlocks:source.length,
       inlineScriptsMentioningPassword:passwordTokenScripts,
       inlineScriptsMentioningEditorControl:editorTokenScripts,
