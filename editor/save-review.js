@@ -5,12 +5,12 @@
   if(!core||!examples)throw Error('Private review components are unavailable.');
   const $=id=>document.getElementById(id);
   const manifest=$('current-manifest'),receipt=$('planned-receipt');
-  const review=$('review-selected'),clear=$('clear-review');
+  const review=$('review-selected'),reject=$('reject-review'),clear=$('clear-review');
   const status=$('review-status'),message=$('review-message'),
     details=$('review-details'),area=$('changed-files'),list=$('file-list');
   const current=$('sample-current'),stale=$('sample-stale'),
     conflict=$('sample-conflict');
-  if([manifest,receipt,review,clear,status,message,details,area,list,current,
+  if([manifest,receipt,review,reject,clear,status,message,details,area,list,current,
     stale,conflict].some(x=>!x))
     throw Error('Private review UI controls are unavailable.');
   let busy=false,generation=0;
@@ -52,7 +52,7 @@
   receipt.addEventListener('change',reset);
   function toggle(on){
     busy=on;
-    for(const input of [manifest,receipt,review,clear,current,stale,conflict])
+    for(const input of [manifest,receipt,review,reject,clear,current,stale,conflict])
       input.disabled=on;
   }
   function example(kind){
@@ -86,6 +86,13 @@
     }catch(_){
       if(request===generation)update(core.failed());
     }finally{toggle(false);}
+  });
+  // Rejection affects only the visible preview: selected JSON files remain
+  // available for a later read-only review, and no browser or disk save occurs.
+  reject.addEventListener('click',()=>{
+    if(busy)return;
+    generation++;
+    update(core.rejected());
   });
   clear.addEventListener('click',()=>{
     if(busy)return;
