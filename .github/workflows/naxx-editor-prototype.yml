@@ -74,6 +74,8 @@ jobs:
         run: node editor/tools/verify-physical-resource-sources.cjs
       - name: Calculate read-only GitHub path and checksum review before any proposed source edit
         run: node editor/tools/plan-private-github-source-review.cjs
+      - name: Stage and verify actual proposed source bytes in a deleted private temporary folder
+        run: node editor/tools/rehearse-reviewed-source-package.cjs
       - name: Rehearse local Git head pin and verify checked-out website against exact workflow commit
         run: node editor/tools/rehearse-local-git-head-preflight.cjs --ci-checkout
       - name: Simulate stale remote GitHub branch refs without network or write permissions
