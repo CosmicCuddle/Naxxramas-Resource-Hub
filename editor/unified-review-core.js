@@ -151,7 +151,10 @@
   }
   function inspect(receipt){return state(valid(receipt)?'preview':'invalid',receipt);}
   function inspectJSON(text){
-    if(typeof text!=='string'||text.length<1||text.length>MAX_JSON_BYTES)
+    // The UI advertises a byte limit, not a UTF-16 character count.
+    // Match File.size for multibyte JSON; never rely on string.length.
+    if(typeof text!=='string'||text.length<1||
+       new TextEncoder().encode(text).byteLength>MAX_JSON_BYTES)
       return state('limit',null);
     try{return inspect(JSON.parse(text));}catch(_){return state('invalid',null);}
   }
