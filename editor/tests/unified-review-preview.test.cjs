@@ -1,9 +1,9 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
-const core=require('./unified-review-core.js');
-const sample=require('./unified-review-examples.js');
-const parent=__dirname;
+const core=require('../unified-review-core.js');
+const sample=require('../unified-review-examples.js');
+const parent=path.resolve(__dirname,'..');
 const clone=o=>JSON.parse(JSON.stringify(o));
 const valid=()=>sample.generate().current;
 
