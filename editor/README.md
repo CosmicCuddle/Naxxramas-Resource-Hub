@@ -2,6 +2,8 @@
 
 **Status: DRAFT. Not approved for merge or publication.**
 
+**Separate Save / Restore conflict demonstration (TEST ONLY):** Open `editor/restore-preflight-preview.html` in a disposable development-branch copy to view four fictional version/conflict scenarios. The screen is accessible, offline, and cannot load real files, import drafts, save or publish. This does **not** change `editor/index.html` or connect the current Save/Load buttons. See [conflict-preview design and limitations](../docs/EDITOR-RESTORE-UX-PREVIEW.md).
+
 **Saving architecture, 6 November 2026:** A read-only, exact-source audit measured the full 418-file source tree at **31,102,068 bytes** versus a temporary 414-fragment-plus-manifest overlay at **1,072,527 bytes**, both in addition to the existing 30,976,969-byte compatibility website. The smaller alternative passed exact reconstruction and rollback tests but is **NOT a repeatable or approved production save format**; the source-version transition, custom admin editing and release builder remain unresolved. See [source storage decision (proposed)](../docs/EDITOR-SOURCE-STORAGE-DECISION.md) and [editor CI #42194013982](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42194013982).
 
 Related work: [editor design PR #55](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/pull/55) and [prototype PR #56](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/pull/56).
