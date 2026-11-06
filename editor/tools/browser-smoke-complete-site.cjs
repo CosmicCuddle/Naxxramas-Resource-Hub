@@ -17,6 +17,7 @@ const {createPagePackage}=require('./package-reviewed-page-update.cjs');
 const {createResourcePreview}=require('./package-reviewed-resource-preview.cjs');
 const {rehearseCompleteSnapshot}=require('./rehearse-complete-site-snapshot.cjs');
 const {layoutProbe}=require('./private-site-layout-probes.cjs');
+const {restoreBrowserProbe}=require('./private-restore-browser-probe.cjs');
 const root=path.resolve(__dirname,'..','..');
 const BASE='34455f6d901c538e2491a8c16681692e4c02d918b1984d7d0ba081aacb1049e8';
 const sha=x=>crypto.createHash('sha256').update(x).digest('hex');
@@ -304,12 +305,43 @@ async function inspectBrowser(site,work){
         functionalChecks:Object.keys(last.checks).length,
         layoutAdminChecks:Object.keys(measured.checks).length});
     }
+    // Four fictional conflict examples at two screen widths, served only
+    // from the same temporary copy. This page has no source import/save
+    // controls, and the private browser blocks all external connections.
+    const restorePreflightExamples=[];
+    for(const width of [1440,390]){
+      await send('Emulation.setDeviceMetricsOverride',{
+        width,height:900,deviceScaleFactor:1,mobile:width<500
+      });
+      await send('Page.navigate',{url:origin+'/editor/restore-preflight-preview.html'});
+      let ready=false;
+      for(let attempt=0;attempt<100;attempt++){
+        const state=await send('Runtime.evaluate',{
+          expression:"document.documentElement.dataset.previewReady==='true' && !!document.getElementById('result')",
+          returnByValue:true
+        });
+        if(state.result?.value){ready=true;break;}
+        await delay(120);
+      }
+      if(!ready)throw Error('Private restore conflict preview did not initialize.');
+      const result=await send('Runtime.evaluate',{
+        expression:restoreBrowserProbe(),returnByValue:true
+      });
+      if(result.exceptionDetails)throw Error('Private restore preview browser probe failed.');
+      const inspected=result.result?.value;
+      if(!inspected?.ready){
+        const failed=Object.keys(inspected?.checks||{}).filter(k=>!inspected.checks[k]);
+        throw Error('Private restore preview '+width+'px did not pass: '+failed.join(', '));
+      }
+      restorePreflightExamples.push({width,checks:Object.keys(inspected.checks).length});
+    }
     assert.ok(metrics.localReadRequests>12,'Local resource scripts/assets were not loaded.');
     assert.equal(metrics.formSubmissions,0,'No browser form submission is permitted.');
     assert.equal(metrics.nonLocalResponses,0,'Non-local browser responses are forbidden.');
     return {
       safeLocalBrowserCheck:true,pass:true,
-      scenarios:checks,localReadRequests:metrics.localReadRequests,
+      scenarios:checks,restorePreflightExamples,
+      localReadRequests:metrics.localReadRequests,
       rejectedExternalRequests:metrics.rejectedExternalRequests,
       nonLocalResponses:metrics.nonLocalResponses,
       formSubmissions:metrics.formSubmissions,
@@ -364,6 +396,7 @@ async function main(){
     assert.equal(report.realGitCheckoutUnchanged,true);
     assert.equal(report.stagedFilesUnchangedAfterInspection,true);
     assert.equal(report.browserInspection.scenarios.length,10);
+    assert.equal(report.browserInspection.restorePreflightExamples.length,2);
     assert.equal(report.browserInspection.formSubmissions,0);
     assert.equal(report.browserInspection.nonLocalResponses,0);
     assert.equal(report.deployable,false);
@@ -373,6 +406,7 @@ async function main(){
       completeOriginalTrackedSnapshot:report.allOriginalTrackedFilesCopied,
       completeTemporaryFileCount:report.completeTemporaryFileCount,
       tests:report.browserInspection.scenarios,
+      restorePreflightExamples:report.browserInspection.restorePreflightExamples,
       localReadRequests:report.browserInspection.localReadRequests,
       blockedExternalAttempts:report.browserInspection.rejectedExternalRequests,
       nonLocalResponses:0,formSubmissions:0,
