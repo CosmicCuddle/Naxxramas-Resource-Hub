@@ -66,7 +66,14 @@ function proposedReceipt(folder,original,draftInput){
       oldBytes:prior.length,newBytes:candidate.length
     });
   }
-  const previousManifest=encode(JSON.stringify(current.manifest)+'\n');
+  // The expected old SHA must be from the ACTUAL selected file bytes,
+  // not an assumed JSON formatting style. Its path/shape/content were
+  // independently checked above by both physical and versioned verifiers.
+  const manifestPath=path.join(folder,...MANIFEST.split('/'));
+  const manifestStat=fs.lstatSync(manifestPath);
+  if(!manifestStat.isFile()||manifestStat.isSymbolicLink())
+    throw Error('Current manifest is not a regular checked file.');
+  const previousManifest=fs.readFileSync(manifestPath);
   const nextManifest=encode(JSON.stringify(next.manifest)+'\n');
   files.push({
     path:MANIFEST,kind:'proposed-source-manifest',
