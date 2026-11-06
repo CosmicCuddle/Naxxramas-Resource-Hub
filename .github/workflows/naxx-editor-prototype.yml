@@ -74,6 +74,8 @@ jobs:
         run: node editor/tools/rehearse-local-git-head-preflight.cjs --ci-checkout
       - name: Simulate stale remote GitHub branch refs without network or write permissions
         run: node editor/tools/rehearse-remote-github-head-preflight.cjs --simulate
+      - name: Simulate conditional remote branch update with two racing editor sessions (in memory only)
+        run: node editor/tools/rehearse-conditional-github-lease.cjs
       - name: Verify current development branch on GitHub twice (read-only same-repo check)
         if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == 'CosmicCuddle/Naxxramas-Resource-Hub' && github.event.pull_request.head.ref == 'feature/multi-file-editor-export-2026-11-05')
         env:
