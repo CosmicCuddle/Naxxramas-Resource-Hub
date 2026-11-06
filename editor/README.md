@@ -2,6 +2,8 @@
 
 **Status: DRAFT. Not approved for merge or publication.**
 
+**Multi-domain read-only review:** `editor/tools/reconcile-mixed-source-layouts.cjs` checks that a legacy resource-v2 draft and separate page/navigation-v3 draft agree across the old **418-file** and newer **415-file** candidate resource layouts, while preserving the existing tracked page files and runtime. Both resource layouts remain unapproved; this tool cannot Save, upload, commit or publish. See the [source-layout decision record](../docs/EDITOR-SOURCE-STORAGE-DECISION.md).
+
 **Existing draft compatibility (private rehearsal):** `editor/tools/rehearse-legacy-draft-bridge.cjs` proves a safe *review-only* conversion for original resource title-v1 and resource-v2 JSON drafts **only while the verified resource source is revision 0**. Any newer revision refuses silent rebasing; the old JSON remains unchanged. Page/navigation-v3 drafts stay separate and use their original five-file read-only planner. The current editor's real Load/Save controls are **not** connected to this bridge. See the [compatibility decision notes](../docs/EDITOR-RELEASE-MILESTONES-AND-CHANGESET-REVIEW.md).
 
 **Proposed Save review (private, read only):** Open `editor/save-review-preview.html` in the disposable development copy to see three fictional examples (current version, outdated draft and changed resource), or select two experimental JSON documents to review the proposed changed file paths and byte sizes. This cannot verify original HTML, authenticate the manifest, restore old drafts or perform any Save/Upload/Merge/Publish action. The working editor and existing draft formats remain untouched. See the [review-flow and production gates](../docs/EDITOR-RELEASE-MILESTONES-AND-CHANGESET-REVIEW.md).
