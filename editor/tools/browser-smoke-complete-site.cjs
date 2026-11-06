@@ -21,6 +21,7 @@ const {restoreBrowserProbe}=require('./private-restore-browser-probe.cjs');
 const {fileReviewBrowserProbe}=require('./private-restore-file-browser-probe.cjs');
 const {folderBrowserProbe}=require('./private-restore-folder-browser-probe.cjs');
 const {saveReviewBrowserProbe}=require('./private-save-review-browser-probe.cjs');
+const {unifiedBrowserProbe}=require('./private-unified-review-browser-probe.cjs');
 const root=path.resolve(__dirname,'..','..');
 const BASE='34455f6d901c538e2491a8c16681692e4c02d918b1984d7d0ba081aacb1049e8';
 const sha=x=>crypto.createHash('sha256').update(x).digest('hex');
@@ -425,12 +426,41 @@ async function inspectBrowser(site,work){
       }
       saveReviewChecks.push({width,checks:Object.keys(measured.checks).length});
     }
+    // Read-only review of the independent page/navigation and resource
+    // metadata receipt, using fictional browser inputs at desktop/mobile.
+    const unifiedReviewChecks=[];
+    for(const width of [1440,390]){
+      await send('Emulation.setDeviceMetricsOverride',{
+        width,height:900,deviceScaleFactor:1,mobile:width<500
+      });
+      await send('Page.navigate',{url:origin+'/editor/unified-review-preview.html'});
+      let ready=false;
+      for(let i=0;i<100;i++){
+        const current=await send('Runtime.evaluate',{
+          expression:"document.documentElement.dataset.privateUnifiedReviewReady==='true'",
+          returnByValue:true
+        });
+        if(current.result?.value){ready=true;break;}
+        await delay(120);
+      }
+      if(!ready)throw Error('Read-only unified review screen failed to initialize.');
+      const outcome=await send('Runtime.evaluate',{
+        expression:unifiedBrowserProbe(),awaitPromise:true,returnByValue:true
+      });
+      if(outcome.exceptionDetails)throw Error('Unified review browser probe crashed.');
+      const measured=outcome.result?.value;
+      if(!measured?.ready){
+        const failed=Object.keys(measured?.checks||{}).filter(k=>!measured.checks[k]);
+        throw Error('Read-only unified review '+width+'px failed: '+failed.join(', '));
+      }
+      unifiedReviewChecks.push({width,checks:Object.keys(measured.checks).length});
+    }
     assert.ok(metrics.localReadRequests>12,'Local resource scripts/assets were not loaded.');
     assert.equal(metrics.formSubmissions,0,'No browser form submission is permitted.');
     assert.equal(metrics.nonLocalResponses,0,'Non-local browser responses are forbidden.');
     return {
       safeLocalBrowserCheck:true,pass:true,
-      scenarios:checks,restorePreflightExamples,restoreFileChecks,restoreFolderChecks,saveReviewChecks,
+      scenarios:checks,restorePreflightExamples,restoreFileChecks,restoreFolderChecks,saveReviewChecks,unifiedReviewChecks,
       localReadRequests:metrics.localReadRequests,
       rejectedExternalRequests:metrics.rejectedExternalRequests,
       nonLocalResponses:metrics.nonLocalResponses,
@@ -490,6 +520,7 @@ async function main(){
     assert.equal(report.browserInspection.restoreFileChecks.length,2);
     assert.equal(report.browserInspection.restoreFolderChecks.length,2);
     assert.equal(report.browserInspection.saveReviewChecks.length,2);
+    assert.equal(report.browserInspection.unifiedReviewChecks.length,2);
     assert.equal(report.browserInspection.formSubmissions,0);
     assert.equal(report.browserInspection.nonLocalResponses,0);
     assert.equal(report.deployable,false);
@@ -503,6 +534,7 @@ async function main(){
       restoreFileChecks:report.browserInspection.restoreFileChecks,
       restoreFolderChecks:report.browserInspection.restoreFolderChecks,
       saveReviewChecks:report.browserInspection.saveReviewChecks,
+      unifiedReviewChecks:report.browserInspection.unifiedReviewChecks,
       localReadRequests:report.browserInspection.localReadRequests,
       blockedExternalAttempts:report.browserInspection.rejectedExternalRequests,
       nonLocalResponses:0,formSubmissions:0,

@@ -181,3 +181,13 @@ Do not merge, deploy, modify public `site-content.html`, replace original `index
 - The [source-storage decision](EDITOR-SOURCE-STORAGE-DECISION.md) compares 418-file duplicate-tree, 415-file overlay and build-only publication candidates.
 - The [Save/Restore preflight report](EDITOR-RESTORE-UX-PREVIEW.md) explains the difference between browser metadata checks, physical fragment checks and the separate complete-source verification.
 - GitHub workflow `Naxxramas editor prototype checks` runs the private change receipt after the source integrity test; its exact-head outcome must be checked before describing this milestone as verified.
+
+## Combined page/navigation + resource review screen — protected preview (6 November 2026)
+
+`editor/unified-review-preview.html` adds a **standalone read-only** screen for the validated `naxx-private-unified-source-layout-review-v1` receipt produced by the independent `reviewCombined()` rehearsal. The normal browser editor **does not generate** this receipt and current resource-v2/page-navigation-v3 draft files are **not imported** here. Two source-layout candidates remain unapproved.
+
+A fictional six-path example distinguishes two already-tracked page/navigation files, two **candidate-only** resource fragments, one **candidate-only** manifest, and the existing tracked complete `site-content.html` runtime. The browser accepts an optional local JSON receipt of at most 256 KiB; strict structure checks restrict every path/domain, source checksum shape, exact path inventory, resource counts, 418/415 candidate layout measurements, denied permissions, and read-only flags. File paths use DOM text nodes and the screen has a no-network CSP. Unsafe/duplicated paths, injected markup, mismatched full-site digest, old draft formats and claims of permission to save/merge/publish fail closed.
+
+**Limit:** Even a format-valid receipt is untrusted metadata. The screen cannot verify a real source file, GitHub branch, independent backup, edited HTML, custom administrator functions, source revision, or owner approval. It does not render private resource values. Its **Dismiss proposal** button hides the current view without deleting selected JSON or other saved files; re-review is possible. New Node and isolated Chrome checks exercise the page at desktop/mobile widths. No actual Save/Restore integration or resource-tree adoption is implied.
+
+Milestone 6 remains **IN PROGRESS** and draft PR #56 remains **unmerged/undeployed**. Source-layout choice, independently retained and restored backup, exact remote conditional update on an approved disposable branch, original administrator feature parity, real visual/accessibility sign-off and explicit owner permission remain blocking.

@@ -38,6 +38,8 @@ jobs:
           node editor/tools/rehearse-conditional-github-lease.cjs
       - name: Quick-check owner-facing proposed Save review and stale receipt safety
         run: node --test editor/tests/save-review-preview.test.cjs
+      - name: Quick-check separate unified owner review receipt and path safety
+        run: node --test editor/tests/unified-review-preview.test.cjs
       - name: Quick-check original resource draft bridge and separate page drafts
         run: node --test editor/tests/legacy-draft-bridge.test.cjs
       - name: Verify mixed original page/resource drafts reconcile both unapproved source layouts

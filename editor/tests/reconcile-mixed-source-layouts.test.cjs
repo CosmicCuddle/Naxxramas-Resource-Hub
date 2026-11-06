@@ -7,6 +7,7 @@ const {
   demonstrate,FORMAT
 }=require('../tools/reconcile-mixed-source-layouts.cjs');
 const {SOURCE_SHA}=require('../tools/audit-source-storage-budget.cjs');
+const privateReview=require('../unified-review-core.js');
 const {PAGES,NAV}=require('../tools/plan-page-draft.cjs');
 const {RUNTIME}=require('../tools/plan-private-github-source-review.cjs');
 const {MANIFEST,recordPath}=require('../tools/rehearse-resource-only-overlay.cjs');
@@ -143,6 +144,10 @@ test('real original resource-v2 plus page/navigation-v3 drafts produce independe
     expectedCommit:head,pagesDraft:pageDraft,resourcesDraft:resourceDraft
   });
   assert.equal(out.format,FORMAT);
+  const ownerPreview=privateReview.inspect(out);
+  assert.equal(ownerPreview.code,'preview');
+  assert.equal(ownerPreview.totalProposedPaths,6);
+  assert.equal(ownerPreview.canPublish,false);
   assert.equal(out.reviewedLocalGitCommit,head);
   assert.equal(out.localCheckoutVerified,true);
   assert.equal(out.remoteGitHubHeadVerified,false);

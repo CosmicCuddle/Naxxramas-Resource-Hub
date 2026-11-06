@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'none'; img-src 'none'; frame-src 'none'; form-action 'none'; object-src 'none'; base-uri 'none'">
+<title>Naxxramas — Combined Change Review (Private Trial)</title>
+<style>
+:root{color-scheme:dark;--bg:#100f0e;--card:#211e1a;--line:#806747;--gold:#f1ca83;--ink:#f5ede0;--muted:#dbccb7;--focus:#70c8bd}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 system-ui,Segoe UI,Arial,sans-serif}
+main{max-width:940px;margin:auto;padding:clamp(14px,4vw,32px)}
+h1{font-size:clamp(1.6rem,4vw,2.15rem);line-height:1.25;color:var(--gold);margin:.4em 0}
+h2{font-size:1.25rem;color:var(--gold);margin:.2em 0 12px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:clamp(14px,3vw,24px);margin:18px 0}
+.notice{padding:12px 14px;border:1px solid var(--gold);border-radius:8px;background:#322719}
+.muted{color:var(--muted)}
+.small{font-size:.92em}
+label{display:block;font-weight:650;color:var(--gold);margin:15px 0 8px}
+input[type=file]{width:100%;min-height:50px;background:#151310;color:var(--ink);border:1px dashed #bca16e;border-radius:8px;padding:12px}
+.actions{display:flex;flex-wrap:wrap;gap:12px;margin:15px 0}
+button{font:inherit;color:var(--ink);background:#3a3022;border:1px solid #bca16e;border-radius:8px;min-height:48px;padding:10px 15px;cursor:pointer}
+button:hover:not(:disabled){background:#54402b}
+button:disabled{opacity:.55;cursor:not-allowed}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+.status{padding:14px 16px;border-left:4px solid var(--focus);background:#17211f;border-radius:6px}
+.status[data-decision=invalid],.status[data-decision=dismissed],.status[data-decision=limit]{border-left-color:#eda08a;background:#2a1d1b}
+#unified-list{padding-left:24px;overflow-wrap:anywhere}
+#unified-list li{margin:10px 0}
+#unified-list strong{display:block}
+code{display:block;font:0.88em/1.5 ui-monospace,Consolas,monospace;color:#b7dfd8;overflow-wrap:anywhere}
+.file-note{display:block;color:var(--muted);font-size:.9em}
+</style>
+<script defer src="unified-review-core.js"></script>
+<script defer src="unified-review-examples.js"></script>
+<script defer src="unified-review.js"></script>
+</head>
+<body>
+<main>
+<header>
+<h1>Review page and resource changes together</h1>
+<p class="muted">Private development prototype — separate from the working website editor</p>
+<p class="notice"><strong>READ ONLY.</strong> This screen cannot save, restore, upload, merge or publish. It checks the structure of a combined change receipt; it does NOT authenticate that receipt or select a resource storage format.</p>
+</header>
+<section class="panel" aria-labelledby="fiction-heading">
+<h2 id="fiction-heading">1. Try fictional examples</h2>
+<p>No website content or real edited text is included in these examples.</p>
+<div class="actions">
+<button type="button" id="sample-unified">Example: combined proposal</button>
+<button type="button" id="sample-unsafe">Example: unsafe path</button>
+<button type="button" id="sample-forged">Example: false publishing permission</button>
+</div>
+</section>
+<section class="panel" aria-labelledby="select-heading">
+<h2 id="select-heading">2. Review a private JSON receipt (optional)</h2>
+<p>Advanced test: choose a <strong>naxx-private-unified-source-layout-review-v1</strong> JSON produced by the isolated read-only reconciliation tool. Your current editor does not create this file. Its ordinary resource v2 and page/navigation v3 drafts cannot be loaded here.</p>
+<label for="unified-receipt">Combined proposed change receipt (.json)</label>
+<input id="unified-receipt" type="file" accept=".json,application/json" aria-describedby="receipt-info">
+<p id="receipt-info" class="muted small">Local metadata only, maximum 256 KiB. No content is uploaded or stored.</p>
+<div class="actions">
+<button type="button" id="review-unified">Review selected receipt (read only)</button>
+<button type="button" id="dismiss-unified">Dismiss proposal (keep my files)</button>
+<button type="button" id="clear-unified">Clear selection and preview</button>
+</div>
+</section>
+<section class="panel" aria-labelledby="results-heading">
+<h2 id="results-heading">3. Proposed file changes</h2>
+<div class="status" id="unified-status" data-decision="missing" data-blocked="true" role="status" aria-live="polite" aria-atomic="true">
+<p id="unified-message">Choose an example or a JSON file.</p>
+<p id="unified-details" class="muted">No document has been reviewed.</p>
+</div>
+<div id="unified-files" hidden>
+<h2>Files listed by the receipt</h2>
+<ul id="unified-list"></ul>
+<p class="muted small">The paths above are only claimed by the selected JSON. This browser has not checked the source bytes or whether the GitHub branch has changed.</p>
+</div>
+<p class="notice"><strong>Still blocked:</strong> the 415-file resource overlay and 418-file full-source layout are both unapproved. A trusted Git commit, independent source rebuild, restored backup, real administrator checks, visual acceptance and explicit owner permission are still required before saving.</p>
+<p class="muted small">Dismiss hides this view only. It does not delete a saved draft, reject a GitHub pull request or update any website file. Reopen your selection to review it again.</p>
+</section>
+</main>
+</body>
+</html>
