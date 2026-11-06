@@ -168,7 +168,9 @@
     return status('review-only',manifest,receipt,true);
   }
   function parseJson(text,max){
-    if(typeof text!=='string'||!size(text.length,max))
+    // Browser File.size is UTF-8 bytes, while JS string.length is not.
+    // Enforce the same bound even for programmatic JSON checks.
+    if(typeof text!=='string'||!size(new TextEncoder().encode(text).byteLength,max))
       return null;
     try{return JSON.parse(text);}catch(_){return null;}
   }
