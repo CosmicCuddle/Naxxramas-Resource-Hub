@@ -18,6 +18,26 @@
 
 These are *feasibility checks*. They do not constitute an approved release builder, GitHub package, source conversion, or browser-side save mechanism.
 
+## Verified uncompressed baseline measurements — 6 November 2026
+
+The original/source-bound audit and independent temporary-file size check passed on [editor CI #42194013982](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42194013982), alongside **212/212 Node tests** and the isolated Chrome browser job. Recovery and website regression checks also passed on that same commit.
+
+| Verified source quantity | Exact bytes |
+| --- | ---: |
+| Existing runtime `site-content.html` | **30,976,969** |
+| All original **414 resource fragments combined** | **995,188** |
+| Original non-resource source (including the script/media shell and separators) | **29,981,781** |
+| Proposed **418-file full source tree** (manifest and layout included) | **31,102,068** |
+| Proposed **415-file resource-only overlay** (414 fragments + manifest, no duplicated shell) | **1,072,527** |
+| Existing runtime **plus** proposed full source tree | **62,079,037** |
+| Existing runtime **plus** resource-only overlay | **32,049,496** |
+
+The complete alternative would add **30,029,541 more bytes** than the resource-only source tree to the current working file set. The small overlay is approximately **96.6% smaller as an extra uncompressed source tree**. This does **not** include unrelated website files, Git object storage/compression, published site traffic or backup copies.
+
+The extra resource-only manifest is **77,339 bytes**, and a simulated two-record edit produced a temporary **1,072,597-byte** overlay before an exact rollback to the original **1,072,527-byte** baseline tree. Neither candidate tree was retained after testing.
+
+**Technical conclusion (not an owner decision):** avoid adopting a duplicate full 31 MB shell merely to make resources editable. Continue investigating a checksum-bound, version-aware source-of-truth workflow around the 414 separate records, then compare that against build-only generated publication after the original admin workflow is verified. **Do not release the current baseline-bound overlay unchanged:** it cannot yet support repeated real edits after the runtime source hash changes.
+
 ## Storage alternatives and trade-offs
 
 | Candidate | What is kept in the authoring repository | Source-of-truth concern | Runtime consequence | Status |
