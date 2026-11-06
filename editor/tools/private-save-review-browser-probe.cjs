@@ -15,6 +15,7 @@ function saveReviewBrowserProbe(){
     const receipt=d.getElementById('planned-receipt');
     const review=d.getElementById('review-selected');
     const clear=d.getElementById('clear-review');
+    const reject=d.getElementById('reject-review');
     const current=d.getElementById('sample-current');
     const stale=d.getElementById('sample-stale');
     const conflict=d.getElementById('sample-conflict');
@@ -47,6 +48,18 @@ function saveReviewBrowserProbe(){
       return 'timeout';
     }
     const local=await tryFiles(first.manifest,first.receipt);
+    reject.click();
+    const dismissed=status.dataset.decision;
+    const dismissedHidden=area.hidden&&list.children.length===0;
+    const retainedSelections=manifest.files.length===1&&receipt.files.length===1;
+    review.click();
+    let reReviewed='timeout';
+    for(let i=0;i<100;i++){
+      if(!review.disabled&&status.dataset.decision==='review-only'){
+        reReviewed='review-only';break;
+      }
+      await new Promise(resolve=>setTimeout(resolve,25));
+    }
     const forged={...first.receipt,
       proposedPaths:first.receipt.proposedPaths.map(x=>({...x}))};
     forged.proposedPaths[0].path=marker+'<img src=x onerror=alert(1)>';
@@ -60,7 +73,10 @@ function saveReviewBrowserProbe(){
     clear.click();
     const checks={
       allControlsPresent:[status,details,area,list,manifest,receipt,
-        review,clear,current,stale,conflict].every(Boolean),
+        review,reject,clear,current,stale,conflict].every(Boolean),
+      explicitDismissOnlyClearsPreview:dismissed==='rejected'&&dismissedHidden,
+      dismissRetainsLocalSelections:retainedSelections,
+      dismissedProposalCanBeReReviewed:reReviewed==='review-only',
       fictionalCurrentShowsReviewOnly:match==='review-only',
       fictionalReviewListsThreePaths:matchedRows===3,
       exactResourceNameShown:matchedText.includes('Resource 0001'),
