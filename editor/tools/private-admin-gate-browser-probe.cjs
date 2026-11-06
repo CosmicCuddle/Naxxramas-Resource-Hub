@@ -37,7 +37,9 @@ function adminGateBrowserProbe(){
     const dangerous=/\b(?:delete|remove|reset|clear|save|publish|upload|merge|deploy|export|logout|log out|disable|shutdown)\b/i;
     const buttons=Array.from(d.querySelectorAll('button')).filter(el=>
       el!==editorControl&&!el.disabled&&visible(el)&&
-      el.type!=='submit'&&!el.closest('form'));
+      // An untyped HTML button defaults to .type='submit', even outside
+      // any form. Reject explicit submit buttons and *all* form members.
+      el.getAttribute('type')!=='submit'&&!el.closest('form'));
     const exact=buttons.filter(el=>safeEntry.test(label(el)));
     const expanded=buttons.filter(el=>{
       const text=label(el);
