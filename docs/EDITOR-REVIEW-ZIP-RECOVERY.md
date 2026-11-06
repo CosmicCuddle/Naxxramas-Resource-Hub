@@ -4,7 +4,7 @@
 
 The existing editor can download one combined private ZIP containing the **page/navigation draft** and/or the **414-resource title/content draft**, a SHA-256 manifest and instructions. Previously, reopening these drafts required manually extracting the ZIP.
 
-The editor now has a local **Open a saved combined review ZIP** control. Choose a previously saved review ZIP; a strict in-browser reader verifies the file structure before enabling **Download Page Draft (.json)** and **Download Resource Draft (.json)** as appropriate. The original review ZIP is not modified or uploaded.
+The editor has a local **Open a saved combined review ZIP** control. Choose a previously saved review ZIP; a strict in-browser reader verifies its structure before enabling **Restore Page Draft in Editor** and **Restore Resource Draft in Editor** for any included drafts. It also retains optional **Download Page Draft (.json)** and **Download Resource Draft (.json)** fallback buttons. The original review ZIP is not modified or uploaded.
 
 ### What is checked
 
@@ -19,12 +19,15 @@ The editor now has a local **Open a saved combined review ZIP** control. Choose 
 ### How to recover drafts
 
 1. Open `editor/index.html` from the development editor copy.
-2. In section 5, choose the previously downloaded combined review ZIP.
-3. When verification succeeds, download the available page and/or resource draft JSON files.
-4. Use **Load Saved Draft** in section 5 for the page/navigation JSON, and **Load Resource Draft** in section 4 for the resource JSON. The existing editors perform their independent source-baseline checks.
+2. Load the four original page HTML files and navigation source using the folder picker in section 1, if recovering page edits. For resource edits, separately load and verify the original `site-content.html` in section 4.
+3. In section 5, choose the previously downloaded combined review ZIP.
+4. When verification succeeds, select **Restore Page Draft in Editor** and/or **Restore Resource Draft in Editor**. Each area checks the original source fingerprint, validates the whole incoming draft before changing in-memory state, and requests confirmation if existing unsaved edits would be replaced.
+5. Alternatively, download one or both JSON drafts and open them using **Load Saved Draft** in section 5 or **Load Resource Draft** in section 4. The same validation and overwrite-confirmation rules apply.
 
-The recovery interface **never automatically overwrites current working edits**, merges conflicting drafts, runs original website scripts, commits files, publishes, or connects to any account. The original source files must be supplied separately and pass their normal checks. If a ZIP fails verification, keep the original ZIP and investigate; do not bypass integrity checks.
+**Cancellation or validation failure keeps existing local edits.** In particular, the page editor now asks before replacing unsaved page or navigation edits, matching the existing resource editor's behaviour. Unsafe link addresses and changed/duplicate page source paths are refused during import; stale source files cannot silently receive an older saved draft.
+
+The recovery interface does not merge drafts across domains or automatically overwrite both at once. A user chooses page and resource restoration separately. It never runs original website scripts, commits files, publishes or connects to any account. If a ZIP fails verification, keep the original ZIP and investigate; do not bypass integrity checks.
 
 ### Release blockers unchanged
 
-Stage 6 remains incomplete: a canonical resource layout is unapproved (415-file versioned overlay versus 418-file full source tree); there is no live administrator Save transaction, retained full independent backup, verified production-grade rollback, or owner-approved merge/deployment. This recovery control only removes the manual ZIP extraction step from the **local draft recovery** workflow. The original website and all 414 resource records remain untouched by the PR.
+Stage 6 remains incomplete: a canonical resource layout is unapproved (415-file versioned overlay versus 418-file full source tree); there is no live administrator Save transaction, retained full independent backup, verified production-grade rollback, or owner-approved merge/deployment. This recovery control removes manual ZIP extraction **and** lets the user restore each source-verified local draft directly, subject to a new overwrite-confirmation gate. The original website and all 414 resource records remain untouched by the PR.

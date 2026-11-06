@@ -6,9 +6,10 @@
   'use strict';
   const $=id=>document.getElementById(id);
   const picker=$('open-review-zip'),status=$('open-review-status'),
-    page=$('recover-page-draft'),resource=$('recover-resource-draft');
+    page=$('recover-page-draft'),resource=$('recover-resource-draft'),
+    directPage=$('restore-zip-page'),directResource=$('restore-zip-resource');
   const reader=root.NaxxReviewArchive;
-  if(!picker||!status||!page||!resource||!reader)
+  if(!picker||!status||!page||!resource||!directPage||!directResource||!reader)
     throw Error('Private review ZIP recovery controls are missing.');
   let inspected=null,revision=0,busy=false;
   function notice(message,error){
@@ -19,6 +20,8 @@
     inspected=null;
     page.disabled=true;
     resource.disabled=true;
+    directPage.disabled=true;
+    directResource.disabled=true;
   }
   function saveText(text,name){
     if(typeof text!=='string'||!text.length)
@@ -55,9 +58,11 @@
       inspected=result;
       page.disabled=!result.hasPageDraft;
       resource.disabled=!result.hasResourceDraft;
+      directPage.disabled=!result.hasPageDraft;
+      directResource.disabled=!result.hasResourceDraft;
       notice('Review ZIP verified. '+(result.hasPageDraft?'Page draft ready. ':'')+
         (result.hasResourceDraft?'Resource draft ready. ':'')+
-        'Download the included drafts below, then use their existing Load Draft buttons.'+
+        'Restore each draft into its matching source-checked editor, or download JSON files.'+
         ' The original website files have NOT been checked or changed.',false);
     }catch(_){
       if(ticket===revision){
@@ -80,6 +85,32 @@
     saveText(inspected.resourceDraftText,'REVIEW-RESOURCE-DRAFT.json');
     notice('Resource draft downloaded. Use Load Resource Draft in section 4. '+
       'The website has not been updated.',false);
+  });
+  function directLoad(name,text,source){
+    if(!inspected||typeof text!=='string'||!source||
+       typeof source.restoreDraftText!=='function'){
+      notice('Load the original source files in the matching editor first. Your current drafts were kept.',true);
+      return;
+    }
+    try{
+      // Each original editor revalidates its own source fingerprint and
+      // asks for consent before overwriting existing in-memory edits.
+      const accepted=source.restoreDraftText(text);
+      if(accepted===true)
+        notice(name+' restored to its local editor. Review the edits before exporting. Nothing was published.',false);
+      else
+        notice(name+' restore cancelled. Your earlier edits were kept.',false);
+    }catch(_){
+      notice(name+' could not be restored to its source-checked editor. Load the matching original files and review your draft. Existing edits were kept.',true);
+    }
+  }
+  directPage.addEventListener('click',function(){
+    if(!inspected||!inspected.hasPageDraft)return;
+    directLoad('Page draft',inspected.pageDraftText,root.NaxxLocalPageReview);
+  });
+  directResource.addEventListener('click',function(){
+    if(!inspected||!inspected.hasResourceDraft)return;
+    directLoad('Resource draft',inspected.resourceDraftText,root.NaxxLocalResourceReview);
   });
   reset();
   notice('Choose a previously saved private review ZIP to inspect it locally.',false);

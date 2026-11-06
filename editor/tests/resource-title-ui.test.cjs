@@ -213,3 +213,47 @@ test('HTML-like markup cannot be inserted into resource content drafts',async()=
   assert.match(get('resource-status').textContent,/Content must be plain text/);
   assert.match(get('resource-count').textContent,/0 content edits/);
 });
+
+test('combined ZIP direct resource restore retains unsaved edits when owner declines',async()=>{
+  const h=harness(),get=id=>h.nodes.get(id);
+  const bridge=h.window.NaxxLocalResourceReview;
+  assert.equal(typeof bridge.restoreDraftText,'function');
+  assert.throws(()=>bridge.restoreDraftText(JSON.stringify({
+    format:'naxx-local-resource-draft-v2',baselineSha256:engine.BASE_SHA,
+    changes:[{index:0,title:'Different title'}]
+  })),/Load and verify/);
+  get('resource-source-file').files=[{
+    name:'site-content.html',size:engine.BASE_LENGTH,text:async()=>'<verified>'
+  }];
+  await get('resource-source-file').listeners.change();
+  get('resource-title-edit').value='Current unfinished title';
+  get('resource-apply').listeners.click();
+  const incoming=JSON.stringify({
+    format:'naxx-local-resource-draft-v2',baselineSha256:engine.BASE_SHA,
+    changes:[{index:0,title:'Archived restored title'}]
+  });
+  h.window.confirm=()=>false;
+  assert.equal(bridge.restoreDraftText(incoming),false);
+  assert.equal(get('resource-title-edit').value,'Current unfinished title');
+  assert.match(get('resource-count').textContent,/1 title edits/);
+  h.window.confirm=()=>true;
+  assert.equal(bridge.restoreDraftText(incoming),true);
+  assert.equal(get('resource-title-edit').value,'Archived restored title');
+  assert.match(get('resource-count').textContent,/1 title edits/);
+});
+test('invalid ZIP resource payload never overwrites an existing verified editor draft',async()=>{
+  const h=harness(),get=id=>h.nodes.get(id);
+  get('resource-source-file').files=[{
+    name:'site-content.html',size:engine.BASE_LENGTH,text:async()=>'<verified>'
+  }];
+  await get('resource-source-file').listeners.change();
+  get('resource-title-edit').value='Keep our current resource edit';
+  get('resource-apply').listeners.click();
+  const bridge=h.window.NaxxLocalResourceReview;
+  assert.throws(()=>bridge.restoreDraftText(JSON.stringify({
+    format:'naxx-local-resource-draft-v2',baselineSha256:'f'.repeat(64),
+    changes:[{index:0,title:'Unverified replacement'}]
+  })),/baseline|fingerprint|source/i);
+  assert.equal(get('resource-title-edit').value,'Keep our current resource edit');
+  assert.match(get('resource-count').textContent,/1 title edits/);
+});

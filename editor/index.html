@@ -161,15 +161,20 @@
       <p class="hint">You can also open the review ZIP below instead of extracting it manually. This will check archive integrity and offer the individual JSON drafts. No file is sent online or automatically installed.</p>
       <div class="field" aria-labelledby="recover-review-heading">
         <h3 id="recover-review-heading" style="margin:0;color:var(--gold)">Open a saved combined review ZIP</h3>
-        <p>Choose the private review ZIP you previously downloaded. The editor checks its file list, checksums and draft formats before offering the separate drafts for recovery. This does not load edits or change your website automatically.</p>
+        <p>Choose the private review ZIP you previously downloaded. The editor checks its file list, checksums and draft formats before offering the separate drafts for recovery. Restoring a draft requires its matching original source and asks before replacing unsaved edits. Nothing changes the website files automatically.</p>
         <label for="open-review-zip">Choose saved review ZIP</label>
         <input id="open-review-zip" type="file" accept=".zip,application/zip" aria-describedby="open-review-status">
         <div id="open-review-status" class="status" role="status" aria-live="polite">No review ZIP selected.</div>
         <div class="actions">
+          <button type="button" id="restore-zip-page" disabled>Restore Page Draft in Editor</button>
+          <button type="button" id="restore-zip-resource" disabled>Restore Resource Draft in Editor</button>
+        </div>
+        <p class="hint">These two actions check the original source again before loading and ask before replacing unsaved edits. You must first load your source folder in section 1, or your original resource file in section 4. If you prefer, download the JSON drafts separately instead:</p>
+        <div class="actions">
           <button type="button" id="recover-page-draft" disabled>Download Page Draft (.json)</button>
           <button type="button" id="recover-resource-draft" disabled>Download Resource Draft (.json)</button>
         </div>
-        <p class="hint">Next, select the downloaded page draft with <strong>Load Saved Draft</strong> in this section, and the resource draft with <strong>Load Resource Draft</strong> in section 4. Both editors separately verify the source files before loading. The ZIP is not a complete website backup.</p>
+        <p class="hint">Downloaded JSON drafts can still be opened with <strong>Load Saved Draft</strong> in section 5 or <strong>Load Resource Draft</strong> in section 4. Neither option writes to your website or GitHub. The ZIP is not a full backup.</p>
       </div>
     </div>
     <p class="hint">A saved draft contains just your edits and the fingerprints of the original four HTML files and navigation JSON. Keep it private until reviewed. The changed-files ZIP preserves GitHub folder paths and includes a manifest and review instructions.</p>

@@ -174,21 +174,33 @@
     if(!model)return;
     draftPicker.click();
   });
+  function restoreResourceDraftText(text) {
+    if(!model||loading)
+      throw Error('Load and verify the original site-content.html before restoring a resource draft.');
+    if(typeof text!=='string'||!text.length||text.length>16*1024*1024)
+      throw Error('This resource draft is empty or unexpectedly large.');
+    var parsed=JSON.parse(text);
+    var imported=core.restoreResourceDraft(parsed,model);
+    if((hasAnyEdits()||hasPendingInput())&&
+       !window.confirm('Replace your current unsaved resource title and content edits with this saved draft?'))
+      return false;
+    changes=imported.titles;contentChanges=imported.contents;
+    refreshList(activeIndex);
+    notice('Verified resource draft loaded: '+changes.size+' title edits and '+
+      contentChanges.size+' content edits.'+
+      (imported.legacyTitleOnly?' Imported older title-only draft.':''),false);
+    return true;
+  }
   draftPicker.addEventListener('change',async function(){
     var file=draftPicker.files&&draftPicker.files[0];
     if(!file)return;
     try{
-      if(file.size>16*1024*1024)throw Error('This resource draft is unexpectedly large.');
-      var parsed=JSON.parse(await file.text());
-      var imported=core.restoreResourceDraft(parsed,model);
-      if((hasAnyEdits()||hasPendingInput())&&
-         !window.confirm('Replace your current unsaved resource title and content edits with this saved draft?'))
-        return;
-      changes=imported.titles;contentChanges=imported.contents;
-      refreshList(activeIndex);
-      notice('Verified resource draft loaded: '+changes.size+' title edits and '+contentChanges.size+' content edits.'+(imported.legacyTitleOnly?' Imported older title-only draft.':''),false);
-    }catch(err){notice('Resource draft rejected: '+((err&&err.message)||'Invalid draft.'),true);}
-    finally{draftPicker.value='';}
+      if(file.size>16*1024*1024)
+        throw Error('This resource draft is unexpectedly large.');
+      restoreResourceDraftText(await file.text());
+    }catch(err){
+      notice('Resource draft rejected: '+((err&&err.message)||'Invalid draft.'),true);
+    }finally{draftPicker.value='';}
   });
   $('resource-clear').addEventListener('click',function(){
     if(!hasAnyEdits()&&!hasPendingInput())return;
@@ -216,7 +228,8 @@
       if (hasPendingInput())
         throw Error('Apply or revert the resource text edits before saving the review package.');
       return core.resourceDraft(changes,contentChanges,model);
-    }
+    },
+    restoreDraftText: restoreResourceDraftText
   });
   controls.hidden=true;
   updateButtons();

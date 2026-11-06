@@ -393,48 +393,75 @@
     say('Local draft downloaded. This is NOT a website update or GitHub backup.');
   });
   $('load-draft').addEventListener('click', function () { draftPicker.click(); });
-  draftPicker.addEventListener('change', async function () {
-    try {
-      var draft = JSON.parse(await draftPicker.files[0].text());
-      if (draft.format !== 'naxx-local-draft-v3' || !Array.isArray(draft.files) || draft.files.length !== PATHS.length) throw new Error('Unrecognised draft format.');
-      var replacements = new Map();
-      draft.files.forEach(function (file) {
-        var page = state.get(file.path);
-        if (!page || file.sourceSha256 !== page.hash || !file.edits || typeof file.edits !== 'object' || Array.isArray(file.edits)) {
-          throw new Error('Draft does not match the selected repository files. Nothing was loaded.');
-        }
-        var edits = new Map();
-        Object.entries(file.edits).forEach(function (entry) {
-          var run = page.runs.find(function (candidate) { return candidate.id === entry[0]; });
-          if (!run || typeof entry[1] !== 'string' || entry[1].length > 30000) throw new Error('Draft contains invalid edit data.');
-          if (entry[1] !== run.value) edits.set(run.id, entry[1]);
-        });
-        replacements.set(file.path, edits);
+  // The same source-bound import is used by the manual JSON picker and
+  // the private ZIP recovery buttons. Validation finishes BEFORE any edits
+  // are replaced; an owner cancellation preserves every existing edit.
+  function restorePageDraftText(text) {
+    if (typeof text !== 'string' || text.length === 0 || text.length > 16 * 1024 * 1024)
+      throw new Error('The saved page draft is empty or too large.');
+    if (state.size !== PATHS.length || !navState)
+      throw new Error('Load the four original pages and navigation before restoring a draft.');
+    var draft = JSON.parse(text);
+    if (draft.format !== 'naxx-local-draft-v3' || !Array.isArray(draft.files) ||
+        draft.files.length !== PATHS.length || draft.sourceCommitVerified !== false)
+      throw new Error('Unrecognised draft format.');
+    var replacements = new Map();
+    draft.files.forEach(function (file) {
+      var page = state.get(file.path);
+      if (!page || replacements.has(file.path) || file.sourceSha256 !== page.hash ||
+          !file.edits || typeof file.edits !== 'object' || Array.isArray(file.edits))
+        throw new Error('Draft does not match the selected repository files. Nothing was loaded.');
+      var edits = new Map();
+      Object.entries(file.edits).forEach(function (entry) {
+        var run = page.runs.find(function (candidate) { return candidate.id === entry[0]; });
+        if (!run || typeof entry[1] !== 'string' || entry[1].length > 30000 ||
+            (run.kind === 'href' && !validHref(entry[1])))
+          throw new Error('Draft contains invalid or unsafe edit data.');
+        if (entry[1] !== run.value) edits.set(run.id, entry[1]);
       });
-      if (!navState || !draft.navigation || draft.navigation.path !== NAV_PATH ||
-          draft.navigation.sourceSha256 !== navState.hash) {
-        throw new Error('The saved navigation draft does not match the selected folder.');
-      }
-      var imported = validateNavigation(draft.navigation.document);
-      var restoredNav = {
-        format: 'naxx-navigation-v1',
-        pages: navState.original.pages.map(function (p, i) {
-          var saved = imported.pages[i];
-          return {
-            slug: p.slug, label: saved.label, title: saved.title,
-            group: p.group, icon: saved.icon, intro: saved.intro
-          };
-        })
-      };
-      if (replacements.size !== PATHS.length) throw new Error('Draft has missing or duplicate page edits.');
-      PATHS.forEach(function (path) { state.get(path).edits = replacements.get(path); });
-      navState.current = restoredNav;
-      showFields();
-      showNavigation();
-      setButtons();
-      say('Draft restored locally. Review your edits before exporting.');
-    } catch (err) { say(err.message, true); }
-    draftPicker.value = '';
+      replacements.set(file.path, edits);
+    });
+    if (!draft.navigation || draft.navigation.path !== NAV_PATH ||
+        draft.navigation.sourceSha256 !== navState.hash)
+      throw new Error('The saved navigation draft does not match the selected folder.');
+    var imported = validateNavigation(draft.navigation.document);
+    var restoredNav = {
+      format: 'naxx-navigation-v1',
+      pages: navState.original.pages.map(function (p, i) {
+        var saved = imported.pages[i];
+        return {
+          slug: p.slug, label: saved.label, title: saved.title,
+          group: p.group, icon: saved.icon, intro: saved.intro
+        };
+      })
+    };
+    if (replacements.size !== PATHS.length)
+      throw new Error('Draft has missing or duplicate page edits.');
+    if (hasChanges() && !window.confirm(
+      'Replace your current unsaved page and navigation edits with the saved draft? Download your current draft first if needed.'
+    )) {
+      say('Draft loading cancelled. Your current page and navigation edits were kept.');
+      return false;
+    }
+    PATHS.forEach(function (path) { state.get(path).edits = replacements.get(path); });
+    navState.current = restoredNav;
+    $('preview-wrap').hidden = true;
+    $('preview-frame').removeAttribute('srcdoc');
+    showFields();
+    showNavigation();
+    setButtons();
+    say('Draft restored locally after checking the original files. Nothing was published.');
+    return true;
+  }
+  draftPicker.addEventListener('change', async function () {
+    var file = draftPicker.files && draftPicker.files[0];
+    if (!file) return;
+    try {
+      if (file.size > 16 * 1024 * 1024)
+        throw new Error('The saved page draft is unexpectedly large.');
+      restorePageDraftText(await file.text());
+    } catch (err) { say('Page draft rejected: ' + err.message, true); }
+    finally { draftPicker.value = ''; }
   });
   $('export-changes').addEventListener('click', async function () {
     try { await exportChanged(); }
@@ -515,7 +542,8 @@
       if (state.size !== PATHS.length || !navState) return null;
       if (!hasChanges()) return null;
       return draftData();
-    }
+    },
+    restoreDraftText: restorePageDraftText
   });
   setButtons();
   showFields();

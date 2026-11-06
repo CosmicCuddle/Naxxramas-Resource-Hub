@@ -48,6 +48,11 @@ jobs:
         run: node --test editor/tests/legacy-draft-bridge.test.cjs
       - name: Verify mixed original page/resource drafts reconcile both unapproved source layouts
         run: node --test editor/tests/reconcile-mixed-source-layouts.test.cjs
+      - name: Verify direct ZIP draft restore preserves unfinished work
+        run: |
+          node --test editor/tests/page-draft-restore-safety.test.cjs
+          node --test editor/tests/review-zip-direct-restore.test.cjs
+          node --test editor/tests/resource-title-ui.test.cjs
       - name: Validate editor, ZIP exports and Game Clients
         run: node --test editor/tests/*.test.cjs
       - name: Exercise resource title draft UI in a real local Chrome browser
