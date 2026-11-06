@@ -126,3 +126,28 @@ test('standalone preview uses fictional examples, inert button controls and rest
     assert.equal(js.includes(forbidden),false);
   assert.doesNotThrow(()=>new vm.Script(js));
 });
+
+test('the preview metadata agrees with real private revision simulation before and after a separate save',async()=>{
+  const {withTemporaryVersions,verify,draftFrom,save}=
+    require('../tools/rehearse-versioned-resource-sessions.cjs');
+  const original=fs.readFileSync(path.resolve(__dirname,'..','..','site-content.html'));
+  await withTemporaryVersions(original,dir=>{
+    const state0=verify(dir,original);
+    const older=draftFrom(state0,[{index:0,title:'Fictional stale title'}]);
+    assert.equal(core.assess(state0.manifest,older).code,'review-only');
+    const saved=save(dir,original,draftFrom(state0,[
+      {index:413,content:'Review-only second record change.'}
+    ]));
+    assert.equal(saved.after.manifest.revision,1);
+    assert.equal(core.assess(saved.after.manifest,older).code,'stale');
+    const current=draftFrom(saved.after,[{index:0,title:'Fresh version title'}]);
+    assert.equal(core.assess(saved.after.manifest,current).code,'review-only');
+  });
+});
+test('original v2 drafts are NOT mistaken for the new revision-aware envelope',()=>{
+  const m=fixture();
+  const old={format:'naxx-local-resource-draft-v2',
+    baselineSha256:core.BASE,changes:[{index:0,title:'An old draft'}]};
+  assert.equal(core.assess(m,old).code,'invalid-draft');
+  assert.equal(core.assess(m,old).canApply,false);
+});
