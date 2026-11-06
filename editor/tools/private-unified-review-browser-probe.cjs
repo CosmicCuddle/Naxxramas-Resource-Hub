@@ -58,6 +58,9 @@ function unifiedBrowserProbe(){
     const noMarker=!d.body.textContent.includes(markupMarker);
     const oldFormat=await tryJson({format:'naxx-local-draft-v3'});
     const oversize=await tryJson('x'.repeat(core.MAX_JSON_BYTES+1));
+    const multibyteOversize=await tryJson(JSON.stringify({
+      ...fixture.current,extra:'界'.repeat(90000)
+    }));
     clear.click();
     const checks={
       controlsPresent:[receipt,review,dismiss,clear,sample,unsafe,forged,
@@ -76,6 +79,7 @@ function unifiedBrowserProbe(){
       injectedPathBlocked:injection==='invalid'&&noMarker,
       unsupportedPageDraftBlocked:oldFormat==='invalid',
       oversizedReceiptBlocked:oversize==='limit',
+      multibyteOversizeBlocked:multibyteOversize==='limit',
       clearResetsEverything:receipt.value===''&&list.children.length===0&&
         area.hidden&&status.dataset.decision==='missing',
       stillReadOnly:status.dataset.blocked==='true',
