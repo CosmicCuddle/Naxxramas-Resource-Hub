@@ -24,7 +24,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 :focus-visible{outline:3px solid var(--focus);outline-offset:3px}
 .actions{display:flex;flex-wrap:wrap;gap:12px;margin:15px 0}
 .status{padding:14px 16px;border-left:4px solid var(--focus);background:#17211f;border-radius:6px}
-.status[data-decision=stale],.status[data-decision=resource-conflict],.status[data-decision=invalid-source],.status[data-decision=invalid-receipt]{border-left-color:#eda08a;background:#2a1d1b}
+.status[data-decision=stale],.status[data-decision=resource-conflict],.status[data-decision=invalid-source],.status[data-decision=invalid-receipt],.status[data-decision=rejected]{border-left-color:#eda08a;background:#2a1d1b}
 .muted{color:var(--muted)}
 li{margin:8px 0}
 #file-list{padding-left:24px;overflow-wrap:anywhere}
@@ -66,8 +66,10 @@ a{color:#91e2d2}
 <p id="receipt-description" class="muted small">Maximum 256 KiB. A receipt contains file paths, byte counts and checksums—not the actual changed text.</p>
 <div class="actions">
 <button type="button" id="review-selected">Review selected files (read only)</button>
+<button type="button" id="reject-review">Dismiss proposal (keep my files)</button>
 <button type="button" id="clear-review">Clear selections and example</button>
 </div>
+<p class="muted small">Dismiss hides only this preview. It does not delete your files or reject a real GitHub pull request. Review again to reopen the same selected JSON documents.</p>
 </section>
 <section class="panel" aria-labelledby="result-heading">
 <h2 id="result-heading">3. Understand what would change</h2>
