@@ -55,6 +55,16 @@ The owner's desired outcome is a comprehensible website folder, not a giant expo
 
 The current local Save Draft and reviewed ZIP stages may remain as a *private preparation step*. A future approved publishing step would validate the reviewed Git commit, source hashes, all requested paths and the entire regenerated runtime before allowing GitHub changes. It should offer a clearly labeled review of changed files and keep unrelated files untouched. A future builder must never silently use a stale resource draft against a newer site revision.
 
+## Sequential saving and conflict refusal — test-only prototype
+
+Added `editor/tools/rehearse-versioned-resource-sessions.cjs` as a **separate, disposable simulation** of saving on two different days. It uses the original complete website as an immutable *non-resource shell*, with 414 checksum-bound separate resource fragments and a single versioned manifest in a temporary OS directory.
+
+Every simulated draft carries (1) the **complete compatibility-source SHA-256**, (2) a numbered **revision**, and (3) an **expected checksum for each edited resource**. Before saving, all 414 saved fragments, the manifest, their order and the regenerated complete website SHA are verified. The test performs a first edit, refuses an outdated draft, then performs a second edit on a fresh revision; it proves it can restore the exact original bytes afterwards. Synthetic source values are not printed or published.
+
+**Fail-closed policy:** Any outdated draft is rejected, **even if it targets a different resource**. The prototype makes no attempt to automatically rebase/merge changes or guess the latest value. A later user interface would need to present a simple "This draft is based on an older version; reopen and review your changes" explanation. No silent overwrites are allowed.
+
+**Not yet available to the owner:** The actual browser resource editor still saves/restores the **original v2 draft format** against the fixed original checksum. This new revision envelope and temporary manifest are **not connected to its Save button**, do not update an established GitHub source tree, and cannot publish or deploy. Multiple concurrent editor instances, crash-safe cross-process locking, private source packaging, full administrator edits and real browser save/restore still need independent acceptance.
+
 ## Release-blocking requirements
 
 1. **Version-aware base transition.** Currently, parsing and all v2 resource drafts are SHA-bound to the original source. Once any generated `site-content.html` changes, a second edit would need a new verified baseline and collision/merge rules. Do not present the temporary overlay as supporting repeated production saves.
