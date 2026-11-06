@@ -59,8 +59,8 @@ test('matching source version with mismatched fragment SHA fails closed',()=>{
   assert.equal(status.code,'record-conflict');
   assert.equal(status.canApply,false);
 });
-test('same numeric revision but changed complete source checksum is also stale',()=>{
-  const m=fixture(),d=draft(m);
+test('same later revision but changed complete source checksum is also stale',()=>{
+  const m=fixture(1),d=draft(m);
   m.sourceSha256='b'.repeat(64);
   assert.equal(core.assess(m,d).code,'stale');
 });
