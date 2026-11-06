@@ -147,6 +147,14 @@ test('JSON input bounds prevent massive metadata receipts and never include raw 
   assert.equal(core.size(262145,262144),false);
   assert.equal(core.size(262144,262144),true);
 });
+test('JSON parser honours UTF-8 byte size, including multibyte text',()=>{
+  const {manifest,receipt}=sample.generate();
+  const text=JSON.stringify({...manifest,extra:'界'.repeat(90000)});
+  assert.ok(text.length<core.MAX_MANIFEST_BYTES);
+  assert.ok(Buffer.byteLength(text,'utf8')>core.MAX_MANIFEST_BYTES);
+  assert.equal(core.parseJson(text,core.MAX_MANIFEST_BYTES),null);
+  assert.equal(core.inspectJSON(JSON.stringify(manifest),JSON.stringify(receipt)).code,'review-only');
+});
 test('real physical 414-resource planner receipt agrees with this independent browser review model',async()=>{
   await withTemporaryVersions(original,async dir=>{
     const current=verify(dir,original);
