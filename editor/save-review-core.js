@@ -123,7 +123,8 @@
     'resource-conflict':'A proposed resource no longer matches the selected version manifest. Do not overwrite newer edits.',
     'review-only':'The receipt matches the selected version metadata. Inspect the proposed files below. This is NOT approval to save, merge or publish.',
     'file-limit':'At least one selected JSON file is empty or exceeds the review-only size limit.',
-    'read-failed':'The selected JSON files could not be read safely. Nothing was changed.'
+    'read-failed':'The selected JSON files could not be read safely. Nothing was changed.',
+    'rejected':'This proposal was dismissed from this private preview. Your selected JSON files and saved drafts were not deleted or changed. Choose Review to inspect it again.'
   };
   function status(code,manifest,receipt,showFiles){
     const list=showFiles&&receipt&&validReceipt(receipt)?
@@ -181,6 +182,7 @@
     validReceipt,inspect,inspectJSON,parseJson,size,labelFor,
     missing:()=>status('missing',null,null,false),
     tooLarge:()=>status('file-limit',null,null,false),
-    failed:()=>status('read-failed',null,null,false)
+    failed:()=>status('read-failed',null,null,false),
+    rejected:()=>status('rejected',null,null,false)
   });
 });
