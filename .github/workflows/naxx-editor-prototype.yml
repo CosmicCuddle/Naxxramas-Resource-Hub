@@ -74,11 +74,20 @@ jobs:
         run: node editor/tools/rehearse-local-git-head-preflight.cjs --ci-checkout
       - name: Simulate stale remote GitHub branch refs without network or write permissions
         run: node editor/tools/rehearse-remote-github-head-preflight.cjs --simulate
-      - name: Verify current development branch on GitHub twice (read-only push check)
-        if: github.event_name == 'push'
+      - name: Verify current development branch on GitHub twice (read-only same-repo check)
+        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == 'CosmicCuddle/Naxxramas-Resource-Hub' && github.event.pull_request.head.ref == 'feature/multi-file-editor-export-2026-11-05')
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: node editor/tools/rehearse-remote-github-head-preflight.cjs --ci-remote
+          PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
+            node editor/tools/rehearse-remote-github-head-preflight.cjs --ci-remote
+          else
+            node editor/tools/rehearse-remote-github-head-preflight.cjs --ci-pr-remote
+          fi
       - name: Rehearse 414 separate resource files and delete temporary package
         run: node editor/tools/rehearse-resource-files.cjs
       - name: Verify one safe resource-title edit leaves 413 others untouched
