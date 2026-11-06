@@ -41,3 +41,19 @@ Unit tests cover wrong repo/branch, incorrect commits, altered review permission
 **Unverified / not approved:** canonical GitHub resource source, real remote CAS semantics in the chosen writer, retained independent production-grade backup, real administrator edit/Save/Restore, actual branch-writing transaction, deployment gating and owner acceptance.
 
 **Do not publish or connect real Save controls based on a matching metadata receipt or this test-only contract.**
+
+## Ambiguous network result — never retry automatically
+
+A request to advance a GitHub ref can time out or lose its connection **after the server might already have applied it**. Neither a timeout nor an HTTP acknowledgement proves which source bytes are currently active. Calling the same Save again is unsafe: a second request may overwrite another edit or accidentally repeat an action.
+
+`editor/tools/plan-uncertain-save-outcome.cjs` and `editor/tests/uncertain-save-outcome.test.cjs` add a **purely fictional, non-networking** outcome reconciliation for this situation:
+
+| Subsequent branch observation | Required status in model | Safe behaviour |
+| --- | --- | --- |
+| Cannot read GitHub's branch head | Unresolved | Preserve draft; investigate manually, never auto-retry |
+| Still points to reviewed old commit | Old head at this observation | Preserve draft; a new independent review is required before any different attempt |
+| Points to a third commit | Conflicting change | Preserve draft; report conflict and do not force update |
+| Points to proposed new commit but source evidence is missing or mismatched | Unverified candidate | Stop; don't claim a Save succeeded |
+| Points to proposed commit with the expected *fictional evidence shape* | Candidate metadata consistent, still unauthenticated | Authentication and independent source checks are still required; no permission to publish or retry |
+
+All outcomes report `automaticRetryAllowed:false`, `canPublish:false`, `canPush:false`, and `retainOriginalDraft:true`. The model deliberately cannot authenticate remote evidence or know which actor changed a branch. Even matching commit and supplied hash metadata is **not** a demonstrated real Save. A production coordinator must independently retrieve the current ref and verify its Git objects, full reconstructed HTML, complete path set, and original custom content. Explicit owner approval, backups, layout choice and an authorised test branch remain necessary.
