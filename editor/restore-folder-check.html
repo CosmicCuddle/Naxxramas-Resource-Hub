@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'none'; img-src 'none'; frame-src 'none'; form-action 'none'; object-src 'none'; base-uri 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Naxxramas — Private Resource Folder Check</title>
+<style>
+:root{color-scheme:dark;--bg:#100f0e;--panel:#211e1a;--line:#806747;--gold:#f1ca83;--ink:#f5ede0;--muted:#dbccb7;--focus:#70c8bd}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 system-ui,Segoe UI,Arial,sans-serif}
+main{max-width:900px;margin:auto;padding:clamp(14px,4vw,30px)}
+h1{font-size:clamp(1.5rem,4vw,2.1rem);line-height:1.25;color:var(--gold);margin:.4em 0}
+h2{font-size:1.22rem;color:var(--gold);margin:.4em 0}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:clamp(14px,3vw,24px);margin:18px 0}
+.notice{padding:12px 14px;border:1px solid var(--gold);border-radius:7px;background:#30261d}
+label{display:block;font-weight:650;color:var(--gold);margin:17px 0 8px}
+input[type=file]{width:100%;min-height:48px;max-width:100%;border:1px dashed #bca16e;padding:12px;border-radius:8px;background:#171513;color:var(--ink)}
+.actions{display:flex;flex-wrap:wrap;gap:12px;margin:18px 0}
+button{font:inherit;min-height:48px;padding:10px 16px;background:#3a3022;color:var(--ink);border:1px solid #bca16e;border-radius:8px;cursor:pointer}
+button:disabled{opacity:.52;cursor:not-allowed}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+.status{border-left:4px solid var(--focus);padding:13px 16px;background:#171c1b;margin:18px 0}
+.status[data-blocked=true]{border-left-color:#e99b83;background:#2a1d1b}
+.muted{color:var(--muted)}a{color:#91e2d2}
+</style>
+<script defer src="restore-preflight-core.js"></script>
+<script defer src="restore-folder-check-core.js"></script>
+<script defer src="restore-folder-check.js"></script>
+</head>
+<body>
+<main>
+<header>
+<h1>Check a resource source folder</h1>
+<p class="muted">Protected, local-only development trial</p>
+<p class="notice"><strong>TEST ONLY.</strong> This tool reads files you select locally. It cannot edit, save, upload, merge, or publish your website. Do not use it for a live release decision.</p>
+</header>
+<section class="panel" aria-labelledby="select-title">
+<h2 id="select-title">1. Choose the source folder and draft</h2>
+<p>Select the <strong>outer source folder</strong> containing <code>content/resource-overlays/</code> with exactly 414 resource fragments and one manifest. This is a proposed experimental layout, not an export from the working editor.</p>
+<label for="source-folder">Resource source folder (415 files)</label>
+<input id="source-folder" type="file" webkitdirectory directory multiple aria-describedby="folder-help">
+<p class="muted" id="folder-help">Expected: 414 individual resource files and <code>content/resource-overlays/manifest.json</code>. No unrelated files.</p>
+<label for="versioned-draft">Experimental versioned resource draft (.json)</label>
+<input id="versioned-draft" type="file" accept=".json,application/json" aria-describedby="draft-help">
+<p class="muted" id="draft-help">Only <code>naxx-private-versioned-resource-draft-v1</code> is supported. Current editor v2 resource and v3 page drafts are not accepted.</p>
+<div class="actions">
+<button type="button" id="check-folder">Check all 414 files (read only)</button>
+<button type="button" id="clear-folder">Clear selections</button>
+</div>
+</section>
+<section class="panel" aria-labelledby="results-title">
+<h2 id="results-title">2. Read the result</h2>
+<div id="folder-result" class="status" data-blocked="true" role="status" aria-live="polite" aria-atomic="true">
+<p id="folder-message">Choose both inputs, then check the folder.</p>
+<p id="folder-details" class="muted">No files checked yet.</p>
+</div>
+<p><strong>Important:</strong> Matching checksums only prove that the selected fragments agree with the selected manifest. They do not prove the manifest is authorised, and this browser page does <strong>not</strong> reconstruct the full 31 MB website. A separate full-source verification and your approval remain necessary.</p>
+</section>
+<section class="panel">
+<h2>What this does not change</h2>
+<p>Your existing website, administrator tools, resource values, and Save/Load buttons remain untouched. No selected file contents are shown in the result.</p>
+<p class="muted"><a href="restore-file-check.html">Back to the two-JSON version-only checker</a></p>
+</section>
+</main>
+</body>
+</html>
