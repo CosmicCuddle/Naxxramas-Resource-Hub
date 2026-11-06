@@ -342,6 +342,15 @@ async function inspectBrowser(site,work){
         throw Error('Private no-login admin gate '+width+
           'px failed: '+failed.join(', '));
       }
+      // Confirmed on the original desktop AND mobile snapshot at 9f86f775:
+      // opening the genuine visitor Admin entry must reveal the password
+      // panel, without credential input or privilege escalation. Treat loss
+      // of this existing behaviour as a regression, not a successful probe.
+      if(measured.unambiguousEntryFound!==true||
+         measured.gateOpened!==true||
+         measured.loginAttempted!==false||
+         measured.actualAdminEditingVerified!==false)
+        throw Error('Original admin password entry regression at '+width+'px.');
       adminGateChecks.push({width,checks:Object.keys(measured.checks).length,
         visibleEntryFound:measured.unambiguousEntryFound===true,
         passwordGateOpened:measured.gateOpened===true,
