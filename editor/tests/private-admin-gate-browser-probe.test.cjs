@@ -1,6 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
+const vm=require('node:vm');
 const {adminGateBrowserProbe}=require('../tools/private-admin-gate-browser-probe.cjs');
 
 test('no-login discovery is runnable and does not grant administrator approval',()=>{
@@ -21,6 +22,64 @@ test('hidden editor controls cannot be clicked; no credentials or website writes
     'create_commit(', 'editorControl.click()', '.innerHTML=', 'GITHUB_TOKEN'])
     assert.equal(code.includes(forbidden),false,forbidden);
   assert.doesNotMatch(code,/password\.value\s*=(?!=)/);
-  assert.match(code,/if\(trigger\)trigger\.click\(\)/);
+  assert.match(code,/if\(trigger&&!beforeVisible&&!beforeAdmin\)trigger\.click\(\)/);
   assert.match(code,/candidates\.length===1/);
+});
+
+function simulate(label,{type='button',inlineClick=true}={}){
+  let clicked=0;
+  const base=(tag,shown=true)=>({
+    tagName:tag,isConnected:true,nodeType:1,parentElement:null,
+    textContent:'',className:'',disabled:false,type:'button',visible:shown,
+    getClientRects(){return this.visible?[{}]:[];},
+    getAttribute(){return null;},
+    hasAttribute(key){return key==='onclick'&&this.inlineClick===true;},
+    closest(){return null;}
+  });
+  const editor=base('BUTTON',false);
+  const trigger=base('BUTTON');
+  trigger.textContent=label;
+  trigger.type=type;
+  trigger.inlineClick=inlineClick;
+  const password=base('INPUT',false);
+  password.type='password';password.value='';
+  trigger.click=()=>{clicked++;password.visible=true;};
+  const shell=base('DIV');
+  const d={
+    body:{classList:{contains:()=>false}},
+    querySelector(selector){return selector==='button.wh-pro-admin'?editor:null;},
+    querySelectorAll(selector){return selector==='button'?[editor,trigger]:[];},
+    getElementById(id){return id==='adminPasswordInput'?password:
+      ['searchInput','resourceGrid','sectionHeading'].includes(id)?shell:null;}
+  };
+  const w={location:{pathname:'/',search:''},getComputedStyle(el){
+    return {display:el.visible?'block':'none',visibility:'visible',opacity:'1'};
+  }};
+  return vm.runInNewContext(adminGateBrowserProbe(),
+    {document:d,window:w,setTimeout(fn){fn();}},
+    {timeout:2000}).then(out=>({out,clicked}));
+}
+test('single Admin-labelled visitor entry opens only its password gate',async()=>{
+  const {out,clicked}=await simulate('Admin Access 🔐');
+  assert.equal(clicked,1);
+  assert.equal(out.ready,true);
+  assert.equal(out.unambiguousEntryFound,true);
+  assert.equal(out.gateOpened,true);
+  assert.equal(out.loginAttempted,false);
+  assert.equal(out.actualAdminEditingVerified,false);
+  assert.equal(out.checks.noPasswordEntered,true);
+  assert.equal(out.checks.visitorPrivilegeRemainsOff,true);
+});
+test('unsafe administrator actions and submit buttons are never clicked',async()=>{
+  for(const [label,options] of [
+    ['Admin Delete All',{}],['Admin Reset',{}],
+    ['Admin Access 🔐',{type:'submit'}],
+    ['Admin Access 🔐',{inlineClick:false}]
+  ]){
+    const {out,clicked}=await simulate(label,options);
+    assert.equal(clicked,0,label);
+    assert.equal(out.gateOpened,false,label);
+    assert.equal(out.loginAttempted,false,label);
+    assert.equal(out.ready,true,label);
+  }
 });
