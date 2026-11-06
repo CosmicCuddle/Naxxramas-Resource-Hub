@@ -20,6 +20,7 @@ const {layoutProbe}=require('./private-site-layout-probes.cjs');
 const {restoreBrowserProbe}=require('./private-restore-browser-probe.cjs');
 const {fileReviewBrowserProbe}=require('./private-restore-file-browser-probe.cjs');
 const {folderBrowserProbe}=require('./private-restore-folder-browser-probe.cjs');
+const {saveReviewBrowserProbe}=require('./private-save-review-browser-probe.cjs');
 const root=path.resolve(__dirname,'..','..');
 const BASE='34455f6d901c538e2491a8c16681692e4c02d918b1984d7d0ba081aacb1049e8';
 const sha=x=>crypto.createHash('sha256').update(x).digest('hex');
@@ -395,12 +396,41 @@ async function inspectBrowser(site,work){
       }
       restoreFolderChecks.push({width,checks:Object.keys(measured.checks).length});
     }
+    // A separate, read-only owner's proposed-file review screen.
+    // Every File and fixture is fictional. No real Save or GitHub writes.
+    const saveReviewChecks=[];
+    for(const width of [1440,390]){
+      await send('Emulation.setDeviceMetricsOverride',{
+        width,height:900,deviceScaleFactor:1,mobile:width<500
+      });
+      await send('Page.navigate',{url:origin+'/editor/save-review-preview.html'});
+      let ready=false;
+      for(let n=0;n<100;n++){
+        const state=await send('Runtime.evaluate',{
+          expression:"document.documentElement.dataset.privateSaveReviewReady==='true'",
+          returnByValue:true
+        });
+        if(state.result?.value){ready=true;break;}
+        await delay(120);
+      }
+      if(!ready)throw Error('Read-only save review screen failed to initialize.');
+      const looked=await send('Runtime.evaluate',{
+        expression:saveReviewBrowserProbe(),awaitPromise:true,returnByValue:true
+      });
+      if(looked.exceptionDetails)throw Error('Save review browser probe crashed.');
+      const measured=looked.result?.value;
+      if(!measured?.ready){
+        const failed=Object.keys(measured?.checks||{}).filter(k=>!measured.checks[k]);
+        throw Error('Read-only Save review '+width+'px failed: '+failed.join(', '));
+      }
+      saveReviewChecks.push({width,checks:Object.keys(measured.checks).length});
+    }
     assert.ok(metrics.localReadRequests>12,'Local resource scripts/assets were not loaded.');
     assert.equal(metrics.formSubmissions,0,'No browser form submission is permitted.');
     assert.equal(metrics.nonLocalResponses,0,'Non-local browser responses are forbidden.');
     return {
       safeLocalBrowserCheck:true,pass:true,
-      scenarios:checks,restorePreflightExamples,restoreFileChecks,restoreFolderChecks,
+      scenarios:checks,restorePreflightExamples,restoreFileChecks,restoreFolderChecks,saveReviewChecks,
       localReadRequests:metrics.localReadRequests,
       rejectedExternalRequests:metrics.rejectedExternalRequests,
       nonLocalResponses:metrics.nonLocalResponses,
@@ -459,6 +489,7 @@ async function main(){
     assert.equal(report.browserInspection.restorePreflightExamples.length,2);
     assert.equal(report.browserInspection.restoreFileChecks.length,2);
     assert.equal(report.browserInspection.restoreFolderChecks.length,2);
+    assert.equal(report.browserInspection.saveReviewChecks.length,2);
     assert.equal(report.browserInspection.formSubmissions,0);
     assert.equal(report.browserInspection.nonLocalResponses,0);
     assert.equal(report.deployable,false);
@@ -471,6 +502,7 @@ async function main(){
       restorePreflightExamples:report.browserInspection.restorePreflightExamples,
       restoreFileChecks:report.browserInspection.restoreFileChecks,
       restoreFolderChecks:report.browserInspection.restoreFolderChecks,
+      saveReviewChecks:report.browserInspection.saveReviewChecks,
       localReadRequests:report.browserInspection.localReadRequests,
       blockedExternalAttempts:report.browserInspection.rejectedExternalRequests,
       nonLocalResponses:0,formSubmissions:0,
