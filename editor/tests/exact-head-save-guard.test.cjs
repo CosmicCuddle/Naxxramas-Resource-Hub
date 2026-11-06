@@ -84,8 +84,12 @@ test('forged approval, force-update and changed reference are refused',()=>{
     {requiredDestinationOidField:'oid'},
     {refName:'refs/heads/main'}, {expectedOldOid:C},
     {githubWrites:1}, {realGitHubCASVerified:true},{unexpected:true}
-  ])assert.throws(()=>reviewCurrentHead({...guard,...edit},A,A),
-    /Untrusted or modified exact-head contract/);
+  ]){
+    const rejection=Object.hasOwn(edit,'expectedOldOid')?
+      /does not match independent source review/:
+      /Untrusted or modified exact-head contract/;
+    assert.throws(()=>reviewCurrentHead({...guard,...edit},A,A),rejection);
+  }
 });
 
 test('contract module cannot call APIs, stage source or mutate Git',()=>{
