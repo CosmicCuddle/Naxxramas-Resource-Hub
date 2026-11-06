@@ -38,6 +38,8 @@ test('baseline-only overlay reconstructs exact original source and refuses chang
   await withOverlay(original,null,async(root)=>{
     const b=verifyOverlay(root,original,null);
     assert.equal(b.exactOriginalRestored,true);
+    assert.equal(b.overlayTreeBytes,1072527);
+    assert.equal(b.manifestBytes,77339);
     const location=pathOf(root,recordPath(0));
     const intact=fs.readFileSync(location);
     fs.writeFileSync(location,'changed unreviewed data');
