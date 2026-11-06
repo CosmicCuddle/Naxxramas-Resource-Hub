@@ -12,7 +12,8 @@
  * condition at the actual update boundary.
  */
 const crypto=require('node:crypto');
-const {validateReceipt,RUNTIME}=require('./rehearse-local-git-head-preflight.cjs');
+const {validateReceipt}=require('./rehearse-local-git-head-preflight.cjs');
+const {RUNTIME}=require('./plan-private-github-source-review.cjs');
 const {recordPath,MANIFEST,COUNT}=require('./rehearse-resource-only-overlay.cjs');
 const {SOURCE_SHA}=require('./audit-source-storage-budget.cjs');
 const {observeRemoteHead,EXPECTED_REPO,EXPECTED_BRANCH,fakeResponse}=
