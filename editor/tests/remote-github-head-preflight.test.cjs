@@ -118,7 +118,7 @@ test('transport failure is not converted to approval or silent retry',async()=>{
   }),/unavailable/);
   assert.equal(n,1);
   await assert.rejects(query(async()=>fakeResponse(EXPECTED_BRANCH,HEAD),null),
-    /both independent remote and local review functions/);
+    /Both independent remote and local review functions/);
 });
 test('standalone demonstration uses in-memory ref responses and no network',async()=>{
   const report=await simulate();
