@@ -70,8 +70,8 @@ jobs:
         run: node editor/tools/verify-physical-resource-sources.cjs
       - name: Calculate read-only GitHub path and checksum review before any proposed source edit
         run: node editor/tools/plan-private-github-source-review.cjs
-      - name: Rehearse exact Git commit and tracked blob preconditions in a disposable repository
-        run: node editor/tools/rehearse-local-git-head-preflight.cjs
+      - name: Rehearse local Git head pin and verify checked-out website against exact workflow commit
+        run: node editor/tools/rehearse-local-git-head-preflight.cjs --ci-checkout
       - name: Rehearse 414 separate resource files and delete temporary package
         run: node editor/tools/rehearse-resource-files.cjs
       - name: Verify one safe resource-title edit leaves 413 others untouched
