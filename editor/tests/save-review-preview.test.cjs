@@ -49,6 +49,18 @@ test('same full-source revision with altered resource fingerprint is explicitly 
   assert.equal(output.files[0].label,'Resource 0001');
   assert.equal(output.canApply,false);
 });
+test('explicit preview rejection is reversible and preserves all draft-file ownership',()=>{
+  const out=core.rejected();
+  assert.equal(out.code,'rejected');
+  assert.match(out.message,/selected JSON files and saved drafts were not deleted/);
+  assert.equal(out.files.length,0);
+  assert.equal(out.proposedFileCount,0);
+  assert.equal(out.metadataChecked,false);
+  assert.equal(out.canApply,false);
+  assert.equal(out.canPublish,false);
+  const {manifest,receipt}=sample.generate();
+  assert.equal(core.inspect(manifest,receipt).code,'review-only');
+});
 test('unsupported manifest or previous editor drafts cannot be misread as release receipts',()=>{
   const {manifest,receipt}=sample.generate();
   assert.equal(core.inspect({...manifest,resources:[]},receipt).code,'invalid-source');
@@ -160,6 +172,9 @@ test('private preview page is accessible, offline and never offers source modifi
   assert.match(html,/id="sample-current"/);
   assert.match(html,/id="sample-stale"/);
   assert.match(html,/id="sample-conflict"/);
+  assert.match(html,/id="reject-review"/);
+  assert.match(html,/does not delete your files or reject a real GitHub pull request/);
+  assert.match(js,/update\(core\.rejected\(\)\)/);
   assert.match(html,/id="current-manifest"/);
   assert.match(html,/id="planned-receipt"/);
   assert.match(html,/aria-live="polite"/);
