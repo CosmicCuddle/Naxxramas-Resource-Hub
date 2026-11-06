@@ -97,6 +97,26 @@ The generated report shows only aggregate outcomes: `everyWriteWasInMemory:true`
 
 **Production gate:** Do not implement or invoke GitHub `update_ref`, pushes, source commits or any upload based on this simulation. A real workflow still needs an owner-approved canonical source layout, a complete verified source package, a separately retained/restore-tested backup, authenticated up-to-the-moment remote authorization, a documented conditional GitHub update mechanism, proof of its server-enforced expected-head behavior, race and rollback tests on an approved disposable branch, and explicit CosmicCuddle consent before changing working Save buttons or any published data.
 
+## Full-byte reviewed file package — disposable proof only
+
+The protected branch now contains `editor/tools/rehearse-reviewed-source-package.cjs` and `editor/tests/reviewed-source-package.test.cjs`. This advances milestone 6 beyond a **checksum-only GitHub change-review receipt**: the independent private rehearsal constructs the **exact proposed file bytes** for a reviewed resource edit and verifies them before deleting them.
+
+This prototype accepts only an existing **physically verified 414-resource source snapshot** and its version-bound experimental draft. It first reruns the whole-source checksum review, rebuilds the complete runtime HTML in memory from the known original shell and the proposed resources, and refuses any stale or malformed draft or changed review receipt.
+
+Inside an automatically created **OS-private temporary directory**, it stages:
+
+- Only the changed resource fragment(s): a one-resource edit contributes **one** individual file rather than 414 copies.
+- A revised, complete 414-entry resource manifest that identifies the next revision and every resource checksum.
+- The **complete rebuilt `site-content.html`** with the custom non-resource shell, embedded media, scripts, independent side collection and unchanged resources preserved.
+
+For one resource change, this yields **three staged files** (fragment, manifest, complete website), and for two changes, **four staged files**. The user-facing website and GitHub repository files are not overwritten. The temporary complete HTML is intentionally transient; it is not a release bundle, public export, installed source tree or separately retained backup.
+
+The verifier independently regenerates those files from the physical source and draft, lists all candidate paths, rejects missing/extra files, symlinks and path traversal, and compares **actual staged bytes, byte counts and SHA-256 values** with the previous reviewed file-change receipt. Corrupted source bytes and outdated draft versions fail before any release action. The test checks that an obsolete session cannot create a package after another session has edited the private source.
+
+The returned receipt contains **aggregate counts and status only**; no actual resource text, credentials, embedded images or 31 MB generated HTML are logged or published. The temporary package is automatically deleted after each rehearsal, even when a verification fails. Only this isolated test tool writes to its own system temporary directory; it has **no GitHub API, write permission, push or merge path**. The approved live editor's Save/Load buttons, source format and administrator functions are unchanged.
+
+**Remaining production blockers:** This package is deliberately not GitHub-ready: no approved canonical source layout, no full legacy page/admin edits, no direct browser output, no retained immutable artifact with integrity signature and trusted commit anchor, no verified remote write lease, no independent backup restored, no production release builder, and no owner approval. Do not reclassify this temporary proof as a working Save/Restore feature or make a live change on its basis.
+
 ## Approval and production-blocking dependencies
 
 A checksum-only receipt is not automatically "GitHub-ready" and carries **no file bytes**. It is also not authenticated by a verified Git commit or approved as a durable source-of-truth format. The tested `content/resource-overlays/` path is a **candidate**, not an accepted repository layout.
