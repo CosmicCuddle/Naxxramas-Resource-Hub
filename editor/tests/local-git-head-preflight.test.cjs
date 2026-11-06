@@ -8,7 +8,7 @@ const {withTemporaryVersions,verify,draftFrom}=
 const {proposedReceipt}=require('../tools/plan-private-github-source-review.cjs');
 const {
   validBranch,approvedResourcePath,validateReceipt,
-  verifyPinnedLocalBranch,initSyntheticRepo,syntheticReceipt,
+  verifyPinnedLocalBranch,verifyCheckoutBaseline,initSyntheticRepo,syntheticReceipt,
   demonstrate,runGit
 }=require('../tools/rehearse-local-git-head-preflight.cjs');
 const original=fs.readFileSync(path.resolve(__dirname,'..','..','site-content.html'));
@@ -144,6 +144,14 @@ test('actual 414-fragment physical source dry-run receipt checks against a priva
     assert.equal(result.remoteGitHubTipVerified,false);
     assert.equal(receipt.physicallyVerifiedResources,414);
     assert.equal(receipt.expectedCurrentSourceSha256,SOURCE_SHA);
+    const actual=verifyCheckoutBaseline(dir,head);
+    assert.equal(actual.checkedOutCommitMatched,true);
+    assert.equal(actual.originalWebsiteSha256Matched,true);
+    assert.equal(actual.checkedWebsiteBytes,30976969);
+    assert.equal(actual.remoteGitHubTipVerified,false);
+    assert.equal(actual.canPush,false);
+    assert.throws(()=>verifyCheckoutBaseline(dir,'a'.repeat(40)),
+      /Checkout commit has drifted/);
   });
 });
 test('synthetic standalone demonstration deletes repository and refuses changed heads',()=>{
@@ -157,4 +165,13 @@ test('synthetic standalone demonstration deletes repository and refuses changed 
   assert.equal(report.githubFilesWritten,0);
   assert.equal(report.temporaryRepoDeleted,true);
   assert.equal(report.ownerApproved,false);
+});
+
+test('checked-out Git blob guard rejects wrong site content even when local synthetic Git head is correct',()=>{
+  withFakeGit(({dir,head})=>{
+    assert.throws(()=>verifyCheckoutBaseline(dir,head),
+      /Protected original website blob does not match source baseline/);
+    assert.throws(()=>verifyCheckoutBaseline(dir,'invalid'),
+      /exact independently supplied checkout commit/);
+  });
 });
