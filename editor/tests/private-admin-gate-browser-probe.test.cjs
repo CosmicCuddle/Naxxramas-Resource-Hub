@@ -32,7 +32,7 @@ function simulate(label,{type='button',inlineClick=true}={}){
     tagName:tag,isConnected:true,nodeType:1,parentElement:null,
     textContent:'',className:'',disabled:false,type:'button',visible:shown,
     getClientRects(){return this.visible?[{}]:[];},
-    getAttribute(){return null;},
+    getAttribute(key){return key==='type'&&this.type==='submit'?'submit':null;},
     hasAttribute(key){return key==='onclick'&&this.inlineClick===true;},
     closest(){return null;}
   });
