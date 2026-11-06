@@ -55,6 +55,8 @@ jobs:
           node --test editor/tests/resource-title-ui.test.cjs
       - name: Verify full initial 415-resource staging from real browser review ZIP (private only)
         run: node --test editor/tests/browser-zip-complete-source.test.cjs
+      - name: Verify whole tracked-site preservation and rollback from real browser review ZIP
+        run: node --test editor/tests/browser-zip-full-site-rollback.test.cjs
       - name: Validate editor, ZIP exports and Game Clients
         run: node --test editor/tests/*.test.cjs
       - name: Exercise resource title draft UI in a real local Chrome browser
