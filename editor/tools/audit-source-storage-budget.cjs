@@ -64,7 +64,7 @@ function auditStorage(original){
     fragmentOnlyExtraBytesLowerBound:recordBytes,
     fragmentOnlyPlusRuntimeBytesLowerBound:original.length+recordBytes,
     resourceFractionPpm,
-    completeTreeOverheadPpm,
+    completeTreeOverheadPpm:fullTreeOverheadPpm,
     canRebuildOriginalByteExact:true,
     proofOnly:true,approvedStorageStrategy:false,
     fragmentOnlyRequiresOriginalShell:true,
