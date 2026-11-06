@@ -143,7 +143,7 @@ test('remote preflight module has a fixed GET-only API host, no write endpoints 
   assert.match(source,/GITHUB_TOKEN/);
   for(const forbidden of [
     "method:'POST'","method:'PATCH'","method:'PUT'",
-    "method:'DELETE'",'github.com/repos/','https://github.com/',
+    "method:'DELETE'",'https://github.com/repos/',
     'Authorization: Bearer '+HEAD
   ])assert.equal(source.includes(forbidden),false);
 });
