@@ -26,14 +26,15 @@ test('hidden editor controls cannot be clicked; no credentials or website writes
   assert.match(code,/candidates\.length===1/);
 });
 
-function simulate(label,{type='button',explicitType=false,inlineClick=true}={}){
+function simulate(label,{type='button',explicitType=false,inlineClick=true,formAssoc=false,formAttr=false}={}){
   let clicked=0;
   const base=(tag,shown=true)=>({
     tagName:tag,isConnected:true,nodeType:1,parentElement:null,
     textContent:'',className:'',disabled:false,type:'button',visible:shown,
     getClientRects(){return this.visible?[{}]:[];},
     getAttribute(key){return key==='type'&&this.explicitType?'submit':null;},
-    hasAttribute(key){return key==='onclick'&&this.inlineClick===true;},
+    hasAttribute(key){return key==='onclick'&&this.inlineClick===true||
+      key==='form'&&this.formAttr===true;},
     closest(){return null;}
   });
   const editor=base('BUTTON',false);
@@ -42,6 +43,8 @@ function simulate(label,{type='button',explicitType=false,inlineClick=true}={}){
   trigger.type=type;
   trigger.explicitType=explicitType;
   trigger.inlineClick=inlineClick;
+  trigger.form=formAssoc?{}:null;
+  trigger.formAttr=formAttr;
   const password=base('INPUT',false);
   password.type='password';password.value='';
   trigger.click=()=>{clicked++;password.visible=true;};
@@ -81,7 +84,9 @@ test('unsafe administrator actions and submit buttons are never clicked',async()
   for(const [label,options] of [
     ['Admin Delete All',{}],['Admin Reset',{}],
     ['Admin Access 🔐',{type:'submit',explicitType:true}],
-    ['Admin Access 🔐',{inlineClick:false}]
+    ['Admin Access 🔐',{inlineClick:false}],
+    ['Admin Access 🔐',{formAssoc:true}],
+    ['Admin Access 🔐',{formAttr:true}]
   ]){
     const {out,clicked}=await simulate(label,options);
     assert.equal(clicked,0,label);
