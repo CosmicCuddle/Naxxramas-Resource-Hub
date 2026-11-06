@@ -12,7 +12,7 @@ function element({tagName='BUTTON',label='',visible=true,parent=null}={}){
     parentElement:parent,nodeType:1,isConnected:true,
     getAttribute(){return null;},
     hasAttribute(){return false;},
-    getClientRects(){return visible?[{}]:[];},
+    getClientRects(){return this.visible?[{}]:[];},
     closest(){return null;},
     visible
   };
@@ -49,6 +49,10 @@ test('private inventory reports counts only and does not leak label values',()=>
   assert.equal(out.format,'naxx-private-admin-surface-inventory-v1');
   assert.equal(out.passwordFieldPresent,true);
   assert.equal(out.passwordVisibleToVisitor,false);
+  assert.equal(out.passwordHasProgrammaticLabel,false);
+  assert.equal(out.passwordKeyboardFocusable,false);
+  assert.equal(out.passwordFocusedAfterOpen,false);
+  assert.equal(out.passwordInsideAriaModal,false);
   assert.equal(out.editorControlPresent,true);
   assert.equal(out.editorControlVisibleToVisitor,false);
   assert.equal(out.candidateControls.visibleMatchingButtons,1);
@@ -67,6 +71,25 @@ test('private inventory reports counts only and does not leak label values',()=>
   assert.equal(safe.includes('Administrator settings'),false);
   assert.equal(Object.values(out.visibleButtonProfile).every(x=>typeof x==='boolean'),true);
   assert.equal(Object.keys(out.visibleButtonProfile).length,17);
+  // Reuse the same synthetic DOM after showing a labelled, focusable
+  // password panel; only booleans leave the probe, never label content.
+  password.visible=true;
+  parent.visible=true;
+  password.labels=[{}];
+  password.tabIndex=0;
+  doc.activeElement=password;
+  password.closest=selector=>selector==='[aria-modal="true"]'?{}:null;
+  const after=vm.runInNewContext(expression,{document:doc,window:{
+    getComputedStyle(el){return {
+      display:el.visible?'block':'none',visibility:'visible',opacity:'1'
+    };}
+  }},{timeout:1000});
+  assert.equal(after.passwordVisibleToVisitor,true);
+  assert.equal(after.passwordHasProgrammaticLabel,true);
+  assert.equal(after.passwordKeyboardFocusable,true);
+  assert.equal(after.passwordFocusedAfterOpen,true);
+  assert.equal(after.passwordInsideAriaModal,true);
+  assert.equal(JSON.stringify(after).includes('Admin access'),false);
 });
 
 test('read-only browser audit has no submissions, source-value export or write path',()=>{
