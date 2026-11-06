@@ -88,6 +88,14 @@ test('not-a-draft JSON, oversized text, malformed JSON and dismissal cannot save
   assert.equal(core.dismissed().files.length,0);
   assert.equal(core.dismissed().canPublish,false);
 });
+test('multibyte JSON cannot bypass the 256 KiB UTF-8 file limit',()=>{
+  // This is fewer than 256K JS characters but larger than 256K bytes.
+  const text=JSON.stringify({...valid(),extra:'界'.repeat(90000)});
+  assert.ok(text.length<core.MAX_JSON_BYTES);
+  assert.ok(Buffer.byteLength(text,'utf8')>core.MAX_JSON_BYTES);
+  assert.equal(core.inspectJSON(text).code,'limit');
+  assert.equal(core.inspectJSON(JSON.stringify(valid())).code,'preview');
+});
 test('read-only preview is offline, accessible, and cannot alter browser data',()=>{
   const html=fs.readFileSync(path.join(parent,'unified-review-preview.html'),'utf8');
   const js=fs.readFileSync(path.join(parent,'unified-review.js'),'utf8');
