@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'none'; img-src 'none'; frame-src 'none'; form-action 'none'; object-src 'none'; base-uri 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Naxxramas — Save Conflict Preview (TEST ONLY)</title>
+<style>
+:root{color-scheme:dark;--bg:#100f0e;--panel:#211e1a;--line:#806747;--gold:#f1ca83;--ink:#f5ede0;--muted:#dbccb7;--focus:#70c8bd}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 system-ui,Segoe UI,Arial,sans-serif}
+main{max-width:900px;margin:auto;padding:clamp(14px,4vw,30px)}
+h1{font-size:clamp(1.6rem,4vw,2.2rem);line-height:1.22;color:var(--gold);margin:.4em 0}
+h2{font-size:1.23rem;color:var(--gold);margin:.4em 0}
+p{margin:.5em 0 .9em}
+header,section{margin:18px 0}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:clamp(14px,3vw,24px)}
+.notice{padding:12px 14px;border:1px solid var(--gold);border-radius:7px;background:#30261d}
+.muted{color:var(--muted)}
+.options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}
+button{font:inherit;min-height:48px;padding:12px;background:#3a3022;color:var(--ink);border:1px solid #bca16e;border-radius:8px;text-align:left;cursor:pointer}
+button:hover{background:#54402b}
+button[aria-pressed=true]{border-color:var(--focus);outline:2px solid var(--focus);outline-offset:1px}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+.result{border-left:4px solid var(--focus);padding:12px 16px;background:#171c1b;margin:18px 0}
+.result[data-blocked=true]{border-left-color:#e99b83;background:#2a1d1b}
+code{color:var(--gold);overflow-wrap:anywhere}
+@media(max-width:520px){.options{grid-template-columns:1fr}}
+</style>
+<script defer src="restore-preflight-core.js"></script>
+<script defer src="restore-preflight-preview.js"></script>
+</head>
+<body>
+<main>
+<header>
+<h1>Reviewing an older website draft</h1>
+<p class="muted">Private Save and Restore design preview</p>
+<p class="notice" role="note"><strong>TEST ONLY.</strong> These four examples use fictional resource information. This page cannot open your real website files, save changes, merge drafts or publish anything.</p>
+</header>
+<section class="panel" aria-labelledby="demo-title">
+<h2 id="demo-title">Choose a sample situation</h2>
+<p>Each button shows the message the future editor might display. No real resources are involved.</p>
+<div class="options" role="group" aria-label="Sample draft versions">
+<button type="button" id="case-current" data-case="current" aria-pressed="true">Draft matches the current version</button>
+<button type="button" id="case-stale" data-case="stale" aria-pressed="false">Draft is from an older version</button>
+<button type="button" id="case-conflict" data-case="conflict" aria-pressed="false">Resource checksum no longer matches</button>
+<button type="button" id="case-invalid" data-case="invalid" aria-pressed="false">Draft information is incomplete</button>
+</div>
+<div id="result" class="result" data-blocked="false" role="status" aria-live="polite" aria-atomic="true">
+<h2 id="decision-title">Version metadata matches</h2>
+<p id="decision-message">Full source verification is still required.</p>
+<p class="muted" id="decision-detail">No website was changed.</p>
+</div>
+</section>
+<section class="panel" aria-labelledby="next-title">
+<h2 id="next-title">How a future restore should behave</h2>
+<p><strong>Matching draft:</strong> continue to a separate review and full source check, not an automatic save.</p>
+<p><strong>Older or conflicting draft:</strong> keep the draft intact, reopen the latest website version, review the differences, and only then make a fresh draft.</p>
+<p><strong>Invalid draft:</strong> do not import it; keep the current work untouched.</p>
+<p class="muted">Original custom records, navigation, administrator controls and visitor content must stay protected. The real editor Save and Load buttons are unchanged.</p>
+</section>
+</main>
+</body>
+</html>
