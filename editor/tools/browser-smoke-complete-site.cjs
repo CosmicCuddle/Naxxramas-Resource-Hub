@@ -18,6 +18,7 @@ const {createResourcePreview}=require('./package-reviewed-resource-preview.cjs')
 const {rehearseCompleteSnapshot}=require('./rehearse-complete-site-snapshot.cjs');
 const {layoutProbe}=require('./private-site-layout-probes.cjs');
 const {restoreBrowserProbe}=require('./private-restore-browser-probe.cjs');
+const {fileReviewBrowserProbe}=require('./private-restore-file-browser-probe.cjs');
 const root=path.resolve(__dirname,'..','..');
 const BASE='34455f6d901c538e2491a8c16681692e4c02d918b1984d7d0ba081aacb1049e8';
 const sha=x=>crypto.createHash('sha256').update(x).digest('hex');
@@ -335,12 +336,41 @@ async function inspectBrowser(site,work){
       }
       restorePreflightExamples.push({width,checks:Object.keys(inspected.checks).length});
     }
+    // Real File API selection of synthetic JSON only. No original content
+    // or user files; the read-only page cannot save, submit or publish.
+    const restoreFileChecks=[];
+    for(const width of [1440,390]){
+      await send('Emulation.setDeviceMetricsOverride',{
+        width,height:900,deviceScaleFactor:1,mobile:width<500
+      });
+      await send('Page.navigate',{url:origin+'/editor/restore-file-check.html'});
+      let loaded=false;
+      for(let attempt=0;attempt<100;attempt++){
+        const state=await send('Runtime.evaluate',{
+          expression:"document.documentElement.dataset.localFileReviewReady==='true'",
+          returnByValue:true
+        });
+        if(state.result?.value){loaded=true;break;}
+        await delay(120);
+      }
+      if(!loaded)throw Error('Private JSON file preflight did not initialize.');
+      const tested=await send('Runtime.evaluate',{
+        expression:fileReviewBrowserProbe(),awaitPromise:true,returnByValue:true
+      });
+      if(tested.exceptionDetails)throw Error('Private JSON file browser probe failed.');
+      const checked=tested.result?.value;
+      if(!checked?.ready){
+        const failed=Object.keys(checked?.checks||{}).filter(k=>!checked.checks[k]);
+        throw Error('Private JSON file review '+width+'px failed: '+failed.join(', '));
+      }
+      restoreFileChecks.push({width,checks:Object.keys(checked.checks).length});
+    }
     assert.ok(metrics.localReadRequests>12,'Local resource scripts/assets were not loaded.');
     assert.equal(metrics.formSubmissions,0,'No browser form submission is permitted.');
     assert.equal(metrics.nonLocalResponses,0,'Non-local browser responses are forbidden.');
     return {
       safeLocalBrowserCheck:true,pass:true,
-      scenarios:checks,restorePreflightExamples,
+      scenarios:checks,restorePreflightExamples,restoreFileChecks,
       localReadRequests:metrics.localReadRequests,
       rejectedExternalRequests:metrics.rejectedExternalRequests,
       nonLocalResponses:metrics.nonLocalResponses,
@@ -397,6 +427,7 @@ async function main(){
     assert.equal(report.stagedFilesUnchangedAfterInspection,true);
     assert.equal(report.browserInspection.scenarios.length,10);
     assert.equal(report.browserInspection.restorePreflightExamples.length,2);
+    assert.equal(report.browserInspection.restoreFileChecks.length,2);
     assert.equal(report.browserInspection.formSubmissions,0);
     assert.equal(report.browserInspection.nonLocalResponses,0);
     assert.equal(report.deployable,false);
@@ -407,6 +438,7 @@ async function main(){
       completeTemporaryFileCount:report.completeTemporaryFileCount,
       tests:report.browserInspection.scenarios,
       restorePreflightExamples:report.browserInspection.restorePreflightExamples,
+      restoreFileChecks:report.browserInspection.restoreFileChecks,
       localReadRequests:report.browserInspection.localReadRequests,
       blockedExternalAttempts:report.browserInspection.rejectedExternalRequests,
       nonLocalResponses:0,formSubmissions:0,
