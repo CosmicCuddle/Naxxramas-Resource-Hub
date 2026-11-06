@@ -26,13 +26,13 @@ test('hidden editor controls cannot be clicked; no credentials or website writes
   assert.match(code,/candidates\.length===1/);
 });
 
-function simulate(label,{type='button',inlineClick=true}={}){
+function simulate(label,{type='button',explicitType=false,inlineClick=true}={}){
   let clicked=0;
   const base=(tag,shown=true)=>({
     tagName:tag,isConnected:true,nodeType:1,parentElement:null,
     textContent:'',className:'',disabled:false,type:'button',visible:shown,
     getClientRects(){return this.visible?[{}]:[];},
-    getAttribute(key){return key==='type'&&this.type==='submit'?'submit':null;},
+    getAttribute(key){return key==='type'&&this.explicitType?'submit':null;},
     hasAttribute(key){return key==='onclick'&&this.inlineClick===true;},
     closest(){return null;}
   });
@@ -40,6 +40,7 @@ function simulate(label,{type='button',inlineClick=true}={}){
   const trigger=base('BUTTON');
   trigger.textContent=label;
   trigger.type=type;
+  trigger.explicitType=explicitType;
   trigger.inlineClick=inlineClick;
   const password=base('INPUT',false);
   password.type='password';password.value='';
@@ -70,10 +71,16 @@ test('single Admin-labelled visitor entry opens only its password gate',async()=
   assert.equal(out.checks.noPasswordEntered,true);
   assert.equal(out.checks.visitorPrivilegeRemainsOff,true);
 });
+test('untyped button with implicit HTML submit default outside forms remains eligible',async()=>{
+  const {out,clicked}=await simulate('Admin Access 🔐',{type:'submit',explicitType:false});
+  assert.equal(clicked,1);
+  assert.equal(out.unambiguousEntryFound,true);
+  assert.equal(out.gateOpened,true);
+});
 test('unsafe administrator actions and submit buttons are never clicked',async()=>{
   for(const [label,options] of [
     ['Admin Delete All',{}],['Admin Reset',{}],
-    ['Admin Access 🔐',{type:'submit'}],
+    ['Admin Access 🔐',{type:'submit',explicitType:true}],
     ['Admin Access 🔐',{inlineClick:false}]
   ]){
     const {out,clicked}=await simulate(label,options);
