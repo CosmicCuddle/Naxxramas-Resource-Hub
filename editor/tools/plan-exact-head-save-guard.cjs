@@ -47,7 +47,7 @@ function makeGuard({
     canMerge:false,canPublish:false,githubWrites:0
   });
 }
-function reviewCurrentHead(guard,observedHead){
+function reviewCurrentHead(guard,observedHead,independentlyReviewedHead){
   if(!guard||guard.format!==FORMAT||!keys(guard,[
     'format','readOnly','sourceLayoutApproved','ownerApprovalRecorded',
     'repository','refName','expectedOldOid','proposedNewOid',
@@ -64,6 +64,7 @@ function reviewCurrentHead(guard,observedHead){
      !OID.test(guard.expectedOldOid)||
      !OID.test(guard.proposedNewOid)||
      guard.expectedOldOid===guard.proposedNewOid||
+     guard.requiredGitHubMechanism!=='GraphQL updateRefs RefUpdate.beforeOid'||
      guard.requiredForce!==false||
      guard.requiredExpectedOidField!=='beforeOid'||
      guard.requiredDestinationOidField!=='afterOid'||
@@ -74,8 +75,20 @@ function reviewCurrentHead(guard,observedHead){
      guard.ownerApprovalRecorded!==false||
      guard.githubWrites!==0||
      guard.exactOldHeadAtUpdateRequired!==true||
+     guard.twoRemoteReadsAreNotALock!==true||
+     guard.restFastForwardAloneIsInsufficient!==true||
+     guard.authorizationVerified!==false||
+     guard.realFileChangesCommitted!==false||
+     guard.stagedSourceBytesIncluded!==false||
      guard.realGitHubCASVerified!==false)
     throw Error('Untrusted or modified exact-head contract refused.');
+  // A syntactically correct receipt is untrusted. Demand the independently
+  // pinned, verified source commit as a separate caller argument so a
+  // modified receipt cannot silently change the expected old Git head.
+  // The caller STILL must authenticate that source commit independently.
+  if(!OID.test(independentlyReviewedHead||'')||
+     independentlyReviewedHead!==guard.expectedOldOid)
+    throw Error('Exact-head contract does not match independent source review.');
   if(!OID.test(observedHead||''))
     throw Error('Remote head observation has an invalid identity.');
   return Object.freeze({
@@ -87,8 +100,8 @@ function reviewCurrentHead(guard,observedHead){
     networkRequests:0,gitHubWrites:0
   });
 }
-function simulateAtomicUpdate(guard,currentHead){
-  const preview=reviewCurrentHead(guard,currentHead);
+function simulateAtomicUpdate(guard,currentHead,independentlyReviewedHead){
+  const preview=reviewCurrentHead(guard,currentHead,independentlyReviewedHead);
   // This returns a purely fictional state transition for a single ref.
   // An actual GitHub operation must enforce beforeOid on the server.
   if(preview.stale)throw Error('Exact old head mismatch at simulated update boundary.');
