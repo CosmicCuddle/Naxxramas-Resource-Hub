@@ -133,6 +133,27 @@ The interface always shows a reminder to **keep the original draft**, reopen the
 
 This screen is an accessibility/decision-flow milestone within stage 6; it does **not** complete stage 6. A real Save/Restore action requires source-of-truth approval, full data and admin coverage, a trusted Git update boundary, retained-and-restored backup, owner acceptance and explicit permission to connect real controls.
 
+## Existing saved drafts — non-destructive compatibility bridge (private rehearsal)
+
+New `editor/tools/rehearse-legacy-draft-bridge.cjs` and `editor/tests/legacy-draft-bridge.test.cjs` address the **existing** drafts produced by the current local editor. They do **not** connect new Save/Load controls, replace original JSON files or adopt a canonical source layout.
+
+The old resource formats are `naxx-local-resource-title-draft-v1` (title-only) and `naxx-local-resource-draft-v2` (titles and multiline plain-text content). They are pinned to the exact original **30,976,969-byte** `site-content.html` and SHA-256 `34455f6d901c538e2491a8c16681692e4c02d918b1984d7d0ba081aacb1049e8`. The new test-only source format is `naxx-private-versioned-resource-draft-v1`, bound instead to a specific verified resource revision and source SHA.
+
+The bridge uses the **existing resource editor's original parser and strict draft validator**. It additionally verifies all 414 stored source fragments, their manifest and the reconstructed original website before calculating any new proposal. If and **only if** the resource source is still **original revision 0**, it creates a new versioned resource draft and before/after file-change receipt **in memory**, leaving the legacy JSON bytes and their checksum untouched. It also compares the resulting complete website output with the original independent v2 resource planner, to prove no resource content has changed in translation. Original custom resource fields and all unrelated content stay protected.
+
+| Legacy draft condition | Protected behaviour |
+| --- | --- |
+| Valid resource-v2 title and content, source revision 0 | Produce a **review-only** versioned resource draft + checksum-only proposed file list |
+| Valid title-only-v1, source revision 0 | Preserve title-only behaviour; do not invent content edits |
+| Empty resource draft, source revision 0 | Record **no resource edits**; do not invent a commit or source package |
+| Source already advanced to revision 1+ | **Refuse automatic conversion/rebase**, even if the new change was to a different resource; retain the old JSON for manual review |
+| Invalid JSON, original baseline, duplicate/unsafe or unchanged edits, or damaged physical resource | Fail closed without new source or repository writes |
+| `naxx-local-draft-v3` page and navigation draft | **Keep completely separate** from the 414-resource overlay; review the five original page/navigation files with their existing source-hash-pinned read-only planner |
+
+A v3 page review returns only a list of the affected **four permitted page files and/or navigation JSON**, their fingerprints and changed-field counts. It does **not** merge page changes into a resource draft or assume administrator functionality has been migrated. This is especially important because the existing website contains independent custom scripts, media, and original administrator functionality that cannot yet be fully managed by the new editor.
+
+**No automatic import, conversion or deletion is enabled in the browser.** The original user files remain the authoritative personal draft backups. The prototype has no GitHub APIs, file writer, ZIP export or release path. Its tests only use disposable source folders and the real page files **read-only**. A real future migration will require an owner-reviewed interface, explicit consent, original-file backup preservation, approved source-of-truth layout and full source/admin acceptance before any edits leave draft mode.
+
 ## Approval and production-blocking dependencies
 
 A checksum-only receipt is not automatically "GitHub-ready" and carries **no file bytes**. It is also not authenticated by a verified Git commit or approved as a durable source-of-truth format. The tested `content/resource-overlays/` path is a **candidate**, not an accepted repository layout.
