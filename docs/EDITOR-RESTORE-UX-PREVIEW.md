@@ -65,6 +65,22 @@ Automated tests deliberately corrupt resource fragments, swap records, remove/ad
 
 The browser page `editor/restore-file-check.html` **remains metadata-only** and should not claim to have verified actual files. A user-friendly folder picker and complete browser-side source validation would require another separately reviewed development change. No change to the current working editor is approved.
 
+## Browser folder checker — 414 actual fragment hashes (private trial)
+
+A separate experimental page is now available in the **draft branch only** at `editor/restore-folder-check.html`. It provides an accessible **local folder picker** in Chrome or Edge. This does **not** modify the current editor's Save/Load buttons or the existing JSON-only checker.
+
+The selected *outer* folder must contain exactly `content/resource-overlays/manifest.json` and **414 separately stored fragments** in `content/resource-overlays/resources/`, with the paths described by the experimental manifest. Folder selections using `webkitdirectory` include a temporary outer folder name; this name is ignored and not displayed. Any missing, additional, duplicate, unsafe or incorrectly rooted paths are refused. The folder is an **unapproved experimental output layout**: the real editor does **not** currently export these folders.
+
+The browser performs **SHA-256 checks of the actual bytes of all 414 local resource fragments** against the selected manifest, then checks the separately selected experimental versioned draft for a matching revision and target checksums. SHA-256 is calculated with the browser's built-in Web Crypto API; no original source scripts are run. It refuses malformed/oversized files, mismatches, stale drafts and older resource-v2 formats. Every output is **review-only** and does not authorise saving.
+
+**Strong limitation:** A matching fragment set is **not an authenticated source**. An attacker or mistaken export could change a fragment and its manifest hash together. The browser page does not verify the original `site-content.html`, the manifest's full source hash, or reconstruct the complete 31 MB website. Those checks remain in the independent Node.js `verify-physical-resource-sources.cjs` test; a future trustworthy release pipeline needs a verified Git commit and retained backups as well. This browser page deliberately reports `fullHtmlReconstructed:false` and `authenticatedManifest:false` regardless of outcome.
+
+The folder picker and draft reader are size bounded (256 KiB manifest, 1 MB per fragment, 16 MiB total fragment data and 16 MiB versioned draft), operate only after an explicit local selection and Check action, print no resource titles or text, and use a strict Content Security Policy forbidding remote connections, forms and frames. Only generic status/counts appear, and **Clear selections** drops selected file handles from the inputs.
+
+The private browser QA uses **synthetic 414-fragment File objects**, not original website data, at **1440px desktop and 390px mobile**. It checks matching hashes, altered and missing files, stale and unsupported drafts, clearing the inputs, keyboard/status elements and lack of upload/save/publish controls. A separate pure test suite checks path duplication, traversal attempts, size anomalies and unreadable fragments.
+
+**Status: test-only, not owner approved, not published.** No actual source folder is generated for installation, and no live resource or custom administrator functionality is touched.
+
 ## Important limitations
 
 A metadata match **does not prove a draft is trustworthy or safe to save**. The current manifest is an unapproved test structure; its checksums are not authenticated, and this page does **not** reconstruct or verify the actual 31 MB website. **Only a later independently verified source-bound builder** could authorize even a temporary file update, and a real publication needs explicit owner approval.
