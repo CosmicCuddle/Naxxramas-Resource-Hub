@@ -36,6 +36,8 @@ jobs:
         run: |
           node --test editor/tests/conditional-github-lease.test.cjs
           node editor/tools/rehearse-conditional-github-lease.cjs
+      - name: Quick-check owner-facing proposed Save review and stale receipt safety
+        run: node --test editor/tests/save-review-preview.test.cjs
       - name: Validate editor, ZIP exports and Game Clients
         run: node --test editor/tests/*.test.cjs
       - name: Exercise resource title draft UI in a real local Chrome browser
