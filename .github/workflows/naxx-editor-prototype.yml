@@ -72,6 +72,13 @@ jobs:
         run: node editor/tools/plan-private-github-source-review.cjs
       - name: Rehearse local Git head pin and verify checked-out website against exact workflow commit
         run: node editor/tools/rehearse-local-git-head-preflight.cjs --ci-checkout
+      - name: Simulate stale remote GitHub branch refs without network or write permissions
+        run: node editor/tools/rehearse-remote-github-head-preflight.cjs --simulate
+      - name: Verify current development branch on GitHub twice (read-only push check)
+        if: github.event_name == 'push'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node editor/tools/rehearse-remote-github-head-preflight.cjs --ci-remote
       - name: Rehearse 414 separate resource files and delete temporary package
         run: node editor/tools/rehearse-resource-files.cjs
       - name: Verify one safe resource-title edit leaves 413 others untouched
