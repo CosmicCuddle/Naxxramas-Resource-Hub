@@ -167,32 +167,65 @@ async function simulate(){
     networkRequests:0,gitWrites:0,canPush:false,ownerApproved:false
   };
 }
+function selectCIIdentity(env,mode){
+  if(!env||!['--ci-remote','--ci-pr-remote'].includes(mode)||
+     env.GITHUB_REPOSITORY!==EXPECTED_REPO||
+     !HEX.test(env.GITHUB_SHA||''))
+    throw Error('GitHub workflow repository or checked-out commit is not permitted.');
+  if(mode==='--ci-remote'){
+    if(env.GITHUB_EVENT_NAME!=='push'||
+       env.GITHUB_REF!=='refs/heads/'+EXPECTED_BRANCH)
+      throw Error('GitHub push branch identity is not permitted.');
+    return Object.freeze({
+      mode:'push',headCommit:env.GITHUB_SHA,checkoutCommit:env.GITHUB_SHA,
+      checkoutIsSyntheticPRMerge:false
+    });
+  }
+  if(env.GITHUB_EVENT_NAME!=='pull_request'||
+     env.PR_HEAD_REPO!==EXPECTED_REPO||
+     env.PR_HEAD_REF!==EXPECTED_BRANCH||
+     String(env.PR_NUMBER)!=='56'||
+     !HEX.test(env.PR_HEAD_SHA||'')||
+     env.GITHUB_REF!=='refs/pull/56/merge')
+    throw Error('GitHub pull-request branch identity is not permitted.');
+  return Object.freeze({
+    mode:'pull_request',headCommit:env.PR_HEAD_SHA,
+    checkoutCommit:env.GITHUB_SHA,
+    checkoutIsSyntheticPRMerge:true
+  });
+}
 async function runCli(){
-  if(process.argv.length!==3||
-     !['--simulate','--ci-remote'].includes(process.argv[2]))
+  if(process.argv.length!==3||![
+    '--simulate','--ci-remote','--ci-pr-remote'
+  ].includes(process.argv[2]))
     throw Error('An explicitly supported read-only mode is required.');
   const simulation=await simulate();
   if(process.argv[2]==='--simulate'){
     process.stdout.write(JSON.stringify(simulation,null,2)+'\n');
     return;
   }
-  // Only one exact repository/branch under a branch-push workflow can
-  // use this proof. Never compare a PR synthetic merge SHA to a branch tip.
-  if(process.env.GITHUB_EVENT_NAME!=='push'||
-     process.env.GITHUB_REPOSITORY!==EXPECTED_REPO||
-     process.env.GITHUB_REF!=='refs/heads/'+EXPECTED_BRANCH||
-     !HEX.test(process.env.GITHUB_SHA||''))
-    throw Error('GitHub branch push identity is not supported by this check.');
+  const id=selectCIIdentity(process.env,process.argv[2]);
   const token=process.env.GITHUB_TOKEN;
   const proof=await observeRemoteHead({
     repo:EXPECTED_REPO,branch:EXPECTED_BRANCH,
-    expectedSha:process.env.GITHUB_SHA,
+    expectedSha:id.headCommit,
     readRef:(r,b)=>readReference(r,b,token),
-    checkCheckout:s=>verifyCheckoutBaseline(
-      path.resolve(__dirname,'..','..'),s)
+    // On a PR, GITHUB_SHA is a synthetic test merge commit and
+    // PR_HEAD_SHA is the remote branch head: do not conflate them.
+    checkCheckout:()=>verifyCheckoutBaseline(
+      path.resolve(__dirname,'..','..'),id.checkoutCommit)
   });
-  // No raw HTTP response, original source or token is ever logged.
-  process.stdout.write(JSON.stringify({simulation,remoteObservation:proof},null,2)+'\n');
+  process.stdout.write(JSON.stringify({
+    simulation,
+    remoteObservation:proof,
+    workflowMode:id.mode,
+    checkoutIsSyntheticPRMerge:id.checkoutIsSyntheticPRMerge,
+    observedRemoteHeadSameAsCheckedOutCommit:
+      id.checkoutCommit===id.headCommit,
+    remoteHeadContentsIndependentlyVerified:false,
+    remoteBranchLocked:false,
+    canApply:false,canPush:false,canPublish:false
+  },null,2)+'\n');
 }
 if(require.main===module){
   runCli().catch(_=>{
@@ -202,4 +235,4 @@ if(require.main===module){
 }
 module.exports={EXPECTED_REPO,EXPECTED_BRANCH,FORMAT,MAX_JSON,
   validateIdentity,apiRefPath,parseReference,readReference,
-  observeRemoteHead,fakeResponse,simulate};
+  observeRemoteHead,selectCIIdentity,fakeResponse,simulate};
