@@ -179,6 +179,20 @@ async function demonstrate(original){
     if(!tornRejected)throw Error('Partial generation unexpectedly verified.');
     fs.rmSync(torn,{recursive:true,force:true});
     const originalStillActive=verifyActive(root,original).sourceSha256===SOURCE_SHA;
+    // A complete-looking candidate whose generated full HTML has been
+    // corrupted must not replace the independently verified original.
+    const stagedRuntime=runtimeOf(root,'g1');
+    const originalStagedRuntime=regular(stagedRuntime);
+    fs.writeFileSync(stagedRuntime,Buffer.from('corrupted test-only HTML'));
+    let corruptedCandidateRefused=false;
+    try{activate(root,original,'g0');}
+    catch(_){corruptedCandidateRefused=true;}
+    if(!corruptedCandidateRefused||
+       verifyActive(root,original).generation!=='g0')
+      throw Error('Damaged staged HTML replaced the original version.');
+    fs.writeFileSync(stagedRuntime,originalStagedRuntime);
+    if(verifyGeneration(root,'g1',original).revision!==1)
+      throw Error('Private candidate did not restore after corruption test.');
     let preSwitchFailed=false;
     try{activate(root,original,'g0',{interrupt:'before-pointer'});}
     catch(e){preSwitchFailed=/Injected before-pointer/.test(e.message);}
@@ -194,6 +208,18 @@ async function demonstrate(original){
     catch(e){staleSecondRefused=/Stale private generation/.test(e.message);}
     if(!staleSecondRefused||verifyActive(root,original).generation!=='g1')
       throw Error('Stale private session rewrote newer generation.');
+    // The recovery target must itself pass full 414-fragment verification.
+    // An old name is not proof of good backup bytes.
+    const oldRecord=path.join(sourceOf(root,'g0'),...recordPath(0).split('/'));
+    const originalOldRecord=regular(oldRecord);
+    fs.writeFileSync(oldRecord,Buffer.from('damaged private backup fragment'));
+    let corruptedBackupRefused=false;
+    try{recoverOriginal(root,original);}
+    catch(_){corruptedBackupRefused=true;}
+    if(!corruptedBackupRefused||
+       verifyActive(root,original).generation!=='g1')
+      throw Error('Damaged original backup was activated.');
+    fs.writeFileSync(oldRecord,originalOldRecord);
     const recovered=recoverOriginal(root,original);
     const active=verifyActive(root,original);
     if(!originalStillActive||!recovered||active.sourceSha256!==SOURCE_SHA)
@@ -203,6 +229,8 @@ async function demonstrate(original){
       stagedFilesVerified:receipt.proposedFileCount,
       unrelatedResourceFilesUnchanged:COUNT-1,
       interruptedIncompleteGenerationRejected:tornRejected,
+      damagedPreparedRuntimeRefused:corruptedCandidateRefused,
+      damagedBackupRecoveryRefused:corruptedBackupRefused,
       originalRemainedActiveBeforeSwitch:originalStillActive&&preSwitchFailed,
       afterSwitchUncertainResultReconciled:lostAcknowledgement,
       secondStaleSessionRefused:staleSecondRefused,

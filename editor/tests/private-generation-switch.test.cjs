@@ -13,6 +13,8 @@ test('real 414-fragment offline generations reject torn saves and recover origin
   assert.equal(result.unrelatedResourceFilesUnchanged,413);
   for(const flag of [
     'interruptedIncompleteGenerationRejected',
+    'damagedPreparedRuntimeRefused',
+    'damagedBackupRecoveryRefused',
     'originalRemainedActiveBeforeSwitch',
     'afterSwitchUncertainResultReconciled',
     'secondStaleSessionRefused',
