@@ -38,7 +38,7 @@ test('exact old-head guard records a single unapproved ref, never a save permiss
 });
 
 test('matching preflight read is explicitly not a server-enforced lock',()=>{
-  const report=reviewCurrentHead(make(),A);
+  const report=reviewCurrentHead(make(),A,A);
   assert.equal(report.sameAsReviewedHead,true);
   assert.equal(report.stale,false);
   assert.equal(report.branchLocked,false);
@@ -53,12 +53,12 @@ test('last-moment stale overwrite is refused even when the proposed commit may b
   // published B. REST force:false might accept C as a fast-forward of B,
   // whereas a server-side beforeOid=A condition must refuse it.
   const first=make(A,B),second=make(A,C);
-  assert.equal(simulateAtomicUpdate(first,A).fakeHeadAfter,B);
-  assert.equal(reviewCurrentHead(second,B).stale,true);
-  assert.throws(()=>simulateAtomicUpdate(second,B),/Exact old head mismatch/);
-  assert.equal(simulateAtomicUpdate(second,A).acceptedOnlyInMemory,true);
-  assert.equal(simulateAtomicUpdate(second,A).repositoryWrites,0);
-  assert.equal(simulateAtomicUpdate(second,A).realGitHubCASVerified,false);
+  assert.equal(simulateAtomicUpdate(first,A,A).fakeHeadAfter,B);
+  assert.equal(reviewCurrentHead(second,B,A).stale,true);
+  assert.throws(()=>simulateAtomicUpdate(second,B,A),/Exact old head mismatch/);
+  assert.equal(simulateAtomicUpdate(second,A,A).acceptedOnlyInMemory,true);
+  assert.equal(simulateAtomicUpdate(second,A,A).repositoryWrites,0);
+  assert.equal(simulateAtomicUpdate(second,A,A).realGitHubCASVerified,false);
 });
 
 test('wrong repo, main branch, invalid commits and no-change commits are refused',()=>{
@@ -70,7 +70,9 @@ test('wrong repo, main branch, invalid commits and no-change commits are refused
     {repo:EXPECTED_REPO,branch:EXPECTED_BRANCH,reviewedHead:A,proposedHead:A},
     {repo:EXPECTED_REPO,branch:EXPECTED_BRANCH,reviewedHead:A,proposedHead:'G'.repeat(40)}
   ])assert.throws(()=>makeGuard(item),/invalid or unapproved/);
-  assert.throws(()=>reviewCurrentHead(make(),'bad'),/invalid identity/);
+  assert.throws(()=>reviewCurrentHead(make(),'bad',A),/invalid identity/);
+  assert.throws(()=>reviewCurrentHead(make(),A,B),/independent source review/);
+  assert.throws(()=>reviewCurrentHead(make(),A,undefined),/independent source review/);
 });
 
 test('forged approval, force-update and changed reference are refused',()=>{
@@ -82,7 +84,7 @@ test('forged approval, force-update and changed reference are refused',()=>{
     {requiredDestinationOidField:'oid'},
     {refName:'refs/heads/main'}, {expectedOldOid:C},
     {githubWrites:1}, {realGitHubCASVerified:true},{unexpected:true}
-  ])assert.throws(()=>reviewCurrentHead({...guard,...edit},A),
+  ])assert.throws(()=>reviewCurrentHead({...guard,...edit},A,A),
     /Untrusted or modified exact-head contract/);
 });
 
