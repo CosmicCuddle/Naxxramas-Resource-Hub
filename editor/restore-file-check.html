@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'none'; img-src 'none'; frame-src 'none'; form-action 'none'; object-src 'none'; base-uri 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Naxxramas — Local Draft Version Check (Private Prototype)</title>
+<style>
+:root{color-scheme:dark;--bg:#100f0e;--panel:#211e1a;--line:#806747;--gold:#f1ca83;--ink:#f5ede0;--muted:#dbccb7;--focus:#70c8bd}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 system-ui,Segoe UI,Arial,sans-serif}
+main{max-width:900px;margin:0 auto;padding:clamp(14px,4vw,30px)}
+h1{font-size:clamp(1.6rem,4vw,2.1rem);line-height:1.25;color:var(--gold);margin:.4em 0}
+h2{font-size:1.25rem;color:var(--gold);margin:.4em 0}
+p{margin:.45em 0 .9em}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:clamp(14px,3vw,24px);margin:18px 0}
+.notice{padding:12px 14px;border:1px solid var(--gold);border-radius:7px;background:#30261d}
+.field{margin:20px 0}
+label{display:block;font-weight:650;color:var(--gold);margin:0 0 8px}
+input[type=file]{width:100%;max-width:100%;border:1px dashed #bca16e;padding:12px;border-radius:8px;background:#171513;color:var(--ink)}
+.actions{display:flex;flex-wrap:wrap;gap:12px;margin:18px 0}
+button{font:inherit;min-height:48px;padding:10px 16px;background:#3a3022;color:var(--ink);border:1px solid #bca16e;border-radius:8px;cursor:pointer}
+button:disabled{opacity:.52;cursor:not-allowed}
+button:hover:not(:disabled){background:#54402b}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+.status{border-left:4px solid var(--focus);padding:13px 16px;background:#171c1b;margin:18px 0}
+.status[data-blocked=true]{border-left-color:#e99b83;background:#2a1d1b}
+.muted{color:var(--muted)}
+a{color:#91e2d2}
+</style>
+<script defer src="restore-preflight-core.js"></script>
+<script defer src="restore-file-check-core.js"></script>
+<script defer src="restore-file-check.js"></script>
+</head>
+<body>
+<main>
+<header>
+<h1>Check a saved resource draft</h1>
+<p class="muted">Protected local file review — not the live website editor</p>
+<p class="notice"><strong>PRIVATE TEST ONLY.</strong> Choose two JSON files from your computer. The files stay in this browser page: no upload, automatic saving, merge or publication.</p>
+</header>
+<section class="panel" aria-labelledby="picker-title">
+<h2 id="picker-title">1. Select two JSON files</h2>
+<p>This trial supports the experimental <strong>versioned resource manifest and draft</strong>. Existing resource v2 drafts and page/navigation drafts are not compatible with this check. They are not modified.</p>
+<div class="field">
+<label for="manifest-file">Current version manifest (.json)</label>
+<input id="manifest-file" type="file" accept=".json,application/json" aria-describedby="manifest-help">
+<p id="manifest-help" class="muted">This must describe all 414 resources and the current version. Maximum 256 KiB.</p>
+</div>
+<div class="field">
+<label for="draft-file">Saved versioned resource draft (.json)</label>
+<input id="draft-file" type="file" accept=".json,application/json" aria-describedby="draft-help">
+<p id="draft-help" class="muted">Only the experimental versioned format is accepted. Maximum 16 MiB.</p>
+</div>
+<div class="actions">
+<button id="check-files" type="button">Check versions (read only)</button>
+<button id="clear-files" type="button">Clear selected files</button>
+</div>
+</section>
+<section class="panel" aria-labelledby="result-title">
+<h2 id="result-title">2. Review the result</h2>
+<div id="check-result" class="status" data-blocked="true" role="status" aria-live="polite" aria-atomic="true">
+<p id="decision-message">Select both files and choose Check versions.</p>
+<p id="decision-detail" class="muted">No files have been checked.</p>
+</div>
+<p><strong>Matching metadata is not permission to save.</strong> This prototype does not verify the full resource files or original HTML, and the manifest is not authenticated.</p>
+<p>If the draft is older, keep the original draft, open the latest source, and review the changes before making a new one. Never overwrite newer work automatically.</p>
+</section>
+<section class="panel" aria-labelledby="information-title">
+<h2 id="information-title">Protection and next steps</h2>
+<p>Only generic status messages and counts are shown here. Resource titles and content are never displayed, logged or uploaded.</p>
+<p>The working editor still uses its existing draft formats. No real resource files, administrator functions or GitHub files are edited by this tool.</p>
+<p class="muted"><a href="restore-preflight-preview.html">See the four fictional conflict examples</a></p>
+</section>
+</main>
+</body>
+</html>
