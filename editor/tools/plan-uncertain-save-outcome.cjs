@@ -47,8 +47,8 @@ function reconcile({guard,independentReviewedHead,expectedSiteSha256,
     responseKind,expectedOldHead:guard.expectedOldOid,
     proposedHead:guard.proposedNewOid,
     observedHeadKnown:observedHead!==null,
-    // "verified" means the supplied evidence has the required shape.
-    // Its authentication is a separate responsibility outside this model.
+    // Matching supplied evidence has the required shape only.
+    // Authentication and actual source/branch verification remain outside.
     externallyAuthenticatedGitHubObservation:false,
     actualGitHubSavePerformedByThisModule:false,
     realRemoteCASValidated:false,
@@ -59,7 +59,7 @@ function reconcile({guard,independentReviewedHead,expectedSiteSha256,
   };
   if(observedHead===null)
     return Object.freeze({...base,status:'unresolved-no-head',manualReviewRequired:true,
-      candidateVerified:false,branchMayHaveChanged:true});
+      candidateEvidenceConsistent:false,branchMayHaveChanged:true});
   if(observedHead===guard.expectedOldOid){
     // It is old at this observation, but can change immediately afterward.
     // Do not replay a possibly attempted request.
@@ -75,7 +75,7 @@ function reconcile({guard,independentReviewedHead,expectedSiteSha256,
   // Even if a separately authenticated checker verifies all paths,
   // this module cannot establish who performed the update or authorize
   // subsequent edits/deployment. Never treat a matching HEAD as a retry key.
-  return Object.freeze({...base,status:'candidate-head-and-content-match',
-    manualReviewRequired:false,candidateVerified:true,branchMayHaveChanged:true});
+  return Object.freeze({...base,status:'candidate-head-and-metadata-match-needs-authentication',
+    manualReviewRequired:true,candidateEvidenceConsistent:true,branchMayHaveChanged:true});
 }
 module.exports=Object.freeze({FORMAT,reconcile});
