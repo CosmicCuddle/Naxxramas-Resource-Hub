@@ -154,6 +154,14 @@ A v3 page review returns only a list of the affected **four permitted page files
 
 **No automatic import, conversion or deletion is enabled in the browser.** The original user files remain the authoritative personal draft backups. The prototype has no GitHub APIs, file writer, ZIP export or release path. Its tests only use disposable source folders and the real page files **read-only**. A real future migration will require an owner-reviewed interface, explicit consent, original-file backup preservation, approved source-of-truth layout and full source/admin acceptance before any edits leave draft mode.
 
+## Mixed page/navigation and resource source-layout reconciliation (research only)
+
+The previous work contained **two separately verified but mutually incompatible candidate resource layouts**: the older **418-file** `content/legacy/` tree with a copied ~30 MB shell, and the newer version-aware **415-file** `content/resource-overlays/` layout with only 414 fragments and a manifest. The four existing page source files, `content/navigation.json` and original `site-content.html` are already tracked and must be preserved independently of either proposed overlay.
+
+The new `editor/tools/reconcile-mixed-source-layouts.cjs` is a **read-only reconciliation gate** using the existing mixed-plan and original draft bridge. Given an exact clean Git checkout commit and the original resource-v2 plus page/navigation-v3 drafts, it verifies that: both candidate resource layouts independently reconstruct **the exact same complete HTML SHA**; every changed resource's old and new fragment SHA agrees; the existing page/navigation edits agree with their five-file hash-pinned planner; and all candidate paths are disjoint, fixed and clearly labelled **already tracked** or **unadopted**. No source text or generated output bytes are printed or staged. The fictional example proposes **two page/navigation paths, two resource paths, one manifest path and one compatibility runtime path**. The reported `canApply`, `canMerge`, `canPublish` and `sourceLayoutApproved` are always **false**.
+
+This is **not** a new migration or second Save implementation. The final GitHub source layout remains the owner's decision; the 418-file legacy candidate remains for independent reconstruction/rollback evidence, and the smaller 415-file versioned overlay remains the research preference, **not** an adopted source tree. The checkout's *local* commit pin is not a remote atomic update. No browser Save controls, source files, GitHub refs or deployed content are changed.
+
 ## Approval and production-blocking dependencies
 
 A checksum-only receipt is not automatically "GitHub-ready" and carries **no file bytes**. It is also not authenticated by a verified Git commit or approved as a durable source-of-truth format. The tested `content/resource-overlays/` path is a **candidate**, not an accepted repository layout.
