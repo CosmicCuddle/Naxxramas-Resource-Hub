@@ -70,6 +70,9 @@ function saveReviewBrowserProbe(){
     });
     const tooLarge=await tryFiles(first.manifest,
       'x'.repeat(core.MAX_RECEIPT_BYTES+1));
+    const multibyteTooLarge=await tryFiles(JSON.stringify({
+      ...first.manifest,extra:'界'.repeat(90000)
+    }),first.receipt);
     clear.click();
     const checks={
       allControlsPresent:[status,details,area,list,manifest,receipt,
@@ -90,6 +93,7 @@ function saveReviewBrowserProbe(){
       forgedMarkerNotDisplayed:!rejectedContent.includes(marker),
       legacyDraftNeverAccepted:oldFormat==='invalid-receipt',
       oversizedReceiptBlocked:tooLarge==='file-limit',
+      multibyteOversizeBlocked:multibyteTooLarge==='file-limit',
       clearBothSelections:manifest.value===''&&receipt.value==='',
       clearHidesProposedFiles:status.dataset.decision==='missing'&&
         area.hidden===true&&list.children.length===0,
