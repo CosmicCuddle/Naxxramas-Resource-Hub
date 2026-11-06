@@ -19,6 +19,7 @@ const {rehearseCompleteSnapshot}=require('./rehearse-complete-site-snapshot.cjs'
 const {layoutProbe}=require('./private-site-layout-probes.cjs');
 const {restoreBrowserProbe}=require('./private-restore-browser-probe.cjs');
 const {fileReviewBrowserProbe}=require('./private-restore-file-browser-probe.cjs');
+const {folderBrowserProbe}=require('./private-restore-folder-browser-probe.cjs');
 const root=path.resolve(__dirname,'..','..');
 const BASE='34455f6d901c538e2491a8c16681692e4c02d918b1984d7d0ba081aacb1049e8';
 const sha=x=>crypto.createHash('sha256').update(x).digest('hex');
@@ -365,12 +366,41 @@ async function inspectBrowser(site,work){
       }
       restoreFileChecks.push({width,checks:Object.keys(checked.checks).length});
     }
+    // Experimental directory-picker integrity check with 414 synthetic
+    // File objects (never actual user content or website source fragments).
+    const restoreFolderChecks=[];
+    for(const width of [1440,390]){
+      await send('Emulation.setDeviceMetricsOverride',{
+        width,height:900,deviceScaleFactor:1,mobile:width<500
+      });
+      await send('Page.navigate',{url:origin+'/editor/restore-folder-check.html'});
+      let ready=false;
+      for(let attempt=0;attempt<100;attempt++){
+        const probe=await send('Runtime.evaluate',{
+          expression:"document.documentElement.dataset.privateFolderReady==='true'",
+          returnByValue:true
+        });
+        if(probe.result?.value){ready=true;break;}
+        await delay(120);
+      }
+      if(!ready)throw Error('Private resource folder screen did not initialize.');
+      const looked=await send('Runtime.evaluate',{
+        expression:folderBrowserProbe(),awaitPromise:true,returnByValue:true
+      });
+      if(looked.exceptionDetails)throw Error('Private synthetic folder browser probe failed.');
+      const measured=looked.result?.value;
+      if(!measured?.ready){
+        const failed=Object.keys(measured?.checks||{}).filter(k=>!measured.checks[k]);
+        throw Error('Private resource folder '+width+'px failed: '+failed.join(', '));
+      }
+      restoreFolderChecks.push({width,checks:Object.keys(measured.checks).length});
+    }
     assert.ok(metrics.localReadRequests>12,'Local resource scripts/assets were not loaded.');
     assert.equal(metrics.formSubmissions,0,'No browser form submission is permitted.');
     assert.equal(metrics.nonLocalResponses,0,'Non-local browser responses are forbidden.');
     return {
       safeLocalBrowserCheck:true,pass:true,
-      scenarios:checks,restorePreflightExamples,restoreFileChecks,
+      scenarios:checks,restorePreflightExamples,restoreFileChecks,restoreFolderChecks,
       localReadRequests:metrics.localReadRequests,
       rejectedExternalRequests:metrics.rejectedExternalRequests,
       nonLocalResponses:metrics.nonLocalResponses,
@@ -428,6 +458,7 @@ async function main(){
     assert.equal(report.browserInspection.scenarios.length,10);
     assert.equal(report.browserInspection.restorePreflightExamples.length,2);
     assert.equal(report.browserInspection.restoreFileChecks.length,2);
+    assert.equal(report.browserInspection.restoreFolderChecks.length,2);
     assert.equal(report.browserInspection.formSubmissions,0);
     assert.equal(report.browserInspection.nonLocalResponses,0);
     assert.equal(report.deployable,false);
@@ -439,6 +470,7 @@ async function main(){
       tests:report.browserInspection.scenarios,
       restorePreflightExamples:report.browserInspection.restorePreflightExamples,
       restoreFileChecks:report.browserInspection.restoreFileChecks,
+      restoreFolderChecks:report.browserInspection.restoreFolderChecks,
       localReadRequests:report.browserInspection.localReadRequests,
       blockedExternalAttempts:report.browserInspection.rejectedExternalRequests,
       nonLocalResponses:0,formSubmissions:0,
