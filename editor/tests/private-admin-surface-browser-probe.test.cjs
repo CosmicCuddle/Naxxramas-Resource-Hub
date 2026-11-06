@@ -11,6 +11,7 @@ function element({tagName='BUTTON',label='',visible=true,parent=null}={}){
     tagName, textContent:label, className:'',id:'',hidden:false,
     parentElement:parent,nodeType:1,isConnected:true,
     getAttribute(){return null;},
+    hasAttribute(){return false;},
     getClientRects(){return visible?[{}]:[];},
     closest(){return null;},
     visible
@@ -53,12 +54,19 @@ test('private inventory reports counts only and does not leak label values',()=>
   assert.equal(out.candidateControls.visibleMatchingButtons,1);
   assert.equal(out.candidateControls.visibleMatchingLinks,1);
   assert.equal(out.candidateControls.hiddenMatchingButtons,1);
+  assert.equal(out.visibleButtonProfile.uniqueCandidate,true);
+  assert.equal(out.visibleButtonProfile.labelContainsAdmin,true);
+  assert.equal(out.visibleButtonProfile.labelContainsLogin,false);
+  assert.equal(out.visibleButtonProfile.submitType,false);
+  assert.equal(out.visibleButtonProfile.insideForm,false);
   assert.equal(out.loginAttempted,false);
   assert.equal(out.actualAdminEditingVerified,false);
   const safe=JSON.stringify(out);
   assert.equal(safe.includes('Admin access'),false);
   assert.equal(safe.includes('Log in'),false);
   assert.equal(safe.includes('Administrator settings'),false);
+  assert.equal(Object.values(out.visibleButtonProfile).every(x=>typeof x==='boolean'),true);
+  assert.equal(Object.keys(out.visibleButtonProfile).length,16);
 });
 
 test('read-only browser audit has no submissions, source-value export or write path',()=>{
