@@ -64,14 +64,14 @@ function reconcile({guard,independentReviewedHead,expectedSiteSha256,
     // It is old at this observation, but can change immediately afterward.
     // Do not replay a possibly attempted request.
     return Object.freeze({...base,status:'old-head-observed-recheck-required',
-      manualReviewRequired:true,candidateVerified:false,branchMayHaveChanged:true});
+      manualReviewRequired:true,candidateEvidenceConsistent:false,branchMayHaveChanged:true});
   }
   if(observedHead!==guard.proposedNewOid)
     return Object.freeze({...base,status:'conflicting-head-observed',
-      manualReviewRequired:true,candidateVerified:false,branchMayHaveChanged:true});
+      manualReviewRequired:true,candidateEvidenceConsistent:false,branchMayHaveChanged:true});
   if(!proofValid(verifiedCandidate,guard.proposedNewOid,expectedSiteSha256))
     return Object.freeze({...base,status:'candidate-head-unverified-stop',
-      manualReviewRequired:true,candidateVerified:false,branchMayHaveChanged:true});
+      manualReviewRequired:true,candidateEvidenceConsistent:false,branchMayHaveChanged:true});
   // Even if a separately authenticated checker verifies all paths,
   // this module cannot establish who performed the update or authorize
   // subsequent edits/deployment. Never treat a matching HEAD as a retry key.
