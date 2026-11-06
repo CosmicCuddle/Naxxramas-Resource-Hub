@@ -127,6 +127,26 @@ function verifyPinnedLocalBranch(repo,branch,expectedHead,receipt){
     sourceValuesPrinted:false,gitSourceWrites:0
   });
 }
+function verifyCheckoutBaseline(repo,expectedCommit){
+  if(!HEX.test(expectedCommit))
+    throw Error('An exact independently supplied checkout commit is required.');
+  // A GitHub Actions checkout may be detached at GITHUB_SHA (including a
+  // pull-request merge commit); this is NOT a remote branch-tip check.
+  const head=runGit(repo,['rev-parse','--verify','HEAD^{commit}']).trim();
+  if(head!==expectedCommit)
+    throw Error('Checkout commit has drifted from the expected workflow commit.');
+  const bytes=getBlob(repo,head,RUNTIME);
+  if(sha(bytes)!==SOURCE_SHA||bytes.length!==30976969)
+    throw Error('Protected original website blob does not match source baseline.');
+  return Object.freeze({
+    format:'naxx-read-only-ci-checkout-baseline-v1',
+    checkedOutCommitMatched:true,originalWebsiteSha256Matched:true,
+    checkedWebsiteBytes:bytes.length,checkedGitBlobs:1,
+    remoteGitHubTipVerified:false,completeSourceTreeAdopted:false,
+    reviewOnly:true,canApply:false,canPush:false,canMerge:false,
+    canPublish:false,repoFilesWritten:0
+  });
+}
 function initSyntheticRepo(repo){
   function write(relative,data){
     const file=path.join(repo,...relative.split('/'));
@@ -192,11 +212,22 @@ function demonstrate(){
   }finally{fs.rmSync(dir,{recursive:true,force:true});}
 }
 if(require.main===module){
-  try{process.stdout.write(JSON.stringify(demonstrate(),null,2)+'\n');}
-  catch(_){
+  try{
+    if(process.argv.length>3||
+       (process.argv.length===3&&process.argv[2]!=='--ci-checkout'))
+      throw Error('Unrecognized Git preflight mode.');
+    const report=demonstrate();
+    if(process.argv[2]==='--ci-checkout'){
+      const baseline=verifyCheckoutBaseline(
+        path.resolve(__dirname,'..','..'),process.env.GITHUB_SHA);
+      process.stdout.write(JSON.stringify({syntheticBranchRehearsal:report,
+        actualCheckoutReadOnlyBaseline:baseline},null,2)+'\n');
+    }else process.stdout.write(JSON.stringify(report,null,2)+'\n');
+  }catch(_){
     process.stderr.write('Read-only branch-head rehearsal failed closed.\n');
     process.exitCode=1;
   }
 }
 module.exports={validBranch,approvedResourcePath,validateReceipt,
-  verifyPinnedLocalBranch,getBlob,initSyntheticRepo,syntheticReceipt,demonstrate,runGit};
+  verifyPinnedLocalBranch,verifyCheckoutBaseline,getBlob,initSyntheticRepo,
+  syntheticReceipt,demonstrate,runGit};
