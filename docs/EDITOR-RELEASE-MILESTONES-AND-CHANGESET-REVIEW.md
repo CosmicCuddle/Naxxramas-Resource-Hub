@@ -77,6 +77,26 @@ Both remote reads must have the exact expected commit SHA and ref name. Invalid/
 
 An older GitHub Actions run may fail this safety gate if a newer push arrives before the older run's remote-read step. That is correct stale-run refusal, not proof of an application defect; always verify the **exact latest head** before final acceptance. CI uses `permissions: contents: read`, and never needs owner credentials or extra manual tokens.
 
+## Conditional remote-branch update — entirely simulated (no writes)
+
+The next milestone-6 safety rehearsal is `editor/tools/rehearse-conditional-github-lease.cjs` with `editor/tests/conditional-github-lease.test.cjs`. Its deliberately fictional, private branch stores only fake commit IDs, 414 synthetic fragment SHA-256 fingerprints, and a synthetic manifest and runtime descriptor **in memory**. It never constructs a production commit or performs a network call, GitHub write, file write or deployment.
+
+**The problem it models:** even after two successful authenticated remote branch reads, another editor session could change the branch **between the second read and the actual update**. A "read it twice" policy alone cannot protect a Save action.
+
+The test first validates the same strict **review-only change receipt** path constraints as the existing source planner (edited resource fragments, manifest, generated runtime, before/after file hashes, and a one-step resource revision). It creates a fictional proposed commit with the expected branch commit as its **parent**. A private in-memory `tryConditionalAdvance` then simulates the essential server-side comparison: the branch must **still point to exactly that expected commit** at the update boundary; the candidate must have the expected parent, unchanged-file protections, one-step revision, exact permitted paths and hashes.
+
+The simulation exercises:
+
+- One valid fictional save, preserving every unrelated resource.
+- A second editor session's stale draft on a **different** resource, which is refused after the first save.
+- A branch change **after both remote observations** but immediately before the conditional attempt, which must be refused.
+- Two sessions attempting the same expected branch head at once: **only one can succeed** in the fictional memory store.
+- Forged parent, missing/extra path, altered file hash, wrong revision, invalid candidate commit ID and a receipt that falsely grants apply permission. All are refused without altering the fake branch.
+
+The generated report shows only aggregate outcomes: `everyWriteWasInMemory:true`, `realGitHubWrites:0`, `realCASVerified:false`, `canPush:false`, `canPublish:false`. A fictional "accepted-in-memory-only" verdict **never** authorises real Save or GitHub modification. Its pseudo commit IDs **are not Git commit objects** and its stub source descriptors do not prove the 31 MB HTML or owner approval. Independent original-source reconstruction stays in its separate previous CI tests.
+
+**Production gate:** Do not implement or invoke GitHub `update_ref`, pushes, source commits or any upload based on this simulation. A real workflow still needs an owner-approved canonical source layout, a complete verified source package, a separately retained/restore-tested backup, authenticated up-to-the-moment remote authorization, a documented conditional GitHub update mechanism, proof of its server-enforced expected-head behavior, race and rollback tests on an approved disposable branch, and explicit CosmicCuddle consent before changing working Save buttons or any published data.
+
 ## Approval and production-blocking dependencies
 
 A checksum-only receipt is not automatically "GitHub-ready" and carries **no file bytes**. It is also not authenticated by a verified Git commit or approved as a durable source-of-truth format. The tested `content/resource-overlays/` path is a **candidate**, not an accepted repository layout.
