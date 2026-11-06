@@ -49,6 +49,25 @@ The extra resource-only manifest is **77,339 bytes**, and a simulated two-record
 
 **Decision not yet made.** The least disruptive immediate *research* is B, because it keeps the existing visitor loader and avoids a duplicate copy of the heavy non-resource shell. C may provide a cleaner long-term single-source structure, but is a larger operational change requiring approval. Storage byte counts are **uncompressed source totals**, not forecasts for Git's object database, GitHub transfer size, or Pages deployment usage.
 
+
+## Multi-domain source layout reconciliation — read-only proof (6 November 2026)
+
+The developer prototypes now include **two different unapproved resource tree layouts**. Neither can be silently treated as the final GitHub source of truth:
+
+| Source domain | Existing or candidate paths | Status |
+| --- | --- | --- |
+| Four separate pages | `new-players/content.html`, `rules/content.html`, `apply/content.html`, `game-clients/content.html` | **Tracked existing source**, keep unchanged unless a reviewed page draft targets it |
+| Navigation document | `content/navigation.json` | **Tracked existing source**, preserve routes/slugs and custom settings |
+| Compatibility runtime | `site-content.html` | **Tracked generated-compatible source**, exact original SHA checked before any private rehearsal |
+| Older full source tree | `content/legacy/` (414 fragments, one manifest, three shell/separator files) | **418 proposed files; unadopted**; duplicates the ~30 MB non-resource website shell |
+| Newer versioned resource-only overlay | `content/resource-overlays/` (414 fragments plus one versioned manifest) | **415 proposed files; unadopted**; rebuild depends on the checksum-pinned original shell |
+
+New `editor/tools/reconcile-mixed-source-layouts.cjs` and `editor/tests/reconcile-mixed-source-layouts.test.cjs` compare these **two resource layouts against the same original resource-v2 draft and page/navigation-v3 draft**. They reuse existing `plan-mixed-editor-update.cjs`, the legacy-v1/v2 bridge, the strict page planner and the physically verified versioned 415-file overlay. The rehearsal requires an **explicit exact clean local Git commit**, verifies the original 31 MB runtime, checks that the page/navigation sources match their per-file SHA-256, and independently reconstructs the proposed complete runtime for both resource layouts. They must produce **the same full-site SHA-256 and the same original/proposed SHA-256 for every changed resource**. Changed page and navigation hashes must also agree across independent planners.
+
+The resulting **six-file example** has two existing tracked page/navigation files, two *untracked proposed* resource fragments, one *untracked proposed* resource manifest, and one currently tracked compatibility runtime. This is **only a union of reviewable paths**, not an automatic combined Save, merge, branch migration or release artifact. It deliberately rejects path collisions, extra/unknown resource paths, resource-byte discrepancies, wrong Git checkout commits, unsupported draft types and changed page source hashes.
+
+**Design direction, still unapproved:** keep the existing four page files and navigation JSON as their own authoring source. Prefer investigating the smaller **415-file version-aware resource-only overlay** further rather than adopting the duplicated 418-file full shell by default, while preserving the working compatibility runtime until a complete source-of-truth builder and administrator feature parity are verified. An owner decision is required before committing either 415 or 418 candidate files into GitHub. Do **not** mix those two layouts in one repository or assume a tool's `candidateOnly` output is publishable. Separate independent backup/restore, approved write transaction, exact remote conditional-head guard and complete admin acceptance remain blocking.
+
 ## Saving UX we are protecting
 
 The owner's desired outcome is a comprehensible website folder, not a giant export that destroys GitHub's layout. The design must keep separate page files, the three newer navigation settings, and independently editable resource records, **while retaining** all original IDs, relationships, custom fields, media and administrator functions.
