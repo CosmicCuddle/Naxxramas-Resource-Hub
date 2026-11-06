@@ -373,13 +373,20 @@ async function inspectBrowser(site,work){
           !Number.isSafeInteger(n)||n<0||n>10000)||
         !info.visibleButtonProfile||
         Object.keys(info.visibleButtonProfile).length!==17||
-        Object.values(info.visibleButtonProfile).some(x=>typeof x!=='boolean'))
+        Object.values(info.visibleButtonProfile).some(x=>typeof x!=='boolean')||
+        ['passwordHasProgrammaticLabel','passwordKeyboardFocusable',
+         'passwordFocusedAfterOpen','passwordInsideAriaModal'].some(key=>
+           typeof info[key]!=='boolean'))
         throw Error('Admin surface inventory did not meet read-only integrity conditions.');
       adminSurfaceChecks.push({width,
         editorControlVisibleToVisitor:info.editorControlVisibleToVisitor,
         passwordVisibleToVisitor:info.passwordVisibleToVisitor,
         passwordInsideForm:info.passwordInsideForm,
         passwordInsideDialog:info.passwordInsideDialog,
+        passwordHasProgrammaticLabel:info.passwordHasProgrammaticLabel,
+        passwordKeyboardFocusable:info.passwordKeyboardFocusable,
+        passwordFocusedAfterOpen:info.passwordFocusedAfterOpen,
+        passwordInsideAriaModal:info.passwordInsideAriaModal,
         passwordHasAdminNamedAncestor:info.passwordHasAdminNamedAncestor,
         passwordHasModalNamedAncestor:info.passwordHasModalNamedAncestor,
         candidateControls:info.candidateControls,
