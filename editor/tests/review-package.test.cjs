@@ -128,7 +128,7 @@ test('review ZIP refuses malformed page edit tokens and values without changing 
 });
 test('review ZIP preserves valid page text, links and multiline Unicode draft fields',async()=>{
   const input=pageDraft();
-  input.files[0].edits={'T:100':'Line one.\\nSecond line. ✓','H:142':'https://example.invalid/guide'};
+  input.files[0].edits={'T:100':'Line one.\nSecond line. ✓','H:142':'https://example.invalid/guide'};
   input.files[1].edits={'T:200':''}; // Empty page text is a supported edit.
   const result=await review.build(input,null,zip);
   const files=await entries(result.blob);
