@@ -5,10 +5,13 @@ const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const {FORMAT,MAX_RETURN_TABS,RETURN_KEYS,adminReturnSnapshot,
   checkReturnSnapshot,summarizeAdminReturn}=require('../tools/private-admin-return-entry-probe.cjs');
 function sample({closed=false,focused=false,privilege=false,
-  password=''}={}){
+  password='',insideLink=false,ancestorHandler=false,keyboardHandler=false}={}){
   return {
     format:FORMAT,safeReturnUnique:true,returnVisible:!closed,
     returnTabEligible:true,returnFocused:focused&&!closed,
+    returnInsideLink:insideLink,
+    returnAncestorInlineHandler:ancestorHandler,
+    returnOwnKeyboardHandler:keyboardHandler,
     passwordPresent:true,passwordEmpty:password==='',
     passwordVisible:!closed,adminAreaVisible:!closed,
     publicSiteVisible:closed,footerVisible:closed,
@@ -38,6 +41,18 @@ test('no Enter when Tab could not reach return button',()=>{
   assert.equal(t.actualTabReachedReturn,false);
   assert.equal(t.enterOnlyOnVettedReturn,false);
   assert.equal(t.returnRestoredPublicSite,false);
+  assert.equal(t.navigationCauseVerified,false);
+});
+test('non-activating navigation risk flags do not silently trigger a return',()=>{
+  const a=sample({insideLink:true,ancestorHandler:true,keyboardHandler:true});
+  const b=sample({focused:true,insideLink:true,ancestorHandler:true,keyboardHandler:true});
+  const result=summarizeAdminReturn(390,a,b,b,2);
+  assert.equal(result.originalReturnInsideLink,true);
+  assert.equal(result.originalReturnAncestorInlineHandler,true);
+  assert.equal(result.originalReturnOwnKeyboardHandler,true);
+  assert.equal(result.navigationCauseVerified,false);
+  assert.equal(result.activationWithheldForSafety,true);
+  assert.equal(result.enterOnlyOnVettedReturn,false);
 });
 test('unsafe forged visitor state and failed closure are refused',()=>{
   const a=sample(),b=sample({focused:true});
@@ -92,6 +107,9 @@ test('passive browser observer sees only Boolean metadata and never source label
   assert.equal(result.safeReturnUnique,true);
   assert.equal(result.returnVisible,true);
   assert.equal(result.returnFocused,false);
+  assert.equal(result.returnInsideLink,false);
+  assert.equal(result.returnAncestorInlineHandler,false);
+  assert.equal(result.returnOwnKeyboardHandler,false);
   assert.equal(result.passwordEmpty,true);
   assert.equal(result.adminAreaVisible,true);
   assert.equal(result.publicSiteVisible,false);
