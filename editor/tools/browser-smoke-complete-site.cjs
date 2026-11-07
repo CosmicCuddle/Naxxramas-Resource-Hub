@@ -33,6 +33,7 @@ const {fileReviewBrowserProbe}=require('./private-restore-file-browser-probe.cjs
 const {folderBrowserProbe}=require('./private-restore-folder-browser-probe.cjs');
 const {saveReviewBrowserProbe}=require('./private-save-review-browser-probe.cjs');
 const {unifiedBrowserProbe}=require('./private-unified-review-browser-probe.cjs');
+const {revisionDemoBrowserProbe}=require('./private-revision-demo-browser-probe.cjs');
 const root=path.resolve(__dirname,'..','..');
 const BASE='34455f6d901c538e2491a8c16681692e4c02d918b1984d7d0ba081aacb1049e8';
 const sha=x=>crypto.createHash('sha256').update(x).digest('hex');
@@ -822,12 +823,42 @@ async function inspectBrowser(site,work){
       }
       unifiedReviewChecks.push({width,checks:Object.keys(measured.checks).length});
     }
+    // Isolated fictional Version 1 -> Version 2 editing. No real source,
+    // credential, browser Save or network call is supplied to the preview.
+    const revisionDemoChecks=[];
+    for(const width of [1440,390]){
+      await send('Emulation.setDeviceMetricsOverride',{
+        width,height:900,deviceScaleFactor:1,mobile:width<500
+      });
+      await send('Page.navigate',{url:origin+'/editor/revision-demo-preview.html'});
+      let ready=false;
+      for(let i=0;i<160;i++){
+        const state=await send('Runtime.evaluate',{
+          expression:"document.readyState==='complete' && !!document.getElementById('demo-status') && !document.getElementById('prepare-draft')?.disabled",
+          returnByValue:true
+        });
+        if(state.result?.value){ready=true;break;}
+        await delay(120);
+      }
+      if(!ready)throw Error('Fictional repeated-edit preview failed to initialize.');
+      const looked=await send('Runtime.evaluate',{
+        expression:revisionDemoBrowserProbe(),awaitPromise:true,returnByValue:true
+      });
+      if(looked.exceptionDetails)throw Error('Fictional repeated-edit browser probe crashed.');
+      const result=looked.result?.value;
+      if(!result?.ready){
+        const failed=Object.keys(result?.checks||{})
+          .filter(k=>!result.checks[k]);
+        throw Error('Fictional repeated-edit preview '+width+'px failed: '+failed.join(', '));
+      }
+      revisionDemoChecks.push({width,checks:Object.keys(result.checks).length});
+    }
     assert.ok(metrics.localReadRequests>12,'Local resource scripts/assets were not loaded.');
     assert.equal(metrics.formSubmissions,0,'No browser form submission is permitted.');
     assert.equal(metrics.nonLocalResponses,0,'Non-local browser responses are forbidden.');
     return {
       safeLocalBrowserCheck:true,pass:true,
-      scenarios:checks,adminGateChecks,adminSurfaceChecks,adminAccessibilityChecks,adminKeyboardChecks,adminReturnChecks,adminPrefixedReturnChecks,adminReturnEnterPreflightChecks,adminKeyboardEntryChecks,restorePreflightExamples,restoreFileChecks,restoreFolderChecks,saveReviewChecks,unifiedReviewChecks,
+      scenarios:checks,adminGateChecks,adminSurfaceChecks,adminAccessibilityChecks,adminKeyboardChecks,adminReturnChecks,adminPrefixedReturnChecks,adminReturnEnterPreflightChecks,adminKeyboardEntryChecks,restorePreflightExamples,restoreFileChecks,restoreFolderChecks,saveReviewChecks,unifiedReviewChecks,revisionDemoChecks,
       localReadRequests:metrics.localReadRequests,
       rejectedExternalRequests:metrics.rejectedExternalRequests,
       nonLocalResponses:metrics.nonLocalResponses,
@@ -896,6 +927,7 @@ async function main(){
     assert.equal(report.browserInspection.restoreFolderChecks.length,2);
     assert.equal(report.browserInspection.saveReviewChecks.length,2);
     assert.equal(report.browserInspection.unifiedReviewChecks.length,2);
+    assert.equal(report.browserInspection.revisionDemoChecks.length,2);
     assert.equal(report.browserInspection.formSubmissions,0);
     assert.equal(report.browserInspection.nonLocalResponses,0);
     assert.equal(report.deployable,false);
@@ -918,6 +950,7 @@ async function main(){
       restoreFolderChecks:report.browserInspection.restoreFolderChecks,
       saveReviewChecks:report.browserInspection.saveReviewChecks,
       unifiedReviewChecks:report.browserInspection.unifiedReviewChecks,
+      revisionDemoChecks:report.browserInspection.revisionDemoChecks,
       localReadRequests:report.browserInspection.localReadRequests,
       blockedExternalAttempts:report.browserInspection.rejectedExternalRequests,
       nonLocalResponses:0,formSubmissions:0,
