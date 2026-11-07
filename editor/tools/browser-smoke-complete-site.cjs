@@ -25,6 +25,9 @@ const {KEYS,adminKeyboardStateProbe,validateKeyboardSnapshot,
 const {KEYS:ENTRY_KEYS,MAX_TABS,adminKeyboardEntrySnapshot,
   check:checkKeyboardEntry,summarize:summarizeKeyboardEntry}=
   require('./private-admin-keyboard-entry-probe.cjs');
+const {MAX_RETURN_TABS,RETURN_KEYS,adminReturnSnapshot,
+  checkReturnSnapshot,summarizeAdminReturn}=
+  require('./private-admin-return-entry-probe.cjs');
 const {restoreBrowserProbe}=require('./private-restore-browser-probe.cjs');
 const {fileReviewBrowserProbe}=require('./private-restore-file-browser-probe.cjs');
 const {folderBrowserProbe}=require('./private-restore-folder-browser-probe.cjs');
@@ -325,6 +328,7 @@ async function inspectBrowser(site,work){
     const adminSurfaceChecks=[];
     const adminAccessibilityChecks=[];
     const adminKeyboardChecks=[];
+    const adminReturnChecks=[];
     for(const width of [1440,390]){
       await send('Emulation.setDeviceMetricsOverride',{
         width,height:900,deviceScaleFactor:1,mobile:width<500
@@ -467,7 +471,51 @@ async function inspectBrowser(site,work){
         throw Error('Private Admin keyboard inspection violated isolation.');
       const trail=summarizeKeyboardTrail(width,keyBefore,...keyAfter);
       adminKeyboardChecks.push(trail);
-
+      // The original 3.3.5a server website has an explicit non-form
+      // "Back to Website" exit within its locked Admin view. Verify
+      // keyboard activation ONLY after real Tab focus reaches that exact
+      // vetted closeAdmin() button. Never activate Unlock Admin.
+      async function observeReturn(closed=false){
+        const result=await send('Runtime.evaluate',{
+          expression:adminReturnSnapshot(),returnByValue:true
+        });
+        if(result.exceptionDetails)
+          throw Error('Original Admin return observation crashed.');
+        return checkReturnSnapshot(result.result?.value,{closed});
+      }
+      const returnStart=await observeReturn(false);
+      let selectedReturn=returnStart,returnTabs=0;
+      for(let n=0;n<MAX_RETURN_TABS&&!selectedReturn.returnFocused;n++){
+        const ev=RETURN_KEYS.tab;
+        const props={key:ev.key,code:ev.code,
+          windowsVirtualKeyCode:ev.windowsVirtualKeyCode,
+          nativeVirtualKeyCode:ev.nativeVirtualKeyCode,
+          modifiers:ev.modifiers};
+        await send('Input.dispatchKeyEvent',{type:'rawKeyDown',...props});
+        await send('Input.dispatchKeyEvent',{type:'keyUp',...props});
+        returnTabs++;
+        selectedReturn=await observeReturn(false);
+      }
+      let returnAfter=selectedReturn;
+      if(selectedReturn.returnFocused&&returnTabs>0){
+        const ev=RETURN_KEYS.enter;
+        if(ev.text!=='\\r'||ev.unmodifiedText!=='\\r')
+          throw Error('Unexpected return-only Enter configuration.');
+        const props={key:ev.key,code:ev.code,
+          windowsVirtualKeyCode:ev.windowsVirtualKeyCode,
+          nativeVirtualKeyCode:ev.nativeVirtualKeyCode,
+          modifiers:ev.modifiers};
+        await send('Input.dispatchKeyEvent',{
+          type:'keyDown',...props,text:ev.text,unmodifiedText:ev.unmodifiedText
+        });
+        await send('Input.dispatchKeyEvent',{type:'keyUp',...props});
+        await delay(150);
+        returnAfter=await observeReturn(true);
+      }
+      if(metrics.formSubmissions!==0||metrics.nonLocalResponses!==0)
+        throw Error('Private Admin return test escaped browser isolation.');
+      adminReturnChecks.push(summarizeAdminReturn(width,
+        returnStart,selectedReturn,returnAfter,returnTabs));
     }
     // A SECOND, independent trial starts with the original login CLOSED,
     // reloading the disposable home page before any key is sent. Only Tab
@@ -706,7 +754,7 @@ async function inspectBrowser(site,work){
     assert.equal(metrics.nonLocalResponses,0,'Non-local browser responses are forbidden.');
     return {
       safeLocalBrowserCheck:true,pass:true,
-      scenarios:checks,adminGateChecks,adminSurfaceChecks,adminAccessibilityChecks,adminKeyboardChecks,adminKeyboardEntryChecks,restorePreflightExamples,restoreFileChecks,restoreFolderChecks,saveReviewChecks,unifiedReviewChecks,
+      scenarios:checks,adminGateChecks,adminSurfaceChecks,adminAccessibilityChecks,adminKeyboardChecks,adminReturnChecks,adminKeyboardEntryChecks,restorePreflightExamples,restoreFileChecks,restoreFolderChecks,saveReviewChecks,unifiedReviewChecks,
       localReadRequests:metrics.localReadRequests,
       rejectedExternalRequests:metrics.rejectedExternalRequests,
       nonLocalResponses:metrics.nonLocalResponses,
@@ -766,6 +814,7 @@ async function main(){
     assert.equal(report.browserInspection.adminSurfaceChecks.length,2);
     assert.equal(report.browserInspection.adminAccessibilityChecks.length,2);
     assert.equal(report.browserInspection.adminKeyboardChecks.length,2);
+    assert.equal(report.browserInspection.adminReturnChecks.length,2);
     assert.equal(report.browserInspection.adminKeyboardEntryChecks.length,2);
     assert.equal(report.browserInspection.restorePreflightExamples.length,2);
     assert.equal(report.browserInspection.restoreFileChecks.length,2);
@@ -785,6 +834,7 @@ async function main(){
       adminSurfaceChecks:report.browserInspection.adminSurfaceChecks,
       adminAccessibilityChecks:report.browserInspection.adminAccessibilityChecks,
       adminKeyboardChecks:report.browserInspection.adminKeyboardChecks,
+      adminReturnChecks:report.browserInspection.adminReturnChecks,
       adminKeyboardEntryChecks:report.browserInspection.adminKeyboardEntryChecks,
       restorePreflightExamples:report.browserInspection.restorePreflightExamples,
       restoreFileChecks:report.browserInspection.restoreFileChecks,

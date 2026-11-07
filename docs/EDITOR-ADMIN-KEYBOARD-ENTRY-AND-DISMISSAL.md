@@ -46,3 +46,15 @@ This is a real keyboard interaction test in an isolated browser, not a claim of 
 - Authenticated editing, form validation, Save/reload, owner-held recovery backup and the 415-versus-418 source layout are **not decided or tested here**.
 
 The test forbids passwords, Enter on any non-vetted control, live requests, login submissions, screenshot capture, GitHub writes, merges and deployment. The source content and original administrator implementation are unchanged.
+
+## Original return action and private keyboard-only exit (Part 11)
+
+**Source-only finding at the exact preserved original `site-content.html` blob `71ab9f2`:** The locked administrator panel has a **Back to Website** button whose original inline handler is `closeAdmin()`. That function hides `adminArea`, shows `publicSite` and `siteFooter`, then calls `showSection(currentSection)`. This is a normal screen transition, **not a claim of logout** and not evidence that the panel is a modal dialog. `closeAdmin()` itself does not clear credentials or reset the `unlocked` state. No credentials should be entered during this investigation.
+
+The earlier real Chrome **Escape** trial left the password panel visible at desktop and mobile widths. That observation is consistent with the site having an explicit return button, but does **not** prove Escape was intentionally excluded; the original design intention still needs owner review.
+
+A new **no-password, protected-branch-only** browser diagnostic checks the original return button at 1440px and 390px. It verifies the exact labelled `closeAdmin()` action is unique, outside all forms, not a submit control, visible and Tab eligible. It starts only after the previous no-login keyboard trial has opened the login screen. It sends at most 16 real Tab keys, then sends a standard Chrome Enter **only** when actual keyboard focus reaches that precise vetted return button. It never activates the adjacent Unlock Admin button or touches the protected editor.
+
+The returned flags verify public site/footer visibility, hidden admin area, unchanged route, empty password, hidden protected editor, visitor privileges off, no form submissions and no nonlocal network responses. An unreachable button is recorded as a bounded observation; this **does not** certify full accessibility, secure logout or actual Admin Save. Tests are in `editor/tools/private-admin-return-entry-probe.cjs` and `editor/tests/private-admin-return-browser-probe.test.cjs`.
+
+**No original source, Admin UI, published website, database, credentials, merge or deployment is changed.** Browser outcome must be checked on the exact pushed commit before claiming the keyboard exit has passed. Stage 6/9 and Stage 7 owner approval gates remain open.
