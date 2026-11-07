@@ -107,3 +107,14 @@ If title/content edits have been applied, or text is still typed into the curren
 Five new tests in `editor/tests/resource-title-ui.test.cjs` cover: edits typed during a slow verification; two overlapping source selections; an old failing verification after a newer success; an invalid source while work is unsaved; and an explicitly approved replacement. Independently exercising the exact current resource UI and source-core functions with 414 fictional records gave **5/5 passing focused checks**, but the new tests and all full-file source checks still require the latest exact-head CI to pass.
 
 This guards the **local selection of the original source**; it does **not** authorize using an edited source as a new baseline, changing the current resource source-of-truth layout, saving to GitHub, publishing the site or changing the original 414-record content. The original site, original protected Admin system, separate 29-item collection, assets and production files remain unchanged.
+
+
+### Part 12 — saved JSON draft picker avoids stale asynchronous restores
+
+Both local saved-JSON draft pickers now track their own **latest file selection** independently of source-folder loading. A page draft or resource draft whose file reading completes **after a newer draft has been selected** is ignored: it cannot overwrite the newer draft, trigger an old overwrite prompt, replace the status message or clear the newer picker state. Errors from older reads are likewise ignored. An empty or cancelled file-selection event does not interrupt a valid in-flight read.
+
+**Overwrite protection still applies:** Once the newest draft finishes reading, each original local editor validates its saved draft against its current source fingerprint and asks for confirmation before replacing any unsaved edits. The resource editor also protects title/content still typed but not yet applied. The new race guard does not bypass these source checks or convert the private review ZIP into a GitHub update.
+
+Added four async file-picker tests to `editor/tests/page-draft-restore-safety.test.cjs` and four to `editor/tests/resource-title-ui.test.cjs`. Focused independent checks using the current unmodified editor functions passed **three page and three resource scenarios**, specifically newer selection winning, obsolete failed reads being ignored, and late overwrite consent protecting mid-read changes. These are supplemental source-level checks, **not** full CI or browser acceptance. Full latest-head tests remain required before the eight new Node scenarios can be called verified.
+
+This update is limited to the private editor prototype, regression tests and this documentation. No original site files, 414 resources, Admin privileges, local personal files, source layout or production website were changed.
