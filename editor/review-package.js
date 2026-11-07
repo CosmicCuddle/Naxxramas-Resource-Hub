@@ -12,13 +12,37 @@
   ];
   var RESOURCE_BASELINE='34455f6d901c538e2491a8c16681692e4c02d918b1984d7d0ba081aacb1049e8';
   var shaPattern=/^[a-f0-9]{64}$/;
+  // Mirror the existing page editor's three supported navigation entries.
+  // This checks ZIP payload shape before accepting a review draft, but it
+  // cannot authenticate a source checkout or authorise publication.
+  function validNavigationDocument(doc){
+    var slugs=['new-players','rules','apply'];
+    if(!doc||typeof doc!=='object'||Array.isArray(doc)||
+       Object.keys(doc).sort().join(',')!=='format,pages'||
+       doc.format!=='naxx-navigation-v1'||!Array.isArray(doc.pages)||
+       doc.pages.length!==slugs.length)return false;
+    return doc.pages.every(function(p,i){
+      if(!p||typeof p!=='object'||Array.isArray(p)||
+         Object.keys(p).sort().join(',')!=='group,icon,intro,label,slug,title'||
+         p.slug!==slugs[i]||p.group!=='General')return false;
+      for(var field of ['label','title','intro']){
+        var value=p[field];
+        var max=field==='intro'?280:field==='title'?90:50;
+        if(typeof value!=='string'||!value.trim()||value.length>max||
+           /[\x00-\x1f\x7f]/.test(value))return false;
+      }
+      return typeof p.icon==='string'&&p.icon.length<=90&&
+        /^[a-z0-9_]+\.jpg$/i.test(p.icon);
+    });
+  }
   function validatePageDraft(draft){
     if(draft==null)return null;
     if(!draft||draft.format!=='naxx-local-draft-v3'||
        draft.sourceCommitVerified!==false||!Array.isArray(draft.files)||
        draft.files.length!==4||!draft.navigation||
        draft.navigation.path!=='content/navigation.json'||
-       !shaPattern.test(draft.navigation.sourceSha256))
+       !shaPattern.test(draft.navigation.sourceSha256)||
+       !validNavigationDocument(draft.navigation.document))
       throw Error('Unrecognised page/navigation draft. Review package not saved.');
     EXPECTED_PATHS.forEach(function(path,index){
       var file=draft.files[index];
