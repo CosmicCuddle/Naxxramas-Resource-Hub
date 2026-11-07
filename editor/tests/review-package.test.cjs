@@ -28,7 +28,8 @@ function pageDraft(){
     sourceCommitVerified:false,createdAt:'2026-11-05T00:00:00Z',
     files:paths.map((path,i)=>({path,sourceSha256:SHA,edits:i===0?{'T:100':'Example safe edit'}:{}})),
     navigation:{path:'content/navigation.json',sourceSha256:SHA,
-      document:{format:'naxx-navigation-v1',pages:[{label:'Example'}]}}};
+      document:JSON.parse(fs.readFileSync(path.join(root,'..',
+        'content/navigation.json'),'utf8'))}};
 }
 function resourceDraft(){
   return {format:'naxx-local-resource-draft-v2',baselineSha256:SHA,
