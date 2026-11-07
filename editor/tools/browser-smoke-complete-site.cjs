@@ -491,13 +491,13 @@ async function inspectBrowser(site,work){
       }
       if(!ready)
         throw Error('Private keyboard-only Admin entry page did not load.');
-      async function observeEntry(initial){
+      async function observeEntry(initial,afterActivation=false){
         const r=await send('Runtime.evaluate',{
           expression:adminKeyboardEntrySnapshot(),returnByValue:true
         });
         if(r.exceptionDetails)
           throw Error('Private keyboard-only Admin entry snapshot crashed.');
-        return checkKeyboardEntry(r.result?.value,{initial});
+        return checkKeyboardEntry(r.result?.value,{initial,afterActivation});
       }
       const start=await observeEntry(true);
       let selected=start,tabs=0;
@@ -548,7 +548,7 @@ async function inspectBrowser(site,work){
         });
         await send('Input.dispatchKeyEvent',{type:'keyUp',...props});
         await delay(150);
-        opened=await observeEntry(false);
+        opened=await observeEntry(false,true);
       }
       if(metrics.formSubmissions!==0||metrics.nonLocalResponses!==0)
         throw Error('Private Admin entry keyboard trial escaped isolation.');

@@ -30,6 +30,8 @@ The follow-up retest uses the Chromium/Puppeteer-compatible **Enter control key*
 
 The follow-up verifier requires the visitor entry to be unique and visible **before Enter**, while allowing only the entry's *post-activation appearance* to change. It still strictly refuses a nonempty password, exposed editing controls, visitor privilege escalation or navigation, and now reports only the name of any failed Boolean safety invariant (never source text or credentials). A passing focused unit test is not a substitute for the next real-Chrome result.
 
+**Diagnosed with the next run:** The failed Boolean names were `unambiguousSafeEntry` and `entryVisible` **only**, after the standard Enter event; the empty-password, protected-editor, visitor-privilege and route invariants did not trigger. The actual mistake was in the Chrome harness wrapper: it still called the **pre-activation snapshot validator** on the post-Enter observation, before the new lifecycle-aware summarizer could evaluate it. The wrapper now explicitly applies `afterActivation:true` **only for the post-Enter snapshot**, and a focused regression test checks the wiring. No original Admin code or safety requirement was removed. The next complete real-Chrome trial must verify whether the password panel actually opened.
+
 References: https://chromedevtools.github.io/devtools-protocol/tot/Input/ and https://github.com/puppeteer/puppeteer/blob/main/packages/puppeteer-core/src/common/USKeyboardLayout.ts .
 
 This is a real keyboard interaction test in an isolated browser, not a claim of full keyboard accessibility. A button outside the first 80 Tab presses is a **bounded negative observation**, not proof of complete keyboard inaccessibility.

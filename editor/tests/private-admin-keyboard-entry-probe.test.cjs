@@ -136,6 +136,18 @@ test('unexpected post-Enter privilege, password data and route changes fail clos
   assert.throws(()=>summarize(390,original,fixture(),opened,1),
     /Enter must not be dispatched/);
 });
+test('real Chrome wrapper treats only post-Enter identity change as allowed',()=>{
+  const harness=fs.readFileSync(path.resolve(__dirname,
+    '../tools/browser-smoke-complete-site.cjs'),'utf8');
+  assert.match(harness,/async function observeEntry\(initial,afterActivation=false\)/);
+  assert.match(harness,/checkKeyboardEntry\(r\.result\?\.value,\{initial,afterActivation\}\)/);
+  assert.match(harness,/const start=await observeEntry\(true\)/);
+  assert.match(harness,/selected=await observeEntry\(false\)/);
+  assert.match(harness,/opened=await observeEntry\(false,true\)/);
+  assert.match(harness,/if\(selected\.entryFocused&&tabs>0\)/);
+  assert.match(harness,/metrics\.formSubmissions!==0\|\|metrics\.nonLocalResponses!==0/);
+});
+
 test('only non-form Tab and safe Admin Enter, with no disk, network or page mutation',()=>{
   assert.equal(KEYS.tab.key,'Tab');
   assert.equal(KEYS.enter.key,'Enter');
