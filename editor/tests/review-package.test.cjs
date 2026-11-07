@@ -104,3 +104,38 @@ test('combined review saver has no fetch or local repository writes',()=>{
   assert.doesNotMatch(code,/\bfetch\s*\(|\bXMLHttpRequest\b|\blocalStorage\b|\beval\s*\(|\bFunction\s*\(/);
   assert.doesNotMatch(code,/writeFileSync|git\s+push|api\.github\.com|site-content\.html.*content\}/);
 });
+
+test('review ZIP refuses malformed page edit tokens and values without changing drafts',async()=>{
+  // A transport checksum alone cannot prove a recovered page draft is safe.
+  const wrong=[
+    {'X:100':'unexpected token'},
+    {'T:-1':'negative position'},
+    {'T:1.5':'fractional position'},
+    {'H:77':42},
+    {'T:88':null},
+    {'T:99':{text:'not a string'}},
+    {'T:100':'x'.repeat(30001)}
+  ];
+  for(const edits of wrong){
+    const input=pageDraft(),original=JSON.stringify(input);
+    input.files[0].edits=edits;
+    const saved=JSON.stringify(input);
+    await assert.rejects(review.build(input,null,zip),/invalid edit token or value/);
+    assert.equal(JSON.stringify(input),saved,'failed save must not mutate a draft');
+    assert.equal(input.files[0].path,'new-players/content.html');
+    assert.notEqual(saved,original);
+  }
+});
+test('review ZIP preserves valid page text, links and multiline Unicode draft fields',async()=>{
+  const input=pageDraft();
+  input.files[0].edits={'T:100':'Line one.\\nSecond line. ✓','H:142':'https://example.invalid/guide'};
+  input.files[1].edits={'T:200':''}; // Empty page text is a supported edit.
+  const result=await review.build(input,null,zip);
+  const files=await entries(result.blob);
+  const restored=JSON.parse(files[0].content);
+  assert.deepEqual(JSON.parse(JSON.stringify(restored.files[0].edits)),
+    JSON.parse(JSON.stringify(input.files[0].edits)));
+  assert.equal(restored.files[1].edits['T:200'],'');
+  assert.equal(result.entryCount,3);
+  assert.equal(result.manifest.publishable,false);
+});
