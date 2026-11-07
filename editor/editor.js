@@ -25,6 +25,8 @@
   var fields = $('fields');
   var filePicker = $('folder');
   var draftPicker = $('draft-file');
+  // Only the latest selected folder may become the editor source.
+  var folderLoadRevision = 0;
 
   function say(message, isError) {
     status.textContent = message;
@@ -252,7 +254,7 @@
     });
     return result;
   }
-  async function importFolder(fileList) {
+  async function importFolder(fileList, ticket) {
     var matches = new Map();
     for (var i = 0; i < fileList.length; i++) {
       var file = fileList[i];
@@ -283,8 +285,19 @@
     var navSource = await matches.get(NAV_PATH).text();
     if (navSource.length > 64000) throw new Error('Navigation configuration is unexpectedly large.');
     var nav = validateNavigation(JSON.parse(navSource));
+    var navHash = await NaxxEditorZip.sha256(navSource);
+    // Every await above may give another folder picker event or an edit time
+    // to run. Do not commit a stale result or silently discard new edits.
+    if (ticket !== folderLoadRevision) return false;
+    if (hasChanges() && !window.confirm(
+      'Replace your current unsaved page and navigation edits with this folder? Save Draft first if needed.'
+    )) {
+      filePicker.value = '';
+      say('Folder change cancelled. Your current local edits were kept.');
+      return false;
+    }
     navState = {
-      source: navSource, hash: await NaxxEditorZip.sha256(navSource),
+      source: navSource, hash: navHash,
       original: nav, current: JSON.parse(JSON.stringify(nav))
     };
     state = next;
@@ -294,6 +307,7 @@
     showNavigation();
     setButtons();
     say('Four HTML pages and navigation loaded locally. Nothing has been published.');
+    return true;
   }
   function draftData() {
     return {
@@ -360,19 +374,16 @@
   }
 
   filePicker.addEventListener('change', async function () {
-    if (hasChanges() && !window.confirm(
-      'Load a different folder and discard your current local edits? Save Draft first if needed.'
-    )) {
-      filePicker.value = '';
-      say('Folder change cancelled. Your current edits are still here.');
-      return;
-    }
+    var ticket = ++folderLoadRevision;
+    // Capture the chosen files now; the picker can change while a large
+    // source is being read. The original source stays active until verified.
+    var selected = Array.from(filePicker.files || []);
     try {
       say('Reading the selected local folder…');
-      await importFolder(filePicker.files);
+      await importFolder(selected, ticket);
     } catch (err) {
-      // Import runs in a temporary map; a failed folder selection must not
-      // discard an already loaded page collection or its unsaved edits.
+      if (ticket !== folderLoadRevision) return; // Older failure must not reset a newer selection.
+      // Import stages everything before changing the editor's current data.
       filePicker.value = '';
       setButtons();
       say('Folder not loaded: ' + err.message + ' Existing editor content was kept.', true);
