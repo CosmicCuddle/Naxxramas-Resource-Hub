@@ -31,3 +31,12 @@ The recovery interface does not merge drafts across domains or automatically ove
 ### Release blockers unchanged
 
 Stage 6 remains incomplete: a canonical resource layout is unapproved (415-file versioned overlay versus 418-file full source tree); there is no live administrator Save transaction, retained full independent backup, verified production-grade rollback, or owner-approved merge/deployment. This recovery control removes manual ZIP extraction **and** lets the user restore each source-verified local draft directly, subject to a new overwrite-confirmation gate. The original website and all 414 resource records remain untouched by the PR.
+
+
+### Part 12 — page edit integrity tightened before a review ZIP is accepted
+
+The local ZIP saver and ZIP reader now both reject a page draft whose edited field keys are not valid text/link token positions (`T:<position>` or `H:<position>`), whose saved edit values are not strings, or whose values exceed the original editor's 30,000-character per-field limit. This is **in addition to** the existing exact page path/source-hash metadata and ZIP CRC/SHA checks. Tests include a **deliberately forged archive with matching CRC and SHA-256** that must still be refused when it contains an invalid page value.
+
+Valid unchanged text, empty page text, multiline text and Unicode remain supported. A failed export does **not** replace existing in-memory draft edits. The source-bound page editor remains the ultimate authority: it separately validates actual scanned text/link positions, original file hashes, link safety, navigation and overwrite consent when restoring. Passing a ZIP check **never** proves a real source edit was applied or authorises GitHub publication.
+
+**Development status:** These source/test changes are confined to the private editor prototype in draft PR #56. Latest exact-head CI must succeed before this safety change is marked verified. There is still no authenticated original Admin Save, production writer, selected 415/418 resource layout, owner-held release backup or permission to merge/deploy.
