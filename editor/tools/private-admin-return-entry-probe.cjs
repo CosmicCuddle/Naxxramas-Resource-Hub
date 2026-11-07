@@ -19,8 +19,12 @@ const FIELDS=Object.freeze([
   'publicSiteVisible','footerVisible','protectedEditorHidden',
   'visitorPrivilegeOff','routeUnchanged'
 ]);
-function adminReturnSnapshot(){
-  return '('+function(){
+const ROUTE_ROOT='/', ROUTE_PREFIX='/Naxxramas-Resource-Hub/';
+function adminReturnSnapshot(expectedPathname=ROUTE_ROOT){
+  // Exact allowlist: never accept a caller-supplied arbitrary page as safe.
+  if(expectedPathname!==ROUTE_ROOT&&expectedPathname!==ROUTE_PREFIX)
+    throw Error('Unrecognised private Admin test route.');
+  return '('+function(expectedRoute){
     const d=document,w=window,body=d.body;
     const area=d.getElementById('adminArea'),lock=d.getElementById('adminLock');
     const site=d.getElementById('publicSite'),footer=d.getElementById('siteFooter');
@@ -68,9 +72,9 @@ function adminReturnSnapshot(){
       footerVisible:visible(footer),
       protectedEditorHidden:!!editor&&!visible(editor),
       visitorPrivilegeOff:!!body&&!body.classList.contains('visual-admin-active'),
-      routeUnchanged:w.location.pathname==='/'&&w.location.search===''
+      routeUnchanged:w.location.pathname===expectedRoute&&w.location.search===''
     };
-  }.toString()+')()';
+  }.toString()+')('+JSON.stringify(expectedPathname)+')';
 }
 function checkReturnSnapshot(value,{closed=false}={}){
   if(!value||typeof value!=='object'||Array.isArray(value)||
@@ -131,5 +135,5 @@ function summarizeAdminReturn(width,start,focused,after,tabs,{activated=false}={
     ownerApprovedForProduction:false
   });
 }
-module.exports={FORMAT,MAX_RETURN_TABS,RETURN_KEYS,adminReturnSnapshot,
+module.exports={FORMAT,MAX_RETURN_TABS,RETURN_KEYS,ROUTE_ROOT,ROUTE_PREFIX,adminReturnSnapshot,
   checkReturnSnapshot,summarizeAdminReturn};
