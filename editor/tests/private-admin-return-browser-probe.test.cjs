@@ -103,7 +103,7 @@ test('passive browser observer sees only Boolean metadata and never source label
 test('Chrome harness uses real Tab but withholds unsafe return Enter',()=>{
   const source=fs.readFileSync(path.resolve(__dirname,
     '../tools/browser-smoke-complete-site.cjs'),'utf8');
-  assert.match(source,/const adminReturnChecks=\\[\\]/);
+  assert.match(source,/const adminReturnChecks=\[\]/);
   assert.match(source,/checkReturnSnapshot/);
   assert.match(source,/summarizeAdminReturn/);
   assert.match(source,/const returnAfter=selectedReturn/);
