@@ -381,3 +381,79 @@ test('empty file-picker event cannot leave in-progress source verification disab
   assert.equal(h.nodes.get('resource-choice').children.length,414);
   assert.match(h.nodes.get('resource-status').textContent,/Original website verified/);
 });
+
+test('latest resource JSON draft selection wins over late older draft',async()=>{
+  const h=harness(),get=id=>h.nodes.get(id);
+  get('resource-source-file').files=[{name:'site-content.html',
+    size:engine.BASE_LENGTH,text:async()=>'<verified source>'}];
+  await get('resource-source-file').listeners.change();
+  const picker=get('resource-draft-file');
+  const draft=title=>JSON.stringify({format:'naxx-local-resource-draft-v2',
+    baselineSha256:engine.BASE_SHA,changes:[{index:0,title}]});
+  let releaseOld;
+  picker.files=[{size:512,text:()=>new Promise(resolve=>{releaseOld=resolve;})}];
+  const first=picker.listeners.change();
+  picker.files=[{size:512,text:async()=>draft('Newest resource title')}];
+  await picker.listeners.change();
+  const status=get('resource-status').textContent;
+  releaseOld(draft('Obsolete resource title'));
+  await first;
+  assert.equal(get('resource-title-edit').value,'Newest resource title');
+  assert.equal(get('resource-status').textContent,status);
+});
+test('late failed resource JSON draft does not hide successful newer restoration',async()=>{
+  const h=harness(),get=id=>h.nodes.get(id);
+  get('resource-source-file').files=[{name:'site-content.html',
+    size:engine.BASE_LENGTH,text:async()=>'<verified source>'}];
+  await get('resource-source-file').listeners.change();
+  const picker=get('resource-draft-file');
+  let rejectOld;
+  picker.files=[{size:512,text:()=>new Promise((_,reject)=>{rejectOld=reject;})}];
+  const obsolete=picker.listeners.change();
+  picker.files=[{size:512,text:async()=>JSON.stringify({
+    format:'naxx-local-resource-draft-v2',baselineSha256:engine.BASE_SHA,
+    changes:[{index:0,title:'Kept newest resource title'}]
+  })}];
+  await picker.listeners.change();
+  const message=get('resource-status').textContent;
+  rejectOld(Error('Old resource JSON read failed'));
+  await obsolete;
+  assert.equal(get('resource-title-edit').value,'Kept newest resource title');
+  assert.equal(get('resource-status').textContent,message);
+});
+test('empty resource draft picker cannot cancel an in-flight valid JSON read',async()=>{
+  const h=harness(),get=id=>h.nodes.get(id);
+  get('resource-source-file').files=[{name:'site-content.html',
+    size:engine.BASE_LENGTH,text:async()=>'<verified source>'}];
+  await get('resource-source-file').listeners.change();
+  const picker=get('resource-draft-file');
+  let release;
+  picker.files=[{size:512,text:()=>new Promise(resolve=>{release=resolve;})}];
+  const pending=picker.listeners.change();
+  picker.files=[];
+  await picker.listeners.change();
+  release(JSON.stringify({format:'naxx-local-resource-draft-v2',
+    baselineSha256:engine.BASE_SHA,changes:[{index:0,title:'Recovered title'}]}));
+  await pending;
+  assert.equal(get('resource-title-edit').value,'Recovered title');
+  assert.match(get('resource-status').textContent,/Verified resource draft loaded/);
+});
+test('edits typed while resource JSON is reading are still protected by confirmation',async()=>{
+  const h=harness(),get=id=>h.nodes.get(id);
+  get('resource-source-file').files=[{name:'site-content.html',
+    size:engine.BASE_LENGTH,text:async()=>'<verified source>'}];
+  await get('resource-source-file').listeners.change();
+  const picker=get('resource-draft-file');
+  let release;
+  picker.files=[{size:512,text:()=>new Promise(resolve=>{release=resolve;})}];
+  const pending=picker.listeners.change();
+  get('resource-title-edit').value='Unapplied draft typed during load';
+  let prompts=0;
+  h.window.confirm=()=>{prompts++;return false;};
+  release(JSON.stringify({format:'naxx-local-resource-draft-v2',
+    baselineSha256:engine.BASE_SHA,changes:[{index:0,title:'Saved older title'}]}));
+  await pending;
+  assert.equal(prompts,1);
+  assert.equal(get('resource-title-edit').value,'Unapplied draft typed during load');
+  assert.match(get('resource-count').textContent,/0 title edits/);
+});
