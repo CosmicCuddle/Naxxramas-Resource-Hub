@@ -82,6 +82,7 @@ function decide({
     manualInvestigationRequired:true,
     neverAutomaticallyRetry:interpretation.automaticRetryAllowed===false,
     sourceLayoutOwnerApproved:false,
+    ownerApproved:false,
     durableReleaseBackupAvailable:false,
     actualRemoteMutationAttempted:false,
     authenticatedGitHubEvidenceCollected:false,
