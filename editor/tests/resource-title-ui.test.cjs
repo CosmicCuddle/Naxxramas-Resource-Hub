@@ -257,3 +257,110 @@ test('invalid ZIP resource payload never overwrites an existing verified editor 
   assert.equal(get('resource-title-edit').value,'Keep our current resource edit');
   assert.match(get('resource-count').textContent,/1 title edits/);
 });
+
+test('slow verified resource replacement cannot discard edits made while reading',async()=>{
+  const h=harness(),get=id=>h.nodes.get(id),picker=get('resource-source-file');
+  picker.files=[{name:'site-content.html',size:engine.BASE_LENGTH,
+    text:async()=>'<original verified source>'}];
+  await picker.listeners.change();
+  let release;
+  picker.files=[{name:'site-content.html',size:engine.BASE_LENGTH,
+    text:()=>new Promise(resolve=>{release=resolve;})}];
+  const pending=picker.listeners.change();
+  get('resource-title-edit').value='Unapplied title entered during verification';
+  let prompts=0;
+  h.window.confirm=()=>{prompts++;return false;};
+  release('<new original source>');
+  await pending;
+  assert.equal(prompts,1,'consent must be checked after the source is read');
+  assert.equal(get('resource-title-edit').value,
+    'Unapplied title entered during verification');
+  assert.equal(get('resource-choice').children.length,414);
+  assert.match(get('resource-status').textContent,/cancelled.*edits were kept/);
+  assert.equal(picker.disabled,false);
+});
+test('late first resource source cannot replace a newer selection',async()=>{
+  const h=harness(),get=id=>h.nodes.get(id),picker=get('resource-source-file');
+  const originalOpen=h.window.NaxxResourceTitles.open;
+  let release;
+  h.window.NaxxResourceTitles.open=async source=>{
+    if(source==='OLDER')await new Promise(resolve=>{release=resolve;});
+    const verified=await originalOpen();
+    return {...verified,resources:verified.resources.map(r=>({
+      ...r,title:source+' '+r.index
+    }))};
+  };
+  picker.files=[{name:'site-content.html',size:engine.BASE_LENGTH,text:async()=> 'OLDER'}];
+  const first=picker.listeners.change();
+  // The second event is synthetic because the real picker is disabled
+  // during verification; the guard must still refuse an obsolete result.
+  picker.files=[{name:'site-content.html',size:engine.BASE_LENGTH,text:async()=> 'NEWER'}];
+  await picker.listeners.change();
+  const latestMessage=get('resource-status').textContent;
+  release();
+  await first;
+  assert.equal(get('resource-title-edit').value,'NEWER 0');
+  assert.equal(get('resource-status').textContent,latestMessage);
+  assert.equal(picker.disabled,false);
+});
+test('late failing source read cannot erase a successfully verified newer source',async()=>{
+  const h=harness(),get=id=>h.nodes.get(id),picker=get('resource-source-file');
+  const originalOpen=h.window.NaxxResourceTitles.open;
+  let rejectOld;
+  h.window.NaxxResourceTitles.open=async source=>{
+    if(source==='BROKEN')await new Promise((_,reject)=>{rejectOld=reject;});
+    const verified=await originalOpen();
+    return {...verified,resources:verified.resources.map(r=>({
+      ...r,title:source+' '+r.index
+    }))};
+  };
+  picker.files=[{name:'site-content.html',size:engine.BASE_LENGTH,text:async()=> 'BROKEN'}];
+  const obsolete=picker.listeners.change();
+  picker.files=[{name:'site-content.html',size:engine.BASE_LENGTH,text:async()=> 'GOOD'}];
+  await picker.listeners.change();
+  const message=get('resource-status').textContent;
+  rejectOld(Error('Older read failed'));
+  await obsolete;
+  assert.equal(get('resource-title-edit').value,'GOOD 0');
+  assert.equal(get('resource-status').textContent,message);
+});
+test('invalid verified resource source never asks consent or loses existing edits',async()=>{
+  const h=harness(),get=id=>h.nodes.get(id),picker=get('resource-source-file');
+  picker.files=[{name:'site-content.html',size:engine.BASE_LENGTH,
+    text:async()=>'<verified source>'}];
+  await picker.listeners.change();
+  get('resource-title-edit').value='My existing title';
+  get('resource-apply').listeners.click();
+  let prompts=0;
+  h.window.confirm=()=>{prompts++;return true;};
+  h.window.NaxxResourceTitles.open=async()=>{throw Error('Source hash mismatch.');};
+  picker.files=[{name:'site-content.html',size:engine.BASE_LENGTH,
+    text:async()=>'<wrong source>'}];
+  await picker.listeners.change();
+  assert.equal(prompts,0,'mismatched source must fail before asking to overwrite');
+  assert.equal(get('resource-title-edit').value,'My existing title');
+  assert.match(get('resource-count').textContent,/1 title edits/);
+});
+test('valid replacement of existing resource edits requires explicit late consent',async()=>{
+  const h=harness(),get=id=>h.nodes.get(id),picker=get('resource-source-file');
+  picker.files=[{name:'site-content.html',size:engine.BASE_LENGTH,
+    text:async()=>'<first source>'}];
+  await picker.listeners.change();
+  get('resource-title-edit').value='My existing title';
+  get('resource-apply').listeners.click();
+  const originalOpen=h.window.NaxxResourceTitles.open;
+  let promptCount=0;
+  h.window.confirm=()=>{promptCount++;return true;};
+  h.window.NaxxResourceTitles.open=async()=>{
+    const verified=await originalOpen();
+    return {...verified,resources:verified.resources.map(r=>({
+      ...r,title:'Replacement '+r.index
+    }))};
+  };
+  picker.files=[{name:'site-content.html',size:engine.BASE_LENGTH,
+    text:async()=>'<replacement source>'}];
+  await picker.listeners.change();
+  assert.equal(promptCount,1);
+  assert.equal(get('resource-title-edit').value,'Replacement 0');
+  assert.match(get('resource-count').textContent,/0 title edits and 0 content edits/);
+});
