@@ -3,7 +3,8 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const {FORMAT,MAX_RETURN_TABS,RETURN_KEYS,ROUTE_ROOT,ROUTE_PREFIX,adminReturnSnapshot,
-  checkReturnSnapshot,summarizeAdminReturn}=require('../tools/private-admin-return-entry-probe.cjs');
+  checkReturnSnapshot,summarizeAdminReturn,reviewReturnEnterPreflight}=
+  require('../tools/private-admin-return-entry-probe.cjs');
 function sample({closed=false,focused=false,privilege=false,
   password='',insideLink=false,ancestorHandler=false,keyboardHandler=false}={}){
   return {
@@ -244,4 +245,55 @@ test('Chrome canonical-root rehearsal is Tab-only and cannot silently dispatch r
   assert.match(source,/\{activated:false\}/);
   assert.doesNotMatch(source,/const ev=RETURN_KEYS\.enter/);
   assert.doesNotMatch(source,/returnEnterKeyDown/);
+});
+
+test('separate canonical Enter review preflight never activates the original button',()=>{
+  const original=sample(),tabReached=sample({focused:true});
+  for(const width of [390,1440]){
+    const result=reviewReturnEnterPreflight(width,original,tabReached,2,{
+      expectedPath:ROUTE_PREFIX,formSubmissions:0,
+      nonLocalResponses:0,mainFrameNavigations:0
+    });
+    assert.equal(result.safeForSeparateOwnerReview,true);
+    assert.equal(result.canonicalPublishedPathVerified,true);
+    assert.equal(result.originalButtonTabFocused,true);
+    assert.equal(result.realReturnEnterDispatched,false);
+    assert.equal(result.ownerActivationApproved,false);
+    assert.equal(result.originalAdminSaveTested,false);
+    assert.equal(result.productionApprovalGranted,false);
+    assert.equal(Object.isFrozen(result),true);
+  }
+  const good={expectedPath:ROUTE_PREFIX,formSubmissions:0,
+    nonLocalResponses:0,mainFrameNavigations:0};
+  for(const invalid of [
+    {},null,{...good,expectedPath:'/'},
+    {...good,expectedPath:'/Naxxramas-Resource-Hub'},
+    {...good,formSubmissions:1},
+    {...good,nonLocalResponses:1},
+    {...good,mainFrameNavigations:1},
+    {...good,mainFrameNavigations:-1},
+    {...good,unexpected:true}
+  ])assert.throws(()=>
+    reviewReturnEnterPreflight(1440,original,tabReached,2,invalid),
+  /preflight refused/);
+  assert.throws(()=>
+    reviewReturnEnterPreflight(1440,original,original,2,good),
+  /preflight requires/);
+  assert.throws(()=>
+    reviewReturnEnterPreflight(1440,original,tabReached,0,good),
+  /Tab reached|preflight requires/);
+  for(const bad of [
+    sample({focused:true,insideLink:true}),
+    sample({focused:true,ancestorHandler:true}),
+    sample({focused:true,keyboardHandler:true})
+  ])assert.throws(()=>
+    reviewReturnEnterPreflight(1440,original,bad,2,good),
+  /competing navigation handlers/);
+  for(const bad of [
+    sample({focused:true,password:'unexpected'}),
+    sample({focused:true,privilege:true}),
+    {...tabReached,routeUnchanged:false}
+  ])assert.throws(()=>
+    reviewReturnEnterPreflight(1440,original,bad,2,good),
+  /safeguards/);
 });
