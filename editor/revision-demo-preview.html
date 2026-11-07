@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'none'; img-src 'none'; media-src 'none'; frame-src 'none'; form-action 'none'; object-src 'none'; base-uri 'none'">
+<title>Naxxramas — Repeated Edit Preview (Fictional)</title>
+<style>
+:root{color-scheme:dark;--bg:#100f0e;--panel:#211e1a;--line:#826844;--gold:#f1ca83;--ink:#f5ede0;--muted:#dbccb7;--focus:#70c8bd}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 system-ui,Segoe UI,Arial,sans-serif}
+main{max-width:880px;margin:auto;padding:clamp(14px,3vw,30px)}
+h1{color:var(--gold);font-size:clamp(1.55rem,4vw,2.1rem);line-height:1.25}
+h2{font-size:1.25rem;color:var(--gold)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:clamp(14px,3vw,24px);margin:18px 0}
+.warning{border:1px solid var(--gold);background:#33271a;padding:12px 14px;border-radius:8px}
+label{display:block;font-weight:650;margin:12px 0 6px;color:var(--gold)}
+input,select,textarea,button{font:inherit}
+input,select,textarea{width:100%;color:var(--ink);background:#171410;padding:12px;border:1px solid #bca16e;border-radius:8px}
+textarea{min-height:130px;resize:vertical}
+button{min-height:48px;padding:10px 16px;border:1px solid #bca16e;border-radius:8px;background:#3a3022;color:var(--ink);cursor:pointer;font-weight:650}
+button:hover:not(:disabled){background:#55412c}
+button:disabled{opacity:.5;cursor:not-allowed}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+.actions{display:flex;flex-wrap:wrap;gap:12px;margin:16px 0}
+.status{background:#17211e;border-left:4px solid var(--focus);border-radius:6px;padding:14px 16px}
+.status[data-kind="stale"],.status[data-kind="invalid"]{background:#2d1e1b;border-left-color:#ef9b84}
+.hint{color:var(--muted)}
+.small{font-size:.93rem}
+#sample-summary{font-weight:650}
+code{overflow-wrap:anywhere;color:#aee1d9}
+a{color:#91e2d2}
+@media(max-width:600px){.actions{display:grid;grid-template-columns:1fr}.actions button{width:100%}}
+</style>
+<script defer src="resource-title-core.js"></script>
+<script defer src="revision-source-reader.js"></script>
+<script defer src="revision-draft-review.js"></script>
+<script defer src="revision-demo-core.js"></script>
+<script defer src="revision-demo-preview.js"></script>
+</head>
+<body>
+<main>
+<header>
+<h1>Try a repeated edit — fictional preview</h1>
+<p class="hint">Private, local-only demonstration. Separate from the working website editor.</p>
+<p class="warning"><strong>NOT A REAL SAVE.</strong> Every resource in this screen is invented. Example version checks are generated from those fictional resources, not from an independently authenticated GitHub commit. Nothing is uploaded, downloaded, saved to disk, merged or published.</p>
+</header>
+<section class="panel" aria-labelledby="version-heading">
+<h2 id="version-heading">1. Choose an example website version</h2>
+<p>Switch between two fictional revisions. Version 2 has a changed description for the last resource. Your held draft will stay in memory when you switch.</p>
+<div class="actions">
+<button id="revision-one" type="button" disabled>Show example Version 1</button>
+<button id="revision-two" type="button" disabled>Show example Version 2</button>
+</div>
+<p id="revision-label" class="hint">Preparing local fictional examples…</p>
+</section>
+<section class="panel" aria-labelledby="edit-heading">
+<h2 id="edit-heading">2. Try an imaginary resource edit</h2>
+<label for="resource-index">Example resource</label>
+<select id="resource-index" disabled>
+<option value="0">Resource 1 — example only</option>
+<option value="413">Resource 414 — example only</option>
+</select>
+<label for="edit-title">Example title</label>
+<input id="edit-title" type="text" maxlength="160" disabled>
+<label for="edit-content">Example description</label>
+<textarea id="edit-content" maxlength="30000" disabled></textarea>
+<div class="actions">
+<button id="prepare-draft" type="button" disabled>Review this fictional edit</button>
+<button id="clear-draft" type="button" disabled>Clear held example</button>
+</div>
+<p class="hint small">The review checks all 414 fictional record hashes and the reconstructed example source. It does not save the text or create a file.</p>
+</section>
+<section class="panel" aria-labelledby="check-heading">
+<h2 id="check-heading">3. Test an outdated draft</h2>
+<p>Review a change while viewing Version 1, then switch to Version 2 and select <strong>Check held example</strong>. The older draft must be refused without deleting it.</p>
+<div class="actions">
+<button id="check-draft" type="button" disabled>Check held example against shown version</button>
+</div>
+<p id="held-summary" class="hint">No fictional draft is held.</p>
+<div id="demo-status" class="status" data-kind="info" role="status" aria-live="polite" aria-atomic="true">
+Preparing local fictional examples. No website files are accessed.
+</div>
+</section>
+<section class="panel">
+<h2>What this preview does not prove</h2>
+<p>It does not authenticate an original website revision, open your 31 MB site, replace the existing Admin system, verify media or publish to GitHub. The 415-file and 418-file layouts remain unapproved.</p>
+<p class="hint small">For real use, every expected checksum and resource path must first be obtained from a separately verified, trusted repository revision. Both existing editor workflows and the original website stay unchanged.</p>
+<p><a href="index.html">Return to the private working editor</a></p>
+</section>
+</main>
+</body>
+</html>
