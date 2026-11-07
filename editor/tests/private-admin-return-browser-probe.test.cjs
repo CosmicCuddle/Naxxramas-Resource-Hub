@@ -137,3 +137,46 @@ test('Chrome harness uses real Tab but withholds unsafe return Enter',()=>{
   assert.equal(defaultPaused.activationWithheldForSafety,true);
   assert.equal(defaultPaused.enterOnlyOnVettedReturn,false);
 });
+
+test('source-only router explains isolated-root exit redirect without activating a button',()=>{
+  // Read the original large source, but execute only its short routing IIFE
+  // in a network-free synthetic VM. No original data or source is logged.
+  const site=fs.readFileSync(path.resolve(__dirname,'../../site-content.html'),'utf8');
+  const closeAt=site.indexOf('function closeAdmin(){');
+  assert.ok(closeAt>=0,'original closeAdmin function must exist');
+  assert.ok(site.slice(closeAt,closeAt+500).includes('showSection(currentSection);'),
+    'original closeAdmin must delegate to showSection');
+  const opener='<script id="naxx-multipage-routing-v1">';
+  const start=site.indexOf(opener),end=site.indexOf('</script>',start);
+  assert.ok(start>=0&&end>start,'the preserved multipage router must exist');
+  const router=site.slice(start+opener.length,end);
+  assert.ok(router.length<5000,'only a short, known router may enter the VM');
+  assert.ok(router.includes('const ROOT = "/Naxxramas-Resource-Hub/";'));
+  assert.ok(router.includes('return !rootPath();'));
+  assert.ok(router.includes('location.assign(routeUrl(section));'));
+  const harness=fs.readFileSync(path.resolve(__dirname,
+    '../tools/browser-smoke-complete-site.cjs'),'utf8');
+  assert.ok(harness.includes("await send('Page.navigate',{url:origin+'/'});"),
+    'the existing isolated test starts at its local / route');
+  assert.ok(harness.includes('const returnAfter=selectedReturn;'),
+    'the unsafe real-browser return Enter must remain disabled');
+  function simulate(pathname){
+    let redirected=null,originalCallCount=0;
+    const window={showSection(){originalCallCount++;}};
+    const location={pathname,search:'',hash:'',
+      assign(url){redirected=url;},
+      replace(){throw Error('Unexpected synthetic route replace');}};
+    vm.runInNewContext(router,{
+      window,location,document:{addEventListener(){}},URLSearchParams,
+      history:{replaceState(){throw Error('Unexpected synthetic history write');}}
+    },{timeout:1000});
+    window.showSection('Home');
+    return {redirected,originalCallCount};
+  }
+  assert.deepEqual(simulate('/'),{
+    redirected:'/Naxxramas-Resource-Hub/',originalCallCount:0
+  });
+  assert.deepEqual(simulate('/Naxxramas-Resource-Hub/'),{
+    redirected:null,originalCallCount:1
+  });
+});
