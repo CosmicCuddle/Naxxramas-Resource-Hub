@@ -25,7 +25,7 @@ const {KEYS,adminKeyboardStateProbe,validateKeyboardSnapshot,
 const {KEYS:ENTRY_KEYS,MAX_TABS,adminKeyboardEntrySnapshot,
   check:checkKeyboardEntry,summarize:summarizeKeyboardEntry}=
   require('./private-admin-keyboard-entry-probe.cjs');
-const {MAX_RETURN_TABS,RETURN_KEYS,adminReturnSnapshot,
+const {MAX_RETURN_TABS,RETURN_KEYS,ROUTE_PREFIX,adminReturnSnapshot,
   checkReturnSnapshot,summarizeAdminReturn}=
   require('./private-admin-return-entry-probe.cjs');
 const {restoreBrowserProbe}=require('./private-restore-browser-probe.cjs');
@@ -329,6 +329,7 @@ async function inspectBrowser(site,work){
     const adminAccessibilityChecks=[];
     const adminKeyboardChecks=[];
     const adminReturnChecks=[];
+    const adminPrefixedReturnChecks=[];
     for(const width of [1440,390]){
       await send('Emulation.setDeviceMetricsOverride',{
         width,height:900,deviceScaleFactor:1,mobile:width<500
@@ -504,6 +505,71 @@ async function inspectBrowser(site,work){
         throw Error('Private Admin return test escaped browser isolation.');
       adminReturnChecks.push(summarizeAdminReturn(width,
         returnStart,selectedReturn,returnAfter,returnTabs,{activated:false}));
+    }
+    // Separate canonical-prefix rehearsal. The original source router
+    // expects /Naxxramas-Resource-Hub/; our earlier synthetic '/' route
+    // was not equivalent. This trial never activates Back to Website.
+    // Keep the existing '/' trial intact, and validate the fixed canonical
+    // pathname before and after the safe visitor entry and real Tab keys.
+    for(const width of [1440,390]){
+      await send('Emulation.setDeviceMetricsOverride',{
+        width,height:900,deviceScaleFactor:1,mobile:width<500
+      });
+      await send('Page.navigate',{url:origin+ROUTE_PREFIX});
+      let ready=false;
+      for(let n=0;n<120;n++){
+        const state=await send('Runtime.evaluate',{
+          expression:'document.readyState==="complete" && location.pathname==="/Naxxramas-Resource-Hub/" && location.search==="" && !!document.querySelector("button.wh-pro-admin") && !!document.getElementById("adminPasswordInput") && !!document.getElementById("resourceGrid")',
+          returnByValue:true
+        });
+        if(state.result?.value){ready=true;break;}
+        await delay(150);
+      }
+      if(!ready)throw Error('Canonical-prefix Admin rehearsal did not load its original page.');
+      const opened=await send('Runtime.evaluate',{
+        expression:adminGateBrowserProbe(),awaitPromise:true,returnByValue:true
+      });
+      if(opened.exceptionDetails)
+        throw Error('Canonical-prefix visitor-only gate observer crashed.');
+      const gate=opened.result?.value;
+      if(gate?.ready!==true||gate?.unambiguousEntryFound!==true||
+         gate?.gateOpened!==true||gate?.loginAttempted!==false||
+         gate?.actualAdminEditingVerified!==false||
+         gate?.editorControlVisibleToVisitor!==false)
+        throw Error('Canonical-prefix visitor gate did not pass strict original checks.');
+      async function observePrefixedReturn(){
+        const result=await send('Runtime.evaluate',{
+          expression:adminReturnSnapshot(ROUTE_PREFIX),returnByValue:true
+        });
+        if(result.exceptionDetails)
+          throw Error('Canonical-prefix Admin return observation crashed.');
+        return checkReturnSnapshot(result.result?.value);
+      }
+      const initial=await observePrefixedReturn();
+      let focused=initial,tabs=0;
+      while(!focused.returnFocused&&tabs<MAX_RETURN_TABS){
+        const ev=RETURN_KEYS.tab;
+        const props={
+          key:ev.key,code:ev.code,windowsVirtualKeyCode:ev.windowsVirtualKeyCode,
+          nativeVirtualKeyCode:ev.nativeVirtualKeyCode,modifiers:ev.modifiers
+        };
+        await send('Input.dispatchKeyEvent',{type:'rawKeyDown',...props});
+        await send('Input.dispatchKeyEvent',{type:'keyUp',...props});
+        tabs++;
+        focused=await observePrefixedReturn();
+      }
+      if(!focused.returnFocused||metrics.formSubmissions!==0||
+         metrics.nonLocalResponses!==0)
+        throw Error('Canonical-prefix Admin return failed focus or browser isolation.');
+      const safe=summarizeAdminReturn(width,initial,focused,focused,tabs,
+        {activated:false});
+      if(safe.actualTabReachedReturn!==true||
+         safe.activationWithheldForSafety!==true||
+         safe.enterOnlyOnVettedReturn!==false||
+         safe.noPasswordEntered!==true||
+         safe.visitorPrivilegeNeverEnabled!==true)
+        throw Error('Canonical-prefix Admin return produced an unsafe trail.');
+      adminPrefixedReturnChecks.push(safe);
     }
     // A SECOND, independent trial starts with the original login CLOSED,
     // reloading the disposable home page before any key is sent. Only Tab
@@ -742,7 +808,7 @@ async function inspectBrowser(site,work){
     assert.equal(metrics.nonLocalResponses,0,'Non-local browser responses are forbidden.');
     return {
       safeLocalBrowserCheck:true,pass:true,
-      scenarios:checks,adminGateChecks,adminSurfaceChecks,adminAccessibilityChecks,adminKeyboardChecks,adminReturnChecks,adminKeyboardEntryChecks,restorePreflightExamples,restoreFileChecks,restoreFolderChecks,saveReviewChecks,unifiedReviewChecks,
+      scenarios:checks,adminGateChecks,adminSurfaceChecks,adminAccessibilityChecks,adminKeyboardChecks,adminReturnChecks,adminPrefixedReturnChecks,adminKeyboardEntryChecks,restorePreflightExamples,restoreFileChecks,restoreFolderChecks,saveReviewChecks,unifiedReviewChecks,
       localReadRequests:metrics.localReadRequests,
       rejectedExternalRequests:metrics.rejectedExternalRequests,
       nonLocalResponses:metrics.nonLocalResponses,
