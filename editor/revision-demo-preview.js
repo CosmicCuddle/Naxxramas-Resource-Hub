@@ -13,6 +13,7 @@
      !check||!clear||!status||!label||!summary)
     throw Error('The separate fictional revision preview is incomplete.');
   var examples=null,currentRevision=1,currentIndex=0,heldDraft=null;
+  var reviewedValues=null;
   var revisionTicket=0,busy=false;
   function selected(){
     return currentRevision===1?examples.first:examples.second;
@@ -38,7 +39,15 @@
   function pendingInput(){
     if(!examples)return false;
     var original=shownRecord();
-    return title.value!==original.title||content.value!==original.content;
+    if(title.value===original.title&&content.value===original.content)return false;
+    // A draft already reviewed and retained in memory is not 'unreviewed'.
+    // Further typing after that review still requires leave confirmation.
+    if(heldDraft&&reviewedValues&&
+       reviewedValues.revision===currentRevision&&
+       reviewedValues.index===currentIndex&&
+       reviewedValues.title===title.value&&
+       reviewedValues.content===content.value)return false;
+    return true;
   }
   function render(){
     var record=shownRecord();
@@ -107,6 +116,8 @@
         return;
       }
       heldDraft=draft;
+      reviewedValues={revision:currentRevision,index:index,
+        title:requestedTitle,content:requestedContent};
       summary.textContent='Held fictional draft: Version '+draft.revision+
         ', resource '+(index+1)+'. This is not a saved file.';
       announce('Example draft reviewed locally. Switch versions to check for an outdated draft. No website Save occurred.','info');
@@ -127,6 +138,7 @@
   clear.addEventListener('click',function(){
     if(!heldDraft)return;
     heldDraft=null;
+    reviewedValues=null;
     summary.textContent='No fictional draft is held.';
     announce('Held fictional example cleared from memory. Your typed sample text was not changed.','info');
     available();
