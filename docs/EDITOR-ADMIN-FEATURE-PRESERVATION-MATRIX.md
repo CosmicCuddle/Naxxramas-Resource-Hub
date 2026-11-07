@@ -28,6 +28,12 @@ The new `editor/tools/private-admin-a11y-browser-probe.cjs` runs **after** the a
 
 Diagnostics include: programmatic label; Tab eligibility from `tabIndex`; existing focus; field fit in the current viewport; 44-CSS-pixel field size; visible close controls; dialog/ARIA semantics; page horizontal overflow and hidden protected editing controls. An accessibility concern is **reported**, not silently repaired or automatically accepted. True keyboard-only Tab traversal, Escape dismissal, focus return, screen-reader experience and genuine authorised editing are **still pending**.
 
+## Separate keyboard-only opening test — no programmatic focus
+
+A second private Chrome test now **reloads the original page with the password panel closed**. It discovers the exact permitted visible visitor Admin entry, then presses actual **Tab** up to 80 times (never `.focus()`) and tracks whether focus reaches that button. **Enter** is sent only when the safe button was genuinely Tab-reached, is not part of a form, and the panel is still closed. This does not type or submit a password. An unreachable entry is reported as a bounded observation, not automatically a site defect. See [keyboard-only entry and dismissal investigation](EDITOR-ADMIN-KEYBOARD-ENTRY-AND-DISMISSAL.md).
+
+The preceding Chrome results confirmed Tab and Shift+Tab navigation on the open password field, but **Escape did not close it** at either 1440px or 390px. The panel does not advertise modal semantics in the read-only probe, so whether Escape is an intended dismissal method is **unverified**. No production UI change is proposed from this observation alone.
+
 ## Actual keyboard-only trial — disposable copy, no credentials
 
 `editor/tools/private-admin-keyboard-browser-probe.cjs` and the existing isolated Chrome harness now rehearse the original visitor Admin login-panel behaviour at **1440px** and **390px** using genuine Chrome DevTools key events:

@@ -22,6 +22,9 @@ const {adminSurfaceBrowserProbe}=require('./private-admin-surface-browser-probe.
 const {adminAccessibilityBrowserProbe}=require('./private-admin-a11y-browser-probe.cjs');
 const {KEYS,adminKeyboardStateProbe,validateKeyboardSnapshot,
   summarizeKeyboardTrail}=require('./private-admin-keyboard-browser-probe.cjs');
+const {KEYS:ENTRY_KEYS,MAX_TABS,adminKeyboardEntrySnapshot,
+  check:checkKeyboardEntry,summarize:summarizeKeyboardEntry}=
+  require('./private-admin-keyboard-entry-probe.cjs');
 const {restoreBrowserProbe}=require('./private-restore-browser-probe.cjs');
 const {fileReviewBrowserProbe}=require('./private-restore-file-browser-probe.cjs');
 const {folderBrowserProbe}=require('./private-restore-folder-browser-probe.cjs');
@@ -466,6 +469,83 @@ async function inspectBrowser(site,work){
       adminKeyboardChecks.push(trail);
 
     }
+    // A SECOND, independent trial starts with the original login CLOSED,
+    // reloading the disposable home page before any key is sent. Only Tab
+    // can discover a unique safe entry; Enter is allowed ONLY when actual
+    // Chrome keyboard focus reaches that already vetted visitor button.
+    // Do not substitute programmatic .focus() for genuine Tab navigation.
+    const adminKeyboardEntryChecks=[];
+    for(const width of [1440,390]){
+      await send('Emulation.setDeviceMetricsOverride',{
+        width,height:900,deviceScaleFactor:1,mobile:width<500
+      });
+      await send('Page.navigate',{url:origin+'/'});
+      let ready=false;
+      for(let n=0;n<120;n++){
+        const r=await send('Runtime.evaluate',{
+          expression:'document.readyState==="complete" && !!document.querySelector("button.wh-pro-admin") && !!document.getElementById("adminPasswordInput") && !!document.getElementById("resourceGrid")',
+          returnByValue:true
+        });
+        if(r.result?.value){ready=true;break;}
+        await delay(150);
+      }
+      if(!ready)
+        throw Error('Private keyboard-only Admin entry page did not load.');
+      async function observeEntry(initial){
+        const r=await send('Runtime.evaluate',{
+          expression:adminKeyboardEntrySnapshot(),returnByValue:true
+        });
+        if(r.exceptionDetails)
+          throw Error('Private keyboard-only Admin entry snapshot crashed.');
+        return checkKeyboardEntry(r.result?.value,{initial});
+      }
+      const start=await observeEntry(true);
+      let selected=start,tabs=0;
+      if(start.entryEligibleForTab){
+        for(let n=0;n<MAX_TABS&&!selected.entryFocused;n++){
+          const event=ENTRY_KEYS.tab;
+          await send('Input.dispatchKeyEvent',{
+            type:'rawKeyDown',key:event.key,code:event.code,
+            windowsVirtualKeyCode:event.windowsVirtualKeyCode,
+            nativeVirtualKeyCode:event.nativeVirtualKeyCode,
+            modifiers:event.modifiers
+          });
+          await send('Input.dispatchKeyEvent',{
+            type:'keyUp',key:event.key,code:event.code,
+            windowsVirtualKeyCode:event.windowsVirtualKeyCode,
+            nativeVirtualKeyCode:event.nativeVirtualKeyCode,
+            modifiers:event.modifiers
+          });
+          tabs++;
+          selected=await observeEntry(false);
+        }
+      }else{
+        // A Tab-ineligible visitor entry cannot be activated. Record
+        // zero actual key dispatches; never fake a full Tab scan.
+        tabs=0;
+      }
+      let opened=selected;
+      if(selected.entryFocused&&tabs===0)
+        throw Error('Visitor Admin entry focus was not reached by a Tab key.');
+      if(selected.passwordVisible)
+        throw Error('Original password panel opened unexpectedly during Tab search.');
+      if(selected.entryFocused&&tabs>0){
+        const event=ENTRY_KEYS.enter;
+        const props={key:event.key,code:event.code,
+          windowsVirtualKeyCode:event.windowsVirtualKeyCode,
+          nativeVirtualKeyCode:event.nativeVirtualKeyCode,
+          modifiers:event.modifiers
+        };
+        await send('Input.dispatchKeyEvent',{type:'rawKeyDown',...props});
+        await send('Input.dispatchKeyEvent',{type:'keyUp',...props});
+        await delay(150);
+        opened=await observeEntry(false);
+      }
+      if(metrics.formSubmissions!==0||metrics.nonLocalResponses!==0)
+        throw Error('Private Admin entry keyboard trial escaped isolation.');
+      adminKeyboardEntryChecks.push(
+        summarizeKeyboardEntry(width,start,selected,opened,tabs));
+    }
     // Four fictional conflict examples at two screen widths, served only
     // from the same temporary copy. This page has no source import/save
     // controls, and the private browser blocks all external connections.
@@ -617,7 +697,7 @@ async function inspectBrowser(site,work){
     assert.equal(metrics.nonLocalResponses,0,'Non-local browser responses are forbidden.');
     return {
       safeLocalBrowserCheck:true,pass:true,
-      scenarios:checks,adminGateChecks,adminSurfaceChecks,adminAccessibilityChecks,adminKeyboardChecks,restorePreflightExamples,restoreFileChecks,restoreFolderChecks,saveReviewChecks,unifiedReviewChecks,
+      scenarios:checks,adminGateChecks,adminSurfaceChecks,adminAccessibilityChecks,adminKeyboardChecks,adminKeyboardEntryChecks,restorePreflightExamples,restoreFileChecks,restoreFolderChecks,saveReviewChecks,unifiedReviewChecks,
       localReadRequests:metrics.localReadRequests,
       rejectedExternalRequests:metrics.rejectedExternalRequests,
       nonLocalResponses:metrics.nonLocalResponses,
@@ -677,6 +757,7 @@ async function main(){
     assert.equal(report.browserInspection.adminSurfaceChecks.length,2);
     assert.equal(report.browserInspection.adminAccessibilityChecks.length,2);
     assert.equal(report.browserInspection.adminKeyboardChecks.length,2);
+    assert.equal(report.browserInspection.adminKeyboardEntryChecks.length,2);
     assert.equal(report.browserInspection.restorePreflightExamples.length,2);
     assert.equal(report.browserInspection.restoreFileChecks.length,2);
     assert.equal(report.browserInspection.restoreFolderChecks.length,2);
@@ -695,6 +776,7 @@ async function main(){
       adminSurfaceChecks:report.browserInspection.adminSurfaceChecks,
       adminAccessibilityChecks:report.browserInspection.adminAccessibilityChecks,
       adminKeyboardChecks:report.browserInspection.adminKeyboardChecks,
+      adminKeyboardEntryChecks:report.browserInspection.adminKeyboardEntryChecks,
       restorePreflightExamples:report.browserInspection.restorePreflightExamples,
       restoreFileChecks:report.browserInspection.restoreFileChecks,
       restoreFolderChecks:report.browserInspection.restoreFolderChecks,

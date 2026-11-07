@@ -18,6 +18,12 @@ This checklist protects the existing Naxxramas Resource Hub's administrator inte
 
 The confirmed no-login checks come from the dedicated [editor prototype Chrome run](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42261782068) on the original, disposable site snapshot. The exact full editor suite for subsequent changes must still be checked. The page is opened privately on a loopback-only local server with remote requests blocked.
 
+## Second browser trial — open Admin from Tab and Enter only
+
+The original Admin panel is reloaded **closed** inside the private browser. A bounded sequence of true Tab key presses searches for the **one safe, visible, non-form visitor entry button**. Enter is dispatched only when Tab has actually focused it, and only that key may activate the entry. We observe whether the password panel opens and receives focus, while refusing any credential, form, original-admin-privilege or route change. If not reached within 80 presses, the result is diagnostic and there is no Enter. No source or production file changes are made.
+
+The previous separate keyboard test confirmed Tab moved focus from the open password field and Shift+Tab returned it, while Escape **left the panel open**. This does **not** by itself show an accessibility violation or specify how to close the original Admin interface. See [keyboard entry/dismissal evidence](EDITOR-ADMIN-KEYBOARD-ENTRY-AND-DISMISSAL.md).
+
 ## Real Chrome keyboard trail in an isolated website copy
 
 A separate no-credential keyboard trail has been added to the private complete-site Chrome test. After the previously verified visitor Admin entry opens, it sends **Tab**, **Shift+Tab**, then **Escape** with Chrome's keyboard protocol, recording only focus, visibility and visitor-privilege booleans. It refuses to proceed if the original password is not empty or the protected editor is visible. It does not type passwords, press Enter, submit forms or authenticate. These are **real keyboard events in a disposable browser**, but only a partial keyboard test, not a full accessibility or authenticated administrator acceptance.

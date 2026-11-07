@@ -52,6 +52,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Verify keyboard-only visitor Admin entry Tab and safe Enter contracts
+        run: node --test editor/tests/private-admin-keyboard-entry-probe.test.cjs
       - name: Verify allowed Tab, Shift-Tab and Escape observation contracts without credentials
         run: node --test editor/tests/private-admin-keyboard-browser-probe.test.cjs
       - name: Validate passive original Admin keyboard and mobile diagnostic safety
