@@ -297,3 +297,23 @@ test('separate canonical Enter review preflight never activates the original but
     reviewReturnEnterPreflight(1440,original,bad,2,good),
   /safeguards/);
 });
+
+test('isolated Chrome retains separate canonical test evidence without enabling Return Enter',()=>{
+  const source=fs.readFileSync(path.resolve(__dirname,
+    '../tools/browser-smoke-complete-site.cjs'),'utf8');
+  const returnProbe=fs.readFileSync(path.resolve(__dirname,
+    '../tools/private-admin-return-entry-probe.cjs'),'utf8');
+  assert.match(source,/adminPrefixedReturnChecks:report\.browserInspection\.adminPrefixedReturnChecks/);
+  assert.match(source,/adminReturnEnterPreflightChecks:report\.browserInspection\.adminReturnEnterPreflightChecks/);
+  assert.match(source,/report\.browserInspection\.adminPrefixedReturnChecks\.length,2/);
+  assert.match(source,/report\.browserInspection\.adminReturnEnterPreflightChecks\.length,2/);
+  assert.match(source,/Page\.frameNavigated/);
+  assert.match(source,/mainFrameNavigations-initialMainFrameNavigations/);
+  assert.match(source,/reviewReturnEnterPreflight\(width,initial,focused,tabs,/);
+  assert.match(source,/realReturnEnterDispatched!==false/);
+  assert.match(source,/ownerActivationApproved!==false/);
+  assert.match(returnProbe,/function reviewReturnEnterPreflight/);
+  assert.doesNotMatch(source,/const ev=RETURN_KEYS\.enter/);
+  assert.doesNotMatch(returnProbe,/Input\.dispatchKeyEvent/);
+  assert.deepEqual(Object.keys(RETURN_KEYS),['tab']);
+});
