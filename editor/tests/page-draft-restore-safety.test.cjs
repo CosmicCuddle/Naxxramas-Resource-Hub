@@ -129,3 +129,65 @@ test('page draft direct restore stays offline and requires explicit consent',()=
   assert.match(s,/if \(hasChanges\(\) && !window\.confirm/);
   assert.doesNotMatch(s,/fetch\(|XMLHttpRequest|localStorage\.setItem/);
 });
+
+test('newest page JSON draft wins when an older file read completes late',async()=>{
+  const h=harness(),picker=h.elements.get('draft-file');
+  let releaseOld;
+  const older=JSON.parse(h.draft());
+  older.files[0].edits['T:0']='Older draft content';
+  picker.files=[{size:512,text:()=>new Promise(resolve=>{releaseOld=resolve;})}];
+  const first=picker.handlers.change();
+  const newer=JSON.parse(h.draft());
+  newer.files[0].edits['T:0']='Newer draft content';
+  picker.files=[{size:512,text:async()=>JSON.stringify(newer)}];
+  await picker.handlers.change();
+  const message=h.elements.get('status').textContent;
+  releaseOld(JSON.stringify(older));
+  await first;
+  assert.equal(h.state.get(paths[0]).edits.get('T:0'),'Newer draft content');
+  assert.equal(h.elements.get('status').textContent,message);
+  assert.equal(h.confirmations,0,'obsolete draft must not ask for overwrite permission');
+});
+test('older failed page JSON read never masks a newer successful restore',async()=>{
+  const h=harness(),picker=h.elements.get('draft-file');
+  let rejectOld;
+  picker.files=[{size:512,text:()=>new Promise((_,reject)=>{rejectOld=reject;})}];
+  const first=picker.handlers.change();
+  const newer=JSON.parse(h.draft());
+  newer.files[0].edits['T:0']='Newest recovered text';
+  picker.files=[{size:512,text:async()=>JSON.stringify(newer)}];
+  await picker.handlers.change();
+  const status=h.elements.get('status').textContent;
+  rejectOld(Error('Obsolete page draft could not be read.'));
+  await first;
+  assert.equal(h.state.get(paths[0]).edits.get('T:0'),'Newest recovered text');
+  assert.equal(h.elements.get('status').textContent,status);
+});
+test('empty page draft picker event does not interrupt a valid in-flight draft',async()=>{
+  const h=harness(),picker=h.elements.get('draft-file');
+  let release;
+  picker.files=[{size:512,text:()=>new Promise(resolve=>{release=resolve;})}];
+  const loading=picker.handlers.change();
+  picker.files=[];
+  await picker.handlers.change();
+  release(h.draft());
+  await loading;
+  assert.equal(h.state.get(paths[0]).edits.get('T:0'),'Recovered text');
+  assert.match(h.elements.get('status').textContent,/Draft restored locally/);
+});
+test('page edits made while JSON is loading remain subject to late consent',async()=>{
+  const h=harness(),picker=h.elements.get('draft-file');
+  let release;
+  picker.files=[{size:512,text:()=>new Promise(resolve=>{release=resolve;})}];
+  const loading=picker.handlers.change();
+  h.state.get(paths[0]).edits.set('T:0','Typed while old draft loading');
+  h.nav.current.pages[0].label='Keep unsaved navigation';
+  h.setConfirm(false);
+  release(h.draft());
+  await loading;
+  assert.equal(h.confirmations,1);
+  assert.equal(h.state.get(paths[0]).edits.get('T:0'),
+    'Typed while old draft loading');
+  assert.equal(h.nav.current.pages[0].label,'Keep unsaved navigation');
+  assert.match(h.elements.get('status').textContent,/cancelled/);
+});
