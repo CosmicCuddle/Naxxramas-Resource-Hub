@@ -96,3 +96,14 @@ The five scenarios verify that a valid resource-only ZIP can restore first/last-
 A focused independent check of the actual `resource-title-core.js` restore function passed: valid title/multiline content changes accepted, all 414 synthetic records unchanged, and a wrong draft checksum, wrong model checksum, duplicate resource index and unexpected custom-field edit all refused. **This is not a replacement for the complete new Node regression test or original-source checksum verification.** New full-head CI must pass before the five combined scenarios are called verified.
 
 The 29-item side collection, 27 direct DATA fields, all embedded media, actual Admin interactions and the complete original website must still be protected by their independent source-preservation checks. This work creates no production Save, source update, selected 415/418 resource layout, full external backup, merge or deployment.
+
+
+### Part 12 — resource source-file reload cannot replace an in-progress draft
+
+The **original resource source-file picker** now applies the same last-selection-wins protection as the four-page folder loader. It captures the selected file and an import revision, verifies the exact expected filename/size and calls the original source hash/414-resource parser **before** making any edit state change. An older successful read or failed verification cannot overwrite a newer selection or its message.
+
+If title/content edits have been applied, or text is still typed into the currently selected resource but has **not** been applied, the editor checks for unsaved work **after verification finishes, immediately before replacement**. Declining keeps both kinds of edits intact. Failed or invalid source selection leaves the existing model and its edits unchanged; explicit consent permits a fully verified replacement.
+
+Five new tests in `editor/tests/resource-title-ui.test.cjs` cover: edits typed during a slow verification; two overlapping source selections; an old failing verification after a newer success; an invalid source while work is unsaved; and an explicitly approved replacement. Independently exercising the exact current resource UI and source-core functions with 414 fictional records gave **5/5 passing focused checks**, but the new tests and all full-file source checks still require the latest exact-head CI to pass.
+
+This guards the **local selection of the original source**; it does **not** authorize using an edited source as a new baseline, changing the current resource source-of-truth layout, saving to GitHub, publishing the site or changing the original 414-record content. The original site, original protected Admin system, separate 29-item collection, assets and production files remain unchanged.
