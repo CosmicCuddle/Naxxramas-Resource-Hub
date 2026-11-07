@@ -100,12 +100,19 @@ test('passive browser observer sees only Boolean metadata and never source label
   assert.equal(json.includes('Back to Website'),false);
   assert.equal(json.includes('adminPasswordInput'),false);
 });
-test('complete Chrome harness uses real Tab and narrowly gated Enter',()=>{
+test('Chrome harness uses real Tab but withholds unsafe return Enter',()=>{
   const source=fs.readFileSync(path.resolve(__dirname,
     '../tools/browser-smoke-complete-site.cjs'),'utf8');
-  assert.match(source,/const adminReturnChecks=\[\]/);
+  assert.match(source,/const adminReturnChecks=\\[\\]/);
   assert.match(source,/checkReturnSnapshot/);
   assert.match(source,/summarizeAdminReturn/);
-  assert.match(source,/if\(selectedReturn.returnFocused&&returnTabs>0\)/);
-  assert.match(source,/returnAfter=await observeReturn\(true\)/);
+  assert.match(source,/const returnAfter=selectedReturn/);
+  assert.match(source,/activated:false/);
+  assert.doesNotMatch(source,/const ev=RETURN_KEYS.enter/);
+  const a=sample(),b=sample({focused:true});
+  const paused=summarizeAdminReturn(390,a,b,b,2,{activated:false});
+  assert.equal(paused.actualTabReachedReturn,true);
+  assert.equal(paused.enterOnlyOnVettedReturn,false);
+  assert.equal(paused.returnRestoredPublicSite,false);
+  assert.equal(paused.activationWithheldForSafety,true);
 });

@@ -496,26 +496,14 @@ async function inspectBrowser(site,work){
         returnTabs++;
         selectedReturn=await observeReturn(false);
       }
-      let returnAfter=selectedReturn;
-      if(selectedReturn.returnFocused&&returnTabs>0){
-        const ev=RETURN_KEYS.enter;
-        if(ev.text!=='\r'||ev.unmodifiedText!=='\r')
-          throw Error('Unexpected return-only Enter configuration.');
-        const props={key:ev.key,code:ev.code,
-          windowsVirtualKeyCode:ev.windowsVirtualKeyCode,
-          nativeVirtualKeyCode:ev.nativeVirtualKeyCode,
-          modifiers:ev.modifiers};
-        await send('Input.dispatchKeyEvent',{
-          type:'keyDown',...props,text:ev.text,unmodifiedText:ev.unmodifiedText
-        });
-        await send('Input.dispatchKeyEvent',{type:'keyUp',...props});
-        await delay(150);
-        returnAfter=await observeReturn(true);
-      }
+      // The prior Enter trial unexpectedly changed the original-page
+      // route. Withhold activation until this isolated transition has
+      // been explained. Real Tab discovery alone cannot grant acceptance.
+      const returnAfter=selectedReturn;
       if(metrics.formSubmissions!==0||metrics.nonLocalResponses!==0)
         throw Error('Private Admin return test escaped browser isolation.');
       adminReturnChecks.push(summarizeAdminReturn(width,
-        returnStart,selectedReturn,returnAfter,returnTabs));
+        returnStart,selectedReturn,returnAfter,returnTabs,{activated:false}));
     }
     // A SECOND, independent trial starts with the original login CLOSED,
     // reloading the disposable home page before any key is sent. Only Tab

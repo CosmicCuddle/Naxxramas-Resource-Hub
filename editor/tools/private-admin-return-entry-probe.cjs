@@ -3,8 +3,8 @@
  * ORIGINAL ADMIN BACK-TO-WEBSITE KEYBOARD EXIT — PRIVATE DIAGNOSTIC ONLY.
  * The probe returns Boolean flags only. No password is read except checking
  * emptiness; no source text, label, or credential leaves isolated Chrome.
- * The harness sends only Tab, then Enter ONLY if the original non-form
- * "Back to Website" button was reached with actual keyboard Tab focus.
+ * The harness sends ONLY real Tab for now. A prior Enter test unexpectedly
+ * navigated the isolated page, so activation is withheld pending diagnosis.
  */
 const FORMAT='naxx-private-admin-return-keyboard-snapshot-v1';
 const MAX_RETURN_TABS=16;
@@ -82,7 +82,7 @@ function checkReturnSnapshot(value,{closed=false}={}){
     throw Error('Original Admin return control is not a safe open-panel target.');
   return Object.freeze({...value});
 }
-function summarizeAdminReturn(width,start,focused,after,tabs){
+function summarizeAdminReturn(width,start,focused,after,tabs,{activated=true}={}){
   if(![390,1440].includes(width)||!Number.isSafeInteger(tabs)||
      tabs<0||tabs>MAX_RETURN_TABS)
     throw Error('Invalid private Admin return keyboard trail.');
@@ -92,7 +92,9 @@ function summarizeAdminReturn(width,start,focused,after,tabs){
     throw Error('Return entry must be reached by real Tab, not pre-focused.');
   if(b.returnFocused&&tabs<1)
     throw Error('Original return control was not Tab reached.');
-  const final=checkReturnSnapshot(after,{closed:b.returnFocused});
+  if(typeof activated!=='boolean'||(activated&&!b.returnFocused))
+    throw Error('Return activation requires verified keyboard focus.');
+  const final=checkReturnSnapshot(after,{closed:activated&&b.returnFocused});
   if(!b.returnFocused&&(
     final.adminAreaVisible!==b.adminAreaVisible||
     final.passwordVisible!==b.passwordVisible))
@@ -103,9 +105,10 @@ function summarizeAdminReturn(width,start,focused,after,tabs){
     boundedTabsDispatched:tabs,
     originalSafeReturnFound:a.safeReturnUnique,
     actualTabReachedReturn:b.returnFocused,
-    enterOnlyOnVettedReturn:b.returnFocused,
-    returnRestoredPublicSite:b.returnFocused&&final.publicSiteVisible,
-    returnHidAdminArea:b.returnFocused&&!final.adminAreaVisible,
+    enterOnlyOnVettedReturn:activated&&b.returnFocused,
+    returnRestoredPublicSite:activated&&b.returnFocused&&final.publicSiteVisible,
+    returnHidAdminArea:activated&&b.returnFocused&&!final.adminAreaVisible,
+    activationWithheldForSafety:!activated,
     noPasswordEntered:a.passwordEmpty&&b.passwordEmpty&&final.passwordEmpty,
     visitorPrivilegeNeverEnabled:a.visitorPrivilegeOff&&b.visitorPrivilegeOff&&final.visitorPrivilegeOff,
     noLoginOrFormSubmission:true,

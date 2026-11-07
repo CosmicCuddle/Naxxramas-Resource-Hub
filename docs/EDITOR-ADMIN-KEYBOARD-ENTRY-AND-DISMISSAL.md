@@ -58,3 +58,11 @@ A new **no-password, protected-branch-only** browser diagnostic checks the origi
 The returned flags verify public site/footer visibility, hidden admin area, unchanged route, empty password, hidden protected editor, visitor privileges off, no form submissions and no nonlocal network responses. An unreachable button is recorded as a bounded observation; this **does not** certify full accessibility, secure logout or actual Admin Save. Tests are in `editor/tools/private-admin-return-entry-probe.cjs` and `editor/tests/private-admin-return-browser-probe.test.cjs`.
 
 **No original source, Admin UI, published website, database, credentials, merge or deployment is changed.** Browser outcome must be checked on the exact pushed commit before claiming the keyboard exit has passed. Stage 6/9 and Stage 7 owner approval gates remain open.
+
+## Part 11 follow-up — conservative Tab-only return diagnostic
+
+In isolated Chrome on `c23c074` and `08425c7`, test-only Enter on the Tab-reached original return button produced an **unexpected page transition**. The after-state no longer contained the expected password field, protected editor element or original root pathname. No password was submitted or live website file changed. Because `closeAdmin()` and `showSection()` have no explicit navigation instruction, the transition has **not yet been explained**; do not call this a confirmed website bug, successful exit or logout.
+
+**Safety decision:** The protected browser QA now sends **Tab only**, never Enter, for this specific return-button test. It records whether focus reaches the uniquely vetted non-form `Back to Website` control at 1440px/390px. Even on success, the report says `activationWithheldForSafety: true` and `returnRestoredPublicSite: false`. The actual original return still needs a separately reviewed test. This is an intentionally limited Stage 7 finding, not release approval.
+
+No changes were made to `site-content.html`, the original administrator JavaScript/CSS, production assets, passwords, GitHub publishing or the server.
