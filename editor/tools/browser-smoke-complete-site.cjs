@@ -536,7 +536,16 @@ async function inspectBrowser(site,work){
           nativeVirtualKeyCode:event.nativeVirtualKeyCode,
           modifiers:event.modifiers
         };
-        await send('Input.dispatchKeyEvent',{type:'rawKeyDown',...props});
+        // Chrome's normal keyboard Enter uses keyDown with a CR
+        // control character. RawKeyDown without text does NOT reliably
+        // activate native buttons; do not mistake that for a UI defect.
+        // This is not a password or printable user input.
+        if(event.text!=='\r'||event.unmodifiedText!=='\r')
+          throw Error('Untrusted visitor-only Enter event configuration.');
+        await send('Input.dispatchKeyEvent',{
+          type:'keyDown',...props,
+          text:event.text,unmodifiedText:event.unmodifiedText
+        });
         await send('Input.dispatchKeyEvent',{type:'keyUp',...props});
         await delay(150);
         opened=await observeEntry(false);

@@ -123,7 +123,11 @@ test('only non-form Tab and safe Admin Enter, with no disk, network or page muta
   assert.equal(KEYS.enter.windowsVirtualKeyCode,13);
   assert.equal(KEYS.tab.windowsVirtualKeyCode,9);
   assert.equal(KEYS.tab.text,undefined);
-  assert.equal(KEYS.enter.text,undefined);
+  // Standard Chrome keyDown uses a carriage-return CONTROL character for
+  // Enter, never a printable value or credential.
+  assert.equal(KEYS.enter.text,'\r');
+  assert.equal(KEYS.enter.unmodifiedText,'\r');
+  assert.equal(KEYS.enter.text.length,1);
   assert.equal(Object.isFrozen(KEYS.tab),true);
   assert.equal(Object.isFrozen(KEYS.enter),true);
   assert.ok(MAX_TABS>1&&MAX_TABS<=100);

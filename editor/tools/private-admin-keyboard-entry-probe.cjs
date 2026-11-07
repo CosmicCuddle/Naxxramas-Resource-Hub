@@ -12,8 +12,10 @@ const FORMAT='naxx-private-admin-keyboard-entry-v1';
 const KEYS=Object.freeze({
   tab:Object.freeze({key:'Tab',code:'Tab',windowsVirtualKeyCode:9,
     nativeVirtualKeyCode:9,modifiers:0}),
+  // Match Chrome's standard keyboard.press('Enter') semantics: the
+  // carriage-return CONTROL key is not user text or a password.
   enter:Object.freeze({key:'Enter',code:'Enter',windowsVirtualKeyCode:13,
-    nativeVirtualKeyCode:13,modifiers:0})
+    nativeVirtualKeyCode:13,modifiers:0,text:'\r',unmodifiedText:'\r'})
 });
 const MAX_TABS=80;
 const FIELDS=Object.freeze([

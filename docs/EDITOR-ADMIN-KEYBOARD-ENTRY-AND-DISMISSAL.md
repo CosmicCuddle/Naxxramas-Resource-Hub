@@ -20,6 +20,14 @@ New `editor/tools/private-admin-keyboard-entry-probe.cjs` and the existing dispo
 6. Check the password is still empty, editing controls remain hidden, visitor privileges remain off and the root route is unchanged throughout. Refuse any form submission or nonlocal browser response.
 7. Output only Boolean observations and the bounded Tab count, then discard the temporary website and browser profile.
 
+### Key-event calibration
+
+The **first** private Chrome trial at commit `2d32394` reached the visitor Admin button after **17 Tab presses on desktop** and **2 on mobile**, but an Enter dispatched as `rawKeyDown` (with no control character) did **not** open the panel at either width. This is **not sufficient evidence** that the original UI refuses keyboard activation, because Chromium distinguishes `rawKeyDown` from `keyDown`, and Puppeteer's standard `Keyboard.press('Enter')` sends `keyDown` with the carriage-return (CR) control character.
+
+The follow-up retest uses the Chromium/Puppeteer-compatible **Enter control key** only on the one already focused, verified, non-form visitor Admin button. CR is not printable password text; the test still requires the password to remain empty and all privileges to remain off. We must use the follow-up real-Chrome outcome rather than treat the first raw-key result as a verified accessibility defect.
+
+References: https://chromedevtools.github.io/devtools-protocol/tot/Input/ and https://github.com/puppeteer/puppeteer/blob/main/packages/puppeteer-core/src/common/USKeyboardLayout.ts .
+
 This is a real keyboard interaction test in an isolated browser, not a claim of full keyboard accessibility. A button outside the first 80 Tab presses is a **bounded negative observation**, not proof of complete keyboard inaccessibility.
 
 ## Release and accessibility questions still open
