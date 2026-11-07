@@ -85,3 +85,14 @@ A new test, `editor/tests/review-zip-source-bound-e2e.test.cjs`, now exercises a
 The resource side is **simulated** in this new integration test; independent resource-specific tests and full original 414-resource preservation checks remain separate and mandatory. The test is not authenticated original Admin Save acceptance, original source reconstruction, a full Git backup, a GitHub writer, or proof that production data can be deployed safely.
 
 **Status:** This tests the private editor prototype only. The current GitHub Actions run for this exact head must pass before the new integration test can be counted as successfully executed in CI. No original website assets, installed client, server configuration or resource data were modified.
+
+
+### Part 12 — resource ZIP restoration chain test (synthetic verified source)
+
+The test `editor/tests/review-zip-resource-source-bound-e2e.test.cjs` now connects the **actual combined review ZIP builder**, **strict ZIP inspector**, **ZIP recovery UI**, **resource title/content editor UI** and **source-bound resource draft restore engine**. Its fixture provides **414 fictional resource records** with a simulated verified original source model. It does **not** parse or authenticate the actual 30,976,969-byte original source in this test.
+
+The five scenarios verify that a valid resource-only ZIP can restore first/last-resource title/content changes and multiline text while retaining all 414 simulated original records and their custom fields; a mismatched model checksum cannot restore; cancelling an overwrite keeps both applied and still-typed edits; opening a ZIP before loading source fails closed; and a damaged ZIP cannot enable resource restore. The page ZIP restoration path remains tested separately.
+
+A focused independent check of the actual `resource-title-core.js` restore function passed: valid title/multiline content changes accepted, all 414 synthetic records unchanged, and a wrong draft checksum, wrong model checksum, duplicate resource index and unexpected custom-field edit all refused. **This is not a replacement for the complete new Node regression test or original-source checksum verification.** New full-head CI must pass before the five combined scenarios are called verified.
+
+The 29-item side collection, 27 direct DATA fields, all embedded media, actual Admin interactions and the complete original website must still be protected by their independent source-preservation checks. This work creates no production Save, source update, selected 415/418 resource layout, full external backup, merge or deployment.
