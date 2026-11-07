@@ -85,3 +85,29 @@ test('the isolated editor compiles and does not modify the site loader', () => {
   assert.match(ui, /content\/navigation\.json/);
   assert.doesNotMatch(ui, /fetch\s*\(|XMLHttpRequest|sendBeacon\s*\(/);
 });
+
+test('review ZIP cannot exceed the local recovery reader entry or archive limits',async()=>{
+  const manifest={path:'REVIEW-MANIFEST.json',content:'{}'};
+  const instructions={path:'READ_ME_FIRST.txt',content:'Private review'};
+  const page=content=>({path:'REVIEW-PAGE-DRAFT.json',content});
+  const resource=content=>({path:'REVIEW-RESOURCE-DRAFT.json',content});
+  // Writer must fail before CRC calculation/download, keeping editor drafts intact.
+  assert.throws(()=>zip.makeReviewZip([
+    page(new Uint8Array(16*1024*1024+1)),manifest,instructions
+  ]),/oversized recovery file/);
+  assert.throws(()=>zip.makeReviewZip([
+    page(new Uint8Array(11*1024*1024)),
+    resource(new Uint8Array(11*1024*1024)),
+    manifest,instructions
+  ]),/20 MiB recovery limit/);
+  assert.throws(()=>zip.makeReviewZip([page(''),manifest,instructions]),
+    /empty or oversized/);
+  // A valid small review package is still a STORE ZIP with accurate byte size.
+  const small=zip.makeReviewZip([page('{"example":true}'),manifest,instructions]);
+  assert.ok(small.size>22&&small.size<20*1024*1024);
+  assert.equal((await localEntries(small)).length,3);
+  // The separate changed-files writer retains its own path and size policy.
+  assert.equal((await localEntries(zip.makeZip([
+    {path:'rules/content.html',content:'Page source remains separate'}
+  ]))).length,1);
+});
