@@ -159,3 +159,20 @@ test('a forged but correctly checksummed malformed page edit is not a verified r
   // still violates the source-checked editor's basic type contract.
   await assert.rejects(reader.inspect(forged,writer,review),/unsafe or corrupted/);
 });
+
+test('checksum-valid ZIP with altered original navigation routes is refused',async()=>{
+  const files=unpackLocal(await bytes());
+  const pageFile=files.find(f=>f.path===P);
+  const page=JSON.parse(pageFile.content);
+  page.navigation.document.pages[0].slug='rewritten-unsafe-route';
+  pageFile.content=JSON.stringify(page)+'\n';
+  const manifestFile=files.find(f=>f.path===M);
+  const manifest=JSON.parse(manifestFile.content);
+  const expected=manifest.payloads.find(p=>p.path===P);
+  expected.sha256=await writer.sha256(pageFile.content);
+  expected.utf8Bytes=new TextEncoder().encode(pageFile.content).byteLength;
+  manifestFile.content=JSON.stringify(manifest)+'\n';
+  // Deliberately regenerate CRCs and SHA-256 metadata: still invalid.
+  const forged=await fromFiles(files);
+  await assert.rejects(reader.inspect(forged,writer,review),/unsafe or corrupted/);
+});
