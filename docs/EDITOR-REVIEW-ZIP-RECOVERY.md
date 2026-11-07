@@ -49,3 +49,12 @@ The combined **private review ZIP writer** now enforces the local recovery reade
 This review-only limit does **not** change the separate **Export Changed Files (.zip)** path or the original site's resource content. Dedicated negative tests exercise an oversized entry, an oversized combined archive and an empty entry; the existing normal-sized review ZIP/restore tests remain in place.
 
 **Limits of this safeguard:** Matching ZIP limits do not prove that the original site files are the correct revision, that an individual JSON draft is source-bound, that the complete repository has been backed up, or that any GitHub writer is approved. The 415-versus-418 resource storage choice, authenticated original Admin Save and publishing remain gated by owner decision. Only consider the writer/reader limit mismatch fixed after successful exact-head CI.
+
+
+### Part 12 — navigation metadata checked before review ZIP save or restore
+
+The review ZIP save and recovery reader now validate the **same three original navigation records** required by the page editor: New Players (new-players), Server Rules (rules), and Apply to Join (apply) in their established order. They require the existing naxx-navigation-v1 data shape, General group, exact allowed fields, safe .jpg icon filenames (not URLs or parent paths), and valid label/title/introduction text and length bounds. This duplicates the *shape* contract at the earliest save boundary, not an attempt to authenticate a Git source revision.
+
+A malformed navigation document is rejected **before a review ZIP is offered**, and the reader independently rejects forged ZIPs carrying modified navigation despite regenerated matching CRC-32 and SHA-256 metadata. Tests use the original content/navigation.json fixture for valid archives, and specifically try missing records, route substitutions, unknown fields, unsafe icons, invalid lengths and embedded control characters. Failed save/recovery leaves previously edited in-memory drafts intact.
+
+**Limits:** An internally consistent ZIP can still originate from untrusted input. Exact source-hash matching, original token/link validation, overwrite confirmation, 414-resource preservation and independent backup remain separate gates. No original webpage, Admin control, resource data, production writer, public asset or source layout is altered. Treat these new changes as pending until exact-head CI passes.
