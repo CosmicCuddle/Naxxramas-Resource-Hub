@@ -40,3 +40,12 @@ The local ZIP saver and ZIP reader now both reject a page draft whose edited fie
 Valid unchanged text, empty page text, multiline text and Unicode remain supported. A failed export does **not** replace existing in-memory draft edits. The source-bound page editor remains the ultimate authority: it separately validates actual scanned text/link positions, original file hashes, link safety, navigation and overwrite consent when restoring. Passing a ZIP check **never** proves a real source edit was applied or authorises GitHub publication.
 
 **Development status:** These source/test changes are confined to the private editor prototype in draft PR #56. Latest exact-head CI must succeed before this safety change is marked verified. There is still no authenticated original Admin Save, production writer, selected 415/418 resource layout, owner-held release backup or permission to merge/deploy.
+
+
+### Part 12 follow-up — writer and recovery reader use matching size limits
+
+The combined **private review ZIP writer** now enforces the local recovery reader's exact limits **before download**: no empty entry, no entry larger than **16 MiB**, and no complete ZIP larger than **20 MiB**, including filename and ZIP header bytes. It cross-checks its predicted archive length against the resulting Blob length. A refused oversized save leaves all in-memory page/resource drafts untouched; use the separate individual JSON draft downloads if the combined ZIP is too large.
+
+This review-only limit does **not** change the separate **Export Changed Files (.zip)** path or the original site's resource content. Dedicated negative tests exercise an oversized entry, an oversized combined archive and an empty entry; the existing normal-sized review ZIP/restore tests remain in place.
+
+**Limits of this safeguard:** Matching ZIP limits do not prove that the original site files are the correct revision, that an individual JSON draft is source-bound, that the complete repository has been backed up, or that any GitHub writer is approved. The 415-versus-418 resource storage choice, authenticated original Admin Save and publishing remain gated by owner decision. Only consider the writer/reader limit mismatch fixed after successful exact-head CI.
