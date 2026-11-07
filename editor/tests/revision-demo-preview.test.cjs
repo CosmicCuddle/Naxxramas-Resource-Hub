@@ -184,3 +184,23 @@ test('new typing after holding a reviewed example requires consent before changi
   assert.match(h.el('revision-label').textContent,/Version 2/);
   assert.match(h.el('held-summary').textContent,/Version 1/);
 });
+
+test('second prepared example cannot silently overwrite the first held draft',async()=>{
+  const h=interfaceHarness();await tick();
+  h.el('edit-title').value='First reviewed example';
+  await h.el('prepare-draft').click();
+  const held=h.el('held-summary').textContent;
+  assert.match(held,/Version 1/);
+  h.el('edit-title').value='Second proposed example';
+  h.el('edit-title').handlers.input();
+  await h.el('prepare-draft').click();
+  assert.equal(h.confirms,1);
+  assert.equal(h.el('held-summary').textContent,held);
+  assert.match(h.el('demo-status').textContent,/Replacement cancelled/);
+  h.chooseApproval(true);
+  await h.el('prepare-draft').click();
+  assert.equal(h.confirms,2);
+  assert.match(h.el('demo-status').textContent,/reviewed locally/);
+  h.el('revision-two').click();
+  assert.match(h.el('held-summary').textContent,/Version 1/);
+});
