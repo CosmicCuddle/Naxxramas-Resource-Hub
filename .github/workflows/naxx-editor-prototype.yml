@@ -163,6 +163,21 @@ jobs:
       - name: Verify complete disposable site in isolated local Chrome
         run: node editor/tools/browser-smoke-complete-site.cjs
 
+  private-admin-metadata-parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out original content without write credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Prove every original custom resource property is preserved in review ZIP candidate
+        run: node --test editor/qa/admin-metadata-parity.test.cjs
+
   private-git-tree-intent:
     runs-on: ubuntu-latest
     timeout-minutes: 10
