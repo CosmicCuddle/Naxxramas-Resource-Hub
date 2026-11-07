@@ -115,6 +115,13 @@
         announce('The example changed while being checked. Nothing was replaced; review your latest text again.','info');
         return;
       }
+      // A previously reviewed local example must never disappear silently.
+      if(heldDraft&&!window.confirm(
+        'Replace the fictional draft already held in memory? The previous example cannot be recovered after replacement.'
+      )){
+        announce('Replacement cancelled. Your previously held fictional draft was kept.','info');
+        return;
+      }
       heldDraft=draft;
       reviewedValues={revision:currentRevision,index:index,
         title:requestedTitle,content:requestedContent};
