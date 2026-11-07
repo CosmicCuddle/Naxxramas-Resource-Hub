@@ -229,7 +229,7 @@ test('canonical-prefix Admin return snapshots reject incorrect path, query and u
     observe(ROUTE_PREFIX,'','',true)
   ])assert.throws(()=>checkReturnSnapshot(invalid),/safeguards/);
   // The previous '/' trial remains pinned to the original synthetic route.
-  assert.equal(adminReturnSnapshot().includes('"\\/"'),true);
+  assert.ok(adminReturnSnapshot().endsWith('("/")'));
 });
 
 test('Chrome canonical-root rehearsal is Tab-only and cannot silently dispatch return Enter',()=>{
