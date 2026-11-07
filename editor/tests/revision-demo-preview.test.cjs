@@ -19,7 +19,12 @@ function fakeElement(){
 function interfaceHarness(){
   const elements=new Map();
   const document={getElementById(id){
-    if(!elements.has(id))elements.set(id,fakeElement());
+    if(!elements.has(id)){
+      const element=fakeElement();
+      // Match the initial accessible text in revision-demo-preview.html.
+      if(id==='held-summary')element.textContent='No fictional draft is held.';
+      elements.set(id,element);
+    }
     return elements.get(id);
   }};
   let approve=false,confirmCount=0;
