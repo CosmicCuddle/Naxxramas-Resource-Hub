@@ -24,7 +24,7 @@ permissions:
 jobs:
   editor-prototype:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 25
     steps:
       - name: Checkout reviewed files
         uses: actions/checkout@v4
@@ -142,3 +142,19 @@ jobs:
           node-version: '22'
       - name: Verify complete disposable site in isolated local Chrome
         run: node editor/tools/browser-smoke-complete-site.cjs
+
+  private-backup-bound-browser-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out complete fetched website history (read only)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify real private Git bundle and browser ZIP use the same original checkout
+        run: node --test editor/qa/backup-bound-browser-review.test.cjs
