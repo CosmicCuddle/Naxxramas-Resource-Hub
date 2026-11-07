@@ -471,10 +471,10 @@ async function inspectBrowser(site,work){
         throw Error('Private Admin keyboard inspection violated isolation.');
       const trail=summarizeKeyboardTrail(width,keyBefore,...keyAfter);
       adminKeyboardChecks.push(trail);
-      // The original 3.3.5a server website has an explicit non-form
-      // "Back to Website" exit within its locked Admin view. Verify
-      // keyboard activation ONLY after real Tab focus reaches that exact
-      // vetted closeAdmin() button. Never activate Unlock Admin.
+      // Original locked Admin view has a vetted non-form "Back to Website"
+      // closeAdmin() control. Diagnose Tab reachability ONLY: a previous
+      // real Enter trial unexpectedly navigated. Never activate this exit
+      // or the adjacent Unlock Admin control pending investigation.
       async function observeReturn(closed=false){
         const result=await send('Runtime.evaluate',{
           expression:adminReturnSnapshot(),returnByValue:true
