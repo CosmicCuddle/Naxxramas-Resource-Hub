@@ -69,3 +69,19 @@ If there are **unsaved page or navigation edits at the moment replacement become
 Dedicated tests exercise overlapping folder reads, edits made mid-import, refusal/approval and old-load errors after a newer successful selection. Focused isolated runtime checks for the first three scenarios passed before CI. This guard does **not** replace the source SHA-256 checks performed when a saved draft is restored; it is a separate anti-data-loss safeguard around **source folder selection**.
 
 **Status:** Development-only on protected draft PR #56; the full exact-head CI checks must pass before the change is considered verified. No real website Admin Save or publish action was performed.
+
+
+### Part 12 — full page-draft ZIP recovery chain integration check
+
+A new test, `editor/tests/review-zip-source-bound-e2e.test.cjs`, now exercises a single **in-memory review-only recovery chain**:
+
+1. Build the actual combined review ZIP from fictional four-page navigation and resource-title drafts using the browser ZIP writer.
+2. Reopen the actual resulting ZIP bytes using the strict archive inspector and manifest checks.
+3. Use the real ZIP recovery interface to restore the page draft into the **actual source-checked local page editor**, using synthetic source records and known SHA-256 fingerprints.
+4. Confirm the original page and navigation edits are restored correctly without publishing.
+5. Refuse a ZIP tied to the wrong source fingerprint **before replacing existing unsaved page/navigation edits** and without prompting to overwrite.
+6. Refuse restoration when the owner cancels, and reject a corrupted ZIP without enabling the restore buttons.
+
+The resource side is **simulated** in this new integration test; independent resource-specific tests and full original 414-resource preservation checks remain separate and mandatory. The test is not authenticated original Admin Save acceptance, original source reconstruction, a full Git backup, a GitHub writer, or proof that production data can be deployed safely.
+
+**Status:** This tests the private editor prototype only. The current GitHub Actions run for this exact head must pass before the new integration test can be counted as successfully executed in CI. No original website assets, installed client, server configuration or resource data were modified.
