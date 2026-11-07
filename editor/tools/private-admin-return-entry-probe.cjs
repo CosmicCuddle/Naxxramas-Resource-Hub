@@ -10,9 +10,7 @@ const FORMAT='naxx-private-admin-return-keyboard-snapshot-v1';
 const MAX_RETURN_TABS=16;
 const RETURN_KEYS=Object.freeze({
   tab:Object.freeze({key:'Tab',code:'Tab',windowsVirtualKeyCode:9,
-    nativeVirtualKeyCode:9,modifiers:0}),
-  enter:Object.freeze({key:'Enter',code:'Enter',windowsVirtualKeyCode:13,
-    nativeVirtualKeyCode:13,modifiers:0,text:'\r',unmodifiedText:'\r'})
+    nativeVirtualKeyCode:9,modifiers:0})
 });
 const FIELDS=Object.freeze([
   'safeReturnUnique','returnVisible','returnTabEligible','returnFocused',
@@ -82,7 +80,7 @@ function checkReturnSnapshot(value,{closed=false}={}){
     throw Error('Original Admin return control is not a safe open-panel target.');
   return Object.freeze({...value});
 }
-function summarizeAdminReturn(width,start,focused,after,tabs,{activated=true}={}){
+function summarizeAdminReturn(width,start,focused,after,tabs,{activated=false}={}){
   if(![390,1440].includes(width)||!Number.isSafeInteger(tabs)||
      tabs<0||tabs>MAX_RETURN_TABS)
     throw Error('Invalid private Admin return keyboard trail.');
