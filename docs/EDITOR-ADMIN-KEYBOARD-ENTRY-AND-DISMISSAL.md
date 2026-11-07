@@ -66,3 +66,11 @@ In isolated Chrome on `c23c074` and `08425c7`, test-only Enter on the Tab-reache
 **Safety decision:** The protected browser QA now sends **Tab only**, never Enter, for this specific return-button test. It records whether focus reaches the uniquely vetted non-form `Back to Website` control at 1440px/390px. Even on success, the report says `activationWithheldForSafety: true` and `returnRestoredPublicSite: false`. The actual original return still needs a separately reviewed test. This is an intentionally limited Stage 7 finding, not release approval. The follow-up safety correction also removes Enter from the return-probe key inventory and makes activation **disabled by default**; synthetic positive-close tests must request it explicitly. Neither QA safeguard authorises a real browser Enter.
 
 No changes were made to `site-content.html`, the original administrator JavaScript/CSS, production assets, passwords, GitHub publishing or the server.
+
+## Part 11 source-neutral navigation triage — no button activation
+
+The unexpected return-button navigation remains unexplained. The current browser-only return observer now adds **three Boolean-only diagnostics** before any further experiment: whether the vetted return button is nested inside a link/role-link element; whether an ancestor has an inline click or keyboard handler; and whether the button itself has an inline keyboard handler. It never returns the handler code, link, label, DOM, source text or URL, and it does not dispatch Enter or click. These observations may help narrow hypotheses; they **cannot** establish what caused the earlier navigation. Dynamically registered handlers and browser defaults remain outside this limited probe.
+
+The probe defaults to **activation disabled**; its allowed keyboard inventory contains Tab only. The associated synthetic positive-closure test must opt in explicitly to a fake activated snapshot, which is **not** an instruction for the Chrome harness to activate the original control. If none of these flags explains the transition, retain the fail-closed policy and consider a separate source-only event-path analysis before any further real activation request.
+
+This diagnostic remains Stage 7 pre-acceptance only. No original Admin code, resources, visitor form, credentials, deployment or production writer was changed.
