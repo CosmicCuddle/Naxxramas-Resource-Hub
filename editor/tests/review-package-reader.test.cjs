@@ -20,7 +20,8 @@ function pageDraft(){return {
   files:paths.map((p,i)=>({path:p,sourceSha256:BASE,
     edits:i===0?{'T:100':'Safe offline draft wording'}:{}})),
   navigation:{path:'content/navigation.json',sourceSha256:BASE,
-    document:{format:'naxx-navigation-v1',pages:[{label:'Example'}]}}
+    document:JSON.parse(fs.readFileSync(path.join(root,'..',
+      'content/navigation.json'),'utf8'))}
 };}
 function resourceDraft(){return {
   format:'naxx-local-resource-draft-v2',baselineSha256:BASE,
