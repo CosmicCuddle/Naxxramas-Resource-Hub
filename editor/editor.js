@@ -27,6 +27,8 @@
   var draftPicker = $('draft-file');
   // Only the latest selected folder may become the editor source.
   var folderLoadRevision = 0;
+  // Saved draft file selection has its own revision (separate from source folders).
+  var pageDraftLoadRevision = 0;
 
   function say(message, isError) {
     status.textContent = message;
@@ -466,13 +468,21 @@
   }
   draftPicker.addEventListener('change', async function () {
     var file = draftPicker.files && draftPicker.files[0];
-    if (!file) return;
+    if (!file) return; // A cancelled picker must not invalidate an active read.
+    var ticket = ++pageDraftLoadRevision;
     try {
       if (file.size > 16 * 1024 * 1024)
         throw new Error('The saved page draft is unexpectedly large.');
-      restorePageDraftText(await file.text());
-    } catch (err) { say('Page draft rejected: ' + err.message, true); }
-    finally { draftPicker.value = ''; }
+      var text = await file.text();
+      // If a newer draft was selected, never restore or report the old one.
+      if (ticket !== pageDraftLoadRevision) return;
+      restorePageDraftText(text);
+    } catch (err) {
+      if (ticket === pageDraftLoadRevision)
+        say('Page draft rejected: ' + err.message, true);
+    } finally {
+      if (ticket === pageDraftLoadRevision) draftPicker.value = '';
+    }
   });
   $('export-changes').addEventListener('click', async function () {
     try { await exportChanged(); }
