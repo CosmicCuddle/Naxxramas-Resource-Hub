@@ -18,6 +18,12 @@ This checklist protects the existing Naxxramas Resource Hub's administrator inte
 
 The confirmed no-login checks come from the dedicated [editor prototype Chrome run](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42261782068) on the original, disposable site snapshot. The exact full editor suite for subsequent changes must still be checked. The page is opened privately on a loopback-only local server with remote requests blocked.
 
+## Real Chrome keyboard trail in an isolated website copy
+
+A separate no-credential keyboard trail has been added to the private complete-site Chrome test. After the previously verified visitor Admin entry opens, it sends **Tab**, **Shift+Tab**, then **Escape** with Chrome's keyboard protocol, recording only focus, visibility and visitor-privilege booleans. It refuses to proceed if the original password is not empty or the protected editor is visible. It does not type passwords, press Enter, submit forms or authenticate. These are **real keyboard events in a disposable browser**, but only a partial keyboard test, not a full accessibility or authenticated administrator acceptance.
+
+The keyboard trail flags any unexpected focus or dismissal behaviour for owner review. **Do not automatically alter the original Admin interface** or interpret a panel that stays open as a proven defect until intended interaction is confirmed.
+
 ## Parallel no-login keyboard and mobile diagnostics
 
 The new passive Admin accessibility probe measures the original opened password panel at desktop (1440px) and mobile (390px) widths inside the existing disposable Chrome test. It reports only presence, focus, accessible-label and layout flags; no text, credential or identifier values are exported. Protected editing controls must remain hidden and visitor privileges must remain off. A failed accessibility diagnostic **does not silently change the website or claim the login is inaccessible**; it becomes an acceptance question for CosmicCuddle. Full Tab/Escape/screen-reader behaviour and original authenticated editing remain **untested**.

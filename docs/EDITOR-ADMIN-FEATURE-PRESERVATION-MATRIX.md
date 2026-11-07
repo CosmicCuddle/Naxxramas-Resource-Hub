@@ -28,6 +28,18 @@ The new `editor/tools/private-admin-a11y-browser-probe.cjs` runs **after** the a
 
 Diagnostics include: programmatic label; Tab eligibility from `tabIndex`; existing focus; field fit in the current viewport; 44-CSS-pixel field size; visible close controls; dialog/ARIA semantics; page horizontal overflow and hidden protected editing controls. An accessibility concern is **reported**, not silently repaired or automatically accepted. True keyboard-only Tab traversal, Escape dismissal, focus return, screen-reader experience and genuine authorised editing are **still pending**.
 
+## Actual keyboard-only trial — disposable copy, no credentials
+
+`editor/tools/private-admin-keyboard-browser-probe.cjs` and the existing isolated Chrome harness now rehearse the original visitor Admin login-panel behaviour at **1440px** and **390px** using genuine Chrome DevTools key events:
+
+1. The vetted, visible visitor Admin entry opens the password panel without a login.
+2. The private observer requires an **empty, initially focused** visible password field, hidden protected editing controls, and no administrator visual privilege before dispatch.
+3. Chrome dispatches only **Tab**, **Shift+Tab**, then **Escape**. After each, a passive source-free observer checks the empty password field, unchanged route, hidden edit controls and inactive privileges.
+4. The report records whether focus left the password field, returned via Shift+Tab, whether Escape closed the panel, and whether focus returned to the visitor entry. The outcome is **diagnostic even when a key appears ineffective**; it is not certified accessible.
+5. No Enter, Space, text, form submit, actual login, screenshot, external request or repository update is allowed. The disposable browser state and preview folder are destroyed.
+
+The real focus trail is distinct from earlier passive DOM flags. **Not yet covered:** a full Tab-order traversal, keyboard-only opening of the visitor entry, screen-reader interpretation, expected focus trap, form-error announcements and authenticated editing. Whether Escape should close the panel depends on its original intended semantics; do not change the original design based on one Boolean result.
+
 ## What still needs genuine administrator acceptance
 
 | Required owner-approved scenario | Exact expected result | Current status |

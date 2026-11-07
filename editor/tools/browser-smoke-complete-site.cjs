@@ -20,6 +20,8 @@ const {layoutProbe}=require('./private-site-layout-probes.cjs');
 const {adminGateBrowserProbe}=require('./private-admin-gate-browser-probe.cjs');
 const {adminSurfaceBrowserProbe}=require('./private-admin-surface-browser-probe.cjs');
 const {adminAccessibilityBrowserProbe}=require('./private-admin-a11y-browser-probe.cjs');
+const {KEYS,adminKeyboardStateProbe,validateKeyboardSnapshot,
+  summarizeKeyboardTrail}=require('./private-admin-keyboard-browser-probe.cjs');
 const {restoreBrowserProbe}=require('./private-restore-browser-probe.cjs');
 const {fileReviewBrowserProbe}=require('./private-restore-file-browser-probe.cjs');
 const {folderBrowserProbe}=require('./private-restore-folder-browser-probe.cjs');
@@ -319,6 +321,7 @@ async function inspectBrowser(site,work){
     const adminGateChecks=[];
     const adminSurfaceChecks=[];
     const adminAccessibilityChecks=[];
+    const adminKeyboardChecks=[];
     for(const width of [1440,390]){
       await send('Emulation.setDeviceMetricsOverride',{
         width,height:900,deviceScaleFactor:1,mobile:width<500
@@ -429,6 +432,38 @@ async function inspectBrowser(site,work){
         visibleCloseControls:report.visibleCloseControls,
         actualKeyboardTestPerformed:false,
         completeWCAGConformanceVerified:false,ownerAdminAcceptanceVerified:false});
+
+      // Only three non-submitting keyboard actions, after the genuine
+      // visitor entry was safely opened on the disposable website. This is
+      // an actual Chrome DevTools keyboard trail, not scripted DOM focus.
+      async function observeAdminKeyboard(initial){
+        const response=await send('Runtime.evaluate',{
+          expression:adminKeyboardStateProbe(),returnByValue:true
+        });
+        if(response.exceptionDetails)
+          throw Error('Original Admin keyboard observation could not run.');
+        return validateKeyboardSnapshot(response.result?.value,{initial});
+      }
+      const keyBefore=await observeAdminKeyboard(true);
+      const keyAfter=[];
+      for(const action of KEYS){
+        const props={
+          key:action.key,code:action.code,
+          windowsVirtualKeyCode:action.windowsVirtualKeyCode,
+          nativeVirtualKeyCode:action.nativeVirtualKeyCode,
+          modifiers:action.modifiers
+        };
+        // No text, Enter, Space, mouse activation or form submission.
+        await send('Input.dispatchKeyEvent',{type:'rawKeyDown',...props});
+        await send('Input.dispatchKeyEvent',{type:'keyUp',...props});
+        await delay(90);
+        keyAfter.push(await observeAdminKeyboard(false));
+      }
+      if(keyAfter.length!==3||metrics.formSubmissions!==0||
+         metrics.nonLocalResponses!==0)
+        throw Error('Private Admin keyboard inspection violated isolation.');
+      const trail=summarizeKeyboardTrail(width,keyBefore,...keyAfter);
+      adminKeyboardChecks.push(trail);
 
     }
     // Four fictional conflict examples at two screen widths, served only
@@ -582,7 +617,7 @@ async function inspectBrowser(site,work){
     assert.equal(metrics.nonLocalResponses,0,'Non-local browser responses are forbidden.');
     return {
       safeLocalBrowserCheck:true,pass:true,
-      scenarios:checks,adminGateChecks,adminSurfaceChecks,adminAccessibilityChecks,restorePreflightExamples,restoreFileChecks,restoreFolderChecks,saveReviewChecks,unifiedReviewChecks,
+      scenarios:checks,adminGateChecks,adminSurfaceChecks,adminAccessibilityChecks,adminKeyboardChecks,restorePreflightExamples,restoreFileChecks,restoreFolderChecks,saveReviewChecks,unifiedReviewChecks,
       localReadRequests:metrics.localReadRequests,
       rejectedExternalRequests:metrics.rejectedExternalRequests,
       nonLocalResponses:metrics.nonLocalResponses,
@@ -641,6 +676,7 @@ async function main(){
     assert.equal(report.browserInspection.adminGateChecks.length,2);
     assert.equal(report.browserInspection.adminSurfaceChecks.length,2);
     assert.equal(report.browserInspection.adminAccessibilityChecks.length,2);
+    assert.equal(report.browserInspection.adminKeyboardChecks.length,2);
     assert.equal(report.browserInspection.restorePreflightExamples.length,2);
     assert.equal(report.browserInspection.restoreFileChecks.length,2);
     assert.equal(report.browserInspection.restoreFolderChecks.length,2);
@@ -658,6 +694,7 @@ async function main(){
       adminGateChecks:report.browserInspection.adminGateChecks,
       adminSurfaceChecks:report.browserInspection.adminSurfaceChecks,
       adminAccessibilityChecks:report.browserInspection.adminAccessibilityChecks,
+      adminKeyboardChecks:report.browserInspection.adminKeyboardChecks,
       restorePreflightExamples:report.browserInspection.restorePreflightExamples,
       restoreFileChecks:report.browserInspection.restoreFileChecks,
       restoreFolderChecks:report.browserInspection.restoreFolderChecks,
