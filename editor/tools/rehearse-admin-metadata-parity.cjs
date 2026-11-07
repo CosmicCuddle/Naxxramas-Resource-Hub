@@ -190,8 +190,15 @@ async function reviewAdminFieldParity(checkout,zip,reviewedCommit,inspect=null){
       });
       return output;
     });
+  // The source-staging wrapper deliberately returns a NEW frozen report
+  // augmented with cleanup evidence; object identity is not preserved.
   if(result.sourceCheckoutUnchanged!==true||
-     result.temporaryPackageDeleted!==true||result!==output)
+     result.temporaryPackageDeleted!==true||
+     result.format!==FORMAT||result.resourceRecordsCompared!==414||
+     result.noResourceValuesOrIdentifiersPrinted!==true||
+     result.originalDirectDataMembersProtectedByShell!==true||
+     result.originalSeparateSideCollectionProtectedByShell!==true||
+     !output||output.format!==FORMAT)
     throw Error('Private custom-data inspection did not clean up.');
   return result;
 }
