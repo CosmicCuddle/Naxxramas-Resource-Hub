@@ -2,7 +2,7 @@
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
-const {FORMAT,MAX_RETURN_TABS,RETURN_KEYS,adminReturnSnapshot,
+const {FORMAT,MAX_RETURN_TABS,RETURN_KEYS,ROUTE_ROOT,ROUTE_PREFIX,adminReturnSnapshot,
   checkReturnSnapshot,summarizeAdminReturn}=require('../tools/private-admin-return-entry-probe.cjs');
 function sample({closed=false,focused=false,privilege=false,
   password='',insideLink=false,ancestorHandler=false,keyboardHandler=false}={}){
@@ -179,4 +179,69 @@ test('source-only router explains isolated-root exit redirect without activating
   assert.deepEqual(simulate('/Naxxramas-Resource-Hub/'),{
     redirected:null,originalCallCount:1
   });
+});
+
+
+test('canonical-prefix Admin return snapshots reject incorrect path, query and unsafe state',()=>{
+  assert.equal(ROUTE_ROOT,'/');
+  assert.equal(ROUTE_PREFIX,'/Naxxramas-Resource-Hub/');
+  for(const invalid of [
+    '/Naxxramas-Resource-Hub','/Naxxramas-Resource-Hub/other/',
+    '//Naxxramas-Resource-Hub/','/admin/','',null,42
+  ])assert.throws(()=>adminReturnSnapshot(invalid),/Unrecognised/);
+  function observe(pathname,search='',value='',privileged=false){
+    const el=(shown,attrs={})=>({
+      nodeType:1,isConnected:true,hidden:false,disabled:false,
+      tabIndex:0,form:null,parentElement:null,textContent:'',
+      getClientRects(){return shown?[{}]:[];},
+      getAttribute(name){return attrs[name]??null;},
+      hasAttribute(name){return Object.hasOwn(attrs,name);},
+      closest(){return null;}
+    });
+    const area=el(true),lock=el(true),site=el(false),
+      footer=el(false),password=el(true),editor=el(false),
+      button=el(true,{onclick:'closeAdmin()'});
+    password.type='password';password.value=value;
+    button.textContent='Back to Website';
+    lock.querySelectorAll=()=>[button];
+    const ids={adminArea:area,adminLock:lock,publicSite:site,
+      siteFooter:footer,adminPasswordInput:password};
+    const document={
+      body:{classList:{contains:()=>privileged}},
+      getElementById:id=>ids[id]||null,
+      querySelector:selector=>selector==='button.wh-pro-admin'?editor:null,
+      activeElement:password
+    };
+    return vm.runInNewContext(adminReturnSnapshot(ROUTE_PREFIX),{
+      document,window:{
+        location:{pathname,search},
+        getComputedStyle:()=>({display:'block',visibility:'visible',opacity:'1'})
+      }
+    },{timeout:1000});
+  }
+  const valid=observe(ROUTE_PREFIX);
+  assert.equal(valid.routeUnchanged,true);
+  assert.equal(checkReturnSnapshot(valid).visitorPrivilegeOff,true);
+  for(const invalid of [
+    observe('/'),observe('/Naxxramas-Resource-Hub'),
+    observe('/Naxxramas-Resource-Hub/other/'),
+    observe(ROUTE_PREFIX,'?debug=1'),observe(ROUTE_PREFIX,'','secret'),
+    observe(ROUTE_PREFIX,'','',true)
+  ])assert.throws(()=>checkReturnSnapshot(invalid),/safeguards/);
+  // The previous '/' trial remains pinned to the original synthetic route.
+  assert.equal(adminReturnSnapshot().includes('"\\/"'),true);
+});
+
+test('Chrome canonical-root rehearsal is Tab-only and cannot silently dispatch return Enter',()=>{
+  const source=fs.readFileSync(path.resolve(__dirname,
+    '../tools/browser-smoke-complete-site.cjs'),'utf8');
+  assert.match(source,/const adminPrefixedReturnChecks=\[\]/);
+  assert.match(source,/Page\.navigate',\{url:origin\+ROUTE_PREFIX\}/);
+  assert.match(source,/adminReturnSnapshot\(ROUTE_PREFIX\)/);
+  assert.match(source,/const initial=await observePrefixedReturn\(\)/);
+  assert.match(source,/adminPrefixedReturnChecks\.push\(safe\)/);
+  assert.match(source,/activationWithheldForSafety!==true/);
+  assert.match(source,/\{activated:false\}/);
+  assert.doesNotMatch(source,/const ev=RETURN_KEYS\.enter/);
+  assert.doesNotMatch(source,/returnEnterKeyDown/);
 });
