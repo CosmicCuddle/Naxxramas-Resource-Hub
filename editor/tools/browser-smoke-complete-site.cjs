@@ -499,7 +499,7 @@ async function inspectBrowser(site,work){
       let returnAfter=selectedReturn;
       if(selectedReturn.returnFocused&&returnTabs>0){
         const ev=RETURN_KEYS.enter;
-        if(ev.text!=='\\r'||ev.unmodifiedText!=='\\r')
+        if(ev.text!=='\r'||ev.unmodifiedText!=='\r')
           throw Error('Unexpected return-only Enter configuration.');
         const props={key:ev.key,code:ev.code,
           windowsVirtualKeyCode:ev.windowsVirtualKeyCode,
