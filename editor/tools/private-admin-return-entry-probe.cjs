@@ -14,6 +14,7 @@ const RETURN_KEYS=Object.freeze({
 });
 const FIELDS=Object.freeze([
   'safeReturnUnique','returnVisible','returnTabEligible','returnFocused',
+  'returnInsideLink','returnAncestorInlineHandler','returnOwnKeyboardHandler',
   'passwordPresent','passwordEmpty','passwordVisible','adminAreaVisible',
   'publicSiteVisible','footerVisible','protectedEditorHidden',
   'visitorPrivilegeOff','routeUnchanged'
@@ -41,12 +42,24 @@ function adminReturnSnapshot(){
       el.getAttribute('type')!=='submit'&&!el.closest('form')&&
       !el.form&&!el.hasAttribute('form')):[];
     const btn=matches.length===1?matches[0]:null;
+    // Read-only structure: a parent link or inline handler can potentially
+    // affect Enter. Presence is diagnostic, not proof of navigation cause.
+    let ancestorInline=false;
+    for(let p=btn&&btn.parentElement;p;p=p.parentElement){
+      if(['onclick','onkeydown','onkeyup','onkeypress'].some(k=>p.hasAttribute(k))){
+        ancestorInline=true;break;
+      }
+    }
     return {
       format:'naxx-private-admin-return-keyboard-snapshot-v1',
       safeReturnUnique:!!btn,
       returnVisible:visible(btn),
       returnTabEligible:!!btn&&btn.tabIndex>=0,
       returnFocused:!!btn&&d.activeElement===btn,
+      returnInsideLink:!!btn&&!!btn.closest('a[href],[role="link"]'),
+      returnAncestorInlineHandler:ancestorInline,
+      returnOwnKeyboardHandler:!!btn&&
+        ['onkeydown','onkeyup','onkeypress'].some(k=>btn.hasAttribute(k)),
       passwordPresent:!!password&&password.type==='password',
       passwordEmpty:!!password&&password.value==='',
       passwordVisible:visible(password),
@@ -103,6 +116,10 @@ function summarizeAdminReturn(width,start,focused,after,tabs,{activated=false}={
     boundedTabsDispatched:tabs,
     originalSafeReturnFound:a.safeReturnUnique,
     actualTabReachedReturn:b.returnFocused,
+    originalReturnInsideLink:a.returnInsideLink,
+    originalReturnAncestorInlineHandler:a.returnAncestorInlineHandler,
+    originalReturnOwnKeyboardHandler:a.returnOwnKeyboardHandler,
+    navigationCauseVerified:false,
     enterOnlyOnVettedReturn:activated&&b.returnFocused,
     returnRestoredPublicSite:activated&&b.returnFocused&&final.publicSiteVisible,
     returnHidAdminArea:activated&&b.returnFocused&&!final.adminAreaVisible,
