@@ -6,6 +6,8 @@ const {
   FORMAT,verifyBackupBinding,withBackupBoundBrowserReview
 }=require('../tools/rehearse-backup-bound-browser-review.cjs');
 const {PAGES,NAV,runs}=require('../tools/plan-page-draft.cjs');
+const {decide:decideSaveOutcome}=
+  require('../tools/review-backup-bound-save-outcome.cjs');
 const {SOURCE_SHA}=require('../tools/audit-source-storage-budget.cjs');
 const root=path.resolve(__dirname,'..','..');
 const head=cp.execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
@@ -109,6 +111,36 @@ test('actual browser ZIP + same-commit saved Git bundle + full tracked-site rest
   assert.equal(result.originalRepositoryFilesWritten,0);
   assert.equal(result.gitHubWrites,0);
   assert.equal(result.sourceValuesPrinted,false);
+  // Use a REAL successfully-restored private backup and browser ZIP report,
+  // while all possible ref updates and observations remain fictional.
+  const fictionalNext='b'.repeat(40);
+  const checksum='c'.repeat(64);
+  const shared={
+    backupEvidence:result,reviewedCommit:head,
+    proposedCommit:fictionalNext,expectedWebsiteSha256:checksum
+  };
+  const notKnown=decideSaveOutcome({...shared,responseKind:'timeout'});
+  assert.equal(notKnown.status,'unresolved-no-head');
+  assert.equal(notKnown.neverAutomaticallyRetry,true);
+  assert.equal(notKnown.originalDraftMustBeRetained,true);
+  assert.equal(notKnown.canApply,false);
+  const moved=decideSaveOutcome({
+    ...shared,observedHead:'a'.repeat(40),responseKind:'acknowledged'
+  });
+  assert.equal(moved.status,'stale-branch-refused');
+  const candidate=decideSaveOutcome({
+    ...shared,observedHead:fictionalNext,responseKind:'timeout',
+    candidateMetadata:{
+      commit:fictionalNext,sourceSha256:checksum,
+      allProposedPathsVerified:true,unchangedPathsVerified:true,
+      resourceInventoryVerified:true
+    }
+  });
+  assert.equal(candidate.status,
+    'candidate-head-and-metadata-match-needs-authentication');
+  assert.equal(candidate.reportCanProveRealSave,false);
+  assert.equal(candidate.canPublish,false);
+  assert.equal(candidate.githubWrites,0);
   assert.equal(fs.existsSync(observed),false);
   assert.equal(gitStatus(),initial);
 });
