@@ -8,6 +8,7 @@
   var core=window.NaxxResourceTitles;
   var model=null,changes=new Map(),contentChanges=new Map(),activeIndex=null,loading=false;
   var sourceLoadRevision=0;
+  var resourceDraftLoadRevision=0;
   var $=function(id){return document.getElementById(id);};
   var picker=$('resource-source-file'),draftPicker=$('resource-draft-file');
   var search=$('resource-search'),list=$('resource-choice'),title=$('resource-title-edit'),content=$('resource-content-edit');
@@ -206,14 +207,21 @@
   }
   draftPicker.addEventListener('change',async function(){
     var file=draftPicker.files&&draftPicker.files[0];
-    if(!file)return;
+    if(!file)return; // Cancelled selection does not invalidate an active read.
+    var ticket=++resourceDraftLoadRevision;
     try{
       if(file.size>16*1024*1024)
         throw Error('This resource draft is unexpectedly large.');
-      restoreResourceDraftText(await file.text());
+      var text=await file.text();
+      // Old asynchronous JSON reads must never replace a newer draft choice.
+      if(ticket!==resourceDraftLoadRevision)return;
+      restoreResourceDraftText(text);
     }catch(err){
-      notice('Resource draft rejected: '+((err&&err.message)||'Invalid draft.'),true);
-    }finally{draftPicker.value='';}
+      if(ticket===resourceDraftLoadRevision)
+        notice('Resource draft rejected: '+((err&&err.message)||'Invalid draft.'),true);
+    }finally{
+      if(ticket===resourceDraftLoadRevision)draftPicker.value='';
+    }
   });
   $('resource-clear').addEventListener('click',function(){
     if(!hasAnyEdits()&&!hasPendingInput())return;
