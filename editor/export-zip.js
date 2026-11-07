@@ -83,11 +83,28 @@
   function makeReviewZip(entries) {
     if(!Array.isArray(entries)||entries.length<3||entries.length>4)
       throw new Error('Review package needs a manifest, instructions and at least one draft.');
-    var names=entries.map(function(e){return e.path;});
+    var names=entries.map(function(e){return e&&e.path;});
     if(!names.includes('REVIEW-MANIFEST.json')||!names.includes('READ_ME_FIRST.txt')||
        (!names.includes('REVIEW-PAGE-DRAFT.json')&&!names.includes('REVIEW-RESOURCE-DRAFT.json')))
       throw new Error('Review package is incomplete.');
-    return buildZip(entries, ALLOWED_REVIEW_PATHS);
+    // The matching local reader refuses ZIPs above 20 MiB or entries above
+    // 16 MiB. Never offer a "saved" recovery archive the editor cannot reopen.
+    // This cap is REVIEW-ONLY: preserve the separate changed-files exporter.
+    var maxEntry=16*1024*1024,maxArchive=20*1024*1024,total=22;
+    entries.forEach(function(item){
+      if(!item||!safePath(item.path)||!ALLOWED_REVIEW_PATHS.has(item.path))
+        throw new Error('Unsafe private review ZIP entry.');
+      var data=bytes(item.content);
+      if(!(data instanceof Uint8Array)||data.length<1||data.length>maxEntry)
+        throw new Error('Review ZIP contains an empty or oversized recovery file. Keep your drafts.');
+      total+=76+2*enc.encode(item.path).length+data.length;
+      if(total>maxArchive)
+        throw new Error('Review ZIP exceeds the 20 MiB recovery limit. Save individual drafts instead.');
+    });
+    var archive=buildZip(entries, ALLOWED_REVIEW_PATHS);
+    if(archive.size!==total||archive.size>maxArchive)
+      throw new Error('Review ZIP byte size did not match the local recovery limit.');
+    return archive;
   }
   async function sha256(text) {
     if (!root.crypto || !root.crypto.subtle) throw new Error('This browser does not support secure SHA-256 hashing.');
