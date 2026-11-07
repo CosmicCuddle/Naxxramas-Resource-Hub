@@ -16,12 +16,12 @@ function sample({closed=false,focused=false,privilege=false,
     routeUnchanged:true
   };
 }
-test('Tab-reached original Back to Website restores the public view safely',()=>{
+test('synthetic positive close result requires explicit activation (not a browser action)',()=>{
   for(const width of [390,1440]){
     const a=sample(),b=sample({focused:true}),c=sample({closed:true});
     assert.equal(checkReturnSnapshot(a).passwordEmpty,true);
     assert.equal(checkReturnSnapshot(c,{closed:true}).publicSiteVisible,true);
-    const t=summarizeAdminReturn(width,a,b,c,2);
+    const t=summarizeAdminReturn(width,a,b,c,2,{activated:true});
     assert.equal(t.actualTabReachedReturn,true);
     assert.equal(t.enterOnlyOnVettedReturn,true);
     assert.equal(t.returnRestoredPublicSite,true);
@@ -34,6 +34,7 @@ test('Tab-reached original Back to Website restores the public view safely',()=>
 test('no Enter when Tab could not reach return button',()=>{
   const a=sample();
   const t=summarizeAdminReturn(390,a,a,a,MAX_RETURN_TABS);
+  assert.equal(t.activationWithheldForSafety,true);
   assert.equal(t.actualTabReachedReturn,false);
   assert.equal(t.enterOnlyOnVettedReturn,false);
   assert.equal(t.returnRestoredPublicSite,false);
@@ -46,15 +47,14 @@ test('unsafe forged visitor state and failed closure are refused',()=>{
     {...a,returnVisible:false},{...a,returnTabEligible:false},
     {...a,routeUnchanged:false},{...a,extra:'untrusted'}
   ])assert.throws(()=>checkReturnSnapshot(item),/safeguards|safe open-panel/);
-  assert.throws(()=>summarizeAdminReturn(390,a,b,a,2),/restore/);
+  assert.throws(()=>summarizeAdminReturn(390,a,b,a,2,{activated:true}),/restore/);
   assert.throws(()=>summarizeAdminReturn(390,a,b,sample({closed:true}),0),/Tab reached/);
 });
-test('only Tab and exact safe Enter are available; no password input',()=>{
+test('only Tab is available for the return probe; no password input',()=>{
   assert.equal(MAX_RETURN_TABS,16);
-  assert.deepEqual(Object.keys(RETURN_KEYS),['tab','enter']);
+  assert.deepEqual(Object.keys(RETURN_KEYS),['tab']);
   assert.equal(RETURN_KEYS.tab.windowsVirtualKeyCode,9);
-  assert.equal(RETURN_KEYS.enter.windowsVirtualKeyCode,13);
-  assert.equal(RETURN_KEYS.enter.text,'\r');
+  assert.equal(Object.hasOwn(RETURN_KEYS,'enter'),false);
   const src=fs.readFileSync(path.resolve(__dirname,
     '../tools/private-admin-return-entry-probe.cjs'),'utf8');
   for(const forbidden of ['fetch(', 'XMLHttpRequest','sendBeacon(','.click(',
@@ -115,4 +115,7 @@ test('Chrome harness uses real Tab but withholds unsafe return Enter',()=>{
   assert.equal(paused.enterOnlyOnVettedReturn,false);
   assert.equal(paused.returnRestoredPublicSite,false);
   assert.equal(paused.activationWithheldForSafety,true);
+  const defaultPaused=summarizeAdminReturn(1440,a,b,b,2);
+  assert.equal(defaultPaused.activationWithheldForSafety,true);
+  assert.equal(defaultPaused.enterOnlyOnVettedReturn,false);
 });
