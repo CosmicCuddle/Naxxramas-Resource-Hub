@@ -104,3 +104,14 @@ The new `editor/tests/private-admin-return-browser-probe.test.cjs` test reads th
 - The existing original published mouse and keyboard return both worked in CosmicCuddle's manual checks. Those successful reports should **not** be invalidated by the synthetic-root Chrome mismatch.
 - Any new harness code should be confined to protected \`editor/\` QA scripts/tests and the related documentation, with focused negative tests for wrong route, missing original controls, nonempty password, unexpected admin privilege and failed/nonlocal requests. Run exact-head GitHub Actions before treating it as verified.
 - This route correction is **not** approval for a real login, authenticated original Admin editing/Save, choosing resource layout 415 vs 418, GitHub API writes, a permanent recovery backup, PR merge or production deployment. Stage 6 of 9 and Stage 7 are still incomplete.
+
+
+## Part 12 follow-on — protected canonical-path Tab-only implementation
+
+**New development-only implementation, not yet an accepted Chrome result.** The separate protected Chrome scenario now visits the exact local \`/Naxxramas-Resource-Hub/\` path (served from the same verified private snapshot) on desktop 1440px and mobile 390px. It checks the original site is loaded, opens only the already vetted **visitor-only** Admin entry without credentials, and performs real **Tab-only** discovery of the unique original Back to Website control. The old synthetic-root \`/\` trial remains unchanged.
+
+The return observer now has a **two-value, exact expected-path allowlist**: \`/\` for the existing older synthetic-root test, or \`/Naxxramas-Resource-Hub/\` for this new independent scenario. Both reject any query string and require empty password, hidden original protected editing controls, visitor privileges OFF, and an unambiguous non-form return control. Arbitrary paths are refused; the Chrome harness also checks no form submissions and no nonlocal HTTP responses. Source-only negative tests cover wrong paths, queries, unexpected privileges, nonempty passwords and accidental return Enter activation.
+
+**Safety boundary:** The new scenario cannot claim the Back to Website Enter action works: its real-browser return key inventory remains **Tab only**, and the summary must report \`activationWithheldForSafety: true\`. The original published mouse and keyboard return had already passed the owner's manual checks. Automated return Enter, authenticated Save, 415-versus-418 layout, permanent backup, GitHub writer, merge and release are all still separate owner review gates.
+
+**Verification status:** These are source changes on the protected draft PR; do **not** claim the latest exact-head Chrome/CI results passed until the completed workflows are inspected. Original website \`index.html\`, \`site-content.html\`, admin UI, assets, 414 resources, live site and server remain untouched.
