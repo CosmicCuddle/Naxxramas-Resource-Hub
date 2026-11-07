@@ -10,6 +10,7 @@
 | --- | --- | --- |
 | Original visitor-facing Admin entry | Existing no-login private browser probes detect/open the visible Admin password panel at 1440px and 390px while leaving privileges off | **Private browser check passed** |
 | Existing hidden editing control | Structure present; no force-click permitted | **Structure verified only** |
+| Desktop/mobile passive keyboard and layout diagnostics | A new no-login probe checks label presence, Tab eligibility, currently focused element, password field viewport fit, dialog semantics, close-control focusability and horizontal overflow at 1440px and 390px; it does **not** dispatch Tab/Escape or claim WCAG compliance | **New private Chrome check, not administrator acceptance** |
 | Password panel label/focus/modal metadata | Read-only browser probe reports booleans for accessible label, focusability, focus on open, dialog and ARIA modal membership | **Diagnostics available; acceptance not granted** |
 | All original resource objects | 414 records with unique decoded identifiers and a lexical audit of every property | **Baseline verified** |
 | Original class and section associations | 7 original sections, 41 distinct decoded class tokens and 393 class-token occurrences; associations are not flattened | **Baseline verified** |
@@ -20,6 +21,12 @@
 | Root loader, pages, navigation and external assets | Complete-site snapshot and Git identity checks preserve every unchanged tracked file and protected route | **Private source tests passed** |
 
 The new private metadata test does **not** evaluate original JavaScript or print values, IDs, links, images, administrator data or edited text. It rejects deleted/reordered keys, duplicate or unparseable fields, changed IDs/class associations, changes to unknown custom metadata, extra content modifications and changes to untouched records. Its candidate source tree is deleted after review.
+
+## Passive keyboard and mobile audit — precise limits
+
+The new `editor/tools/private-admin-a11y-browser-probe.cjs` runs **after** the already-approved no-login visitor entry has exposed the password field on an outbound-blocked, disposable browser copy. It returns only bounded numbers and Boolean observations. It never clicks, tabs, focuses, reads a password value beyond checking that the field is empty, submits a form or authenticates.
+
+Diagnostics include: programmatic label; Tab eligibility from `tabIndex`; existing focus; field fit in the current viewport; 44-CSS-pixel field size; visible close controls; dialog/ARIA semantics; page horizontal overflow and hidden protected editing controls. An accessibility concern is **reported**, not silently repaired or automatically accepted. True keyboard-only Tab traversal, Escape dismissal, focus return, screen-reader experience and genuine authorised editing are **still pending**.
 
 ## What still needs genuine administrator acceptance
 

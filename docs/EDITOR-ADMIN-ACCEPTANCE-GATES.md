@@ -18,6 +18,12 @@ This checklist protects the existing Naxxramas Resource Hub's administrator inte
 
 The confirmed no-login checks come from the dedicated [editor prototype Chrome run](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42261782068) on the original, disposable site snapshot. The exact full editor suite for subsequent changes must still be checked. The page is opened privately on a loopback-only local server with remote requests blocked.
 
+## Parallel no-login keyboard and mobile diagnostics
+
+The new passive Admin accessibility probe measures the original opened password panel at desktop (1440px) and mobile (390px) widths inside the existing disposable Chrome test. It reports only presence, focus, accessible-label and layout flags; no text, credential or identifier values are exported. Protected editing controls must remain hidden and visitor privileges must remain off. A failed accessibility diagnostic **does not silently change the website or claim the login is inaccessible**; it becomes an acceptance question for CosmicCuddle. Full Tab/Escape/screen-reader behaviour and original authenticated editing remain **untested**.
+
+See [the original Admin feature preservation matrix](EDITOR-ADMIN-FEATURE-PRESERVATION-MATRIX.md).
+
 ## Additional Stage 7 preparation — exact resource-field preservation
 
 A proposed **read-only, no-login** test now compares every original resource object with the version staged by an actual browser-generated editing ZIP. Only title/content string literal bytes named in that ZIP may change. All original property keys, order, IDs, class/section associations and unknown custom fields must remain byte-for-byte identical, with the complete non-resource DATA shell preserved. The test deliberately damages protected properties and must reject those changes. It is **not** authenticated administrator acceptance. See [the owner-facing administrator preservation matrix](EDITOR-ADMIN-FEATURE-PRESERVATION-MATRIX.md).

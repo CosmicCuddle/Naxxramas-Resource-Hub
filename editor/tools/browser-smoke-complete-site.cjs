@@ -19,6 +19,7 @@ const {rehearseCompleteSnapshot}=require('./rehearse-complete-site-snapshot.cjs'
 const {layoutProbe}=require('./private-site-layout-probes.cjs');
 const {adminGateBrowserProbe}=require('./private-admin-gate-browser-probe.cjs');
 const {adminSurfaceBrowserProbe}=require('./private-admin-surface-browser-probe.cjs');
+const {adminAccessibilityBrowserProbe}=require('./private-admin-a11y-browser-probe.cjs');
 const {restoreBrowserProbe}=require('./private-restore-browser-probe.cjs');
 const {fileReviewBrowserProbe}=require('./private-restore-file-browser-probe.cjs');
 const {folderBrowserProbe}=require('./private-restore-folder-browser-probe.cjs');
@@ -317,6 +318,7 @@ async function inspectBrowser(site,work){
     // No passwords, login submission or real website writes are attempted.
     const adminGateChecks=[];
     const adminSurfaceChecks=[];
+    const adminAccessibilityChecks=[];
     for(const width of [1440,390]){
       await send('Emulation.setDeviceMetricsOverride',{
         width,height:900,deviceScaleFactor:1,mobile:width<500
@@ -395,6 +397,38 @@ async function inspectBrowser(site,work){
         inlineScriptsMentioningPassword:info.inlineScriptsMentioningPassword,
         inlineScriptsMentioningEditorControl:info.inlineScriptsMentioningEditorControl,
         actualAdminEditingVerified:false});
+      // Passive keyboard and small-screen diagnostics. This probe does not
+      // click, focus, type, submit, send keys or exercise credentials.
+      const a11y=await send('Runtime.evaluate',{
+        expression:adminAccessibilityBrowserProbe(),returnByValue:true
+      });
+      if(a11y.exceptionDetails)
+        throw Error('Passive original Admin accessibility probe crashed.');
+      const report=a11y.result?.value;
+      if(!report||report.format!=='naxx-private-admin-a11y-diagnostics-v1'||
+         report.viewportClass!==(width<500?'mobile':'desktop')||
+         report.structuralSafety!==true||
+         !report.diagnostics||
+         Object.keys(report.diagnostics).length!==15||
+         Object.values(report.diagnostics).some(v=>typeof v!=='boolean')||
+         !Number.isSafeInteger(report.visibleTabStopsNearPassword)||
+         report.visibleTabStopsNearPassword<0||
+         report.visibleTabStopsNearPassword>300||
+         !Number.isSafeInteger(report.visibleCloseControls)||
+         report.visibleCloseControls<0||report.visibleCloseControls>300||
+         ['keyboardNavigationActuallyDispatched',
+          'escapeDismissalActuallyTested',
+          'completeWCAGConformanceVerified','ownerAdminAcceptanceVerified',
+          'loginAttempted','credentialsCollected','formSubmitted',
+          'domModified','externalRequestsMade','publicationApproved']
+            .some(name=>report[name]!==false))
+        throw Error('Original Admin accessibility inventory violated safety bounds.');
+      adminAccessibilityChecks.push({width,
+        diagnostics:report.diagnostics,
+        visibleTabStopsNearPassword:report.visibleTabStopsNearPassword,
+        visibleCloseControls:report.visibleCloseControls,
+        actualKeyboardTestPerformed:false,
+        completeWCAGConformanceVerified:false,ownerAdminAcceptanceVerified:false});
 
     }
     // Four fictional conflict examples at two screen widths, served only
@@ -548,7 +582,7 @@ async function inspectBrowser(site,work){
     assert.equal(metrics.nonLocalResponses,0,'Non-local browser responses are forbidden.');
     return {
       safeLocalBrowserCheck:true,pass:true,
-      scenarios:checks,adminGateChecks,adminSurfaceChecks,restorePreflightExamples,restoreFileChecks,restoreFolderChecks,saveReviewChecks,unifiedReviewChecks,
+      scenarios:checks,adminGateChecks,adminSurfaceChecks,adminAccessibilityChecks,restorePreflightExamples,restoreFileChecks,restoreFolderChecks,saveReviewChecks,unifiedReviewChecks,
       localReadRequests:metrics.localReadRequests,
       rejectedExternalRequests:metrics.rejectedExternalRequests,
       nonLocalResponses:metrics.nonLocalResponses,
@@ -606,6 +640,7 @@ async function main(){
     assert.equal(report.browserInspection.scenarios.length,10);
     assert.equal(report.browserInspection.adminGateChecks.length,2);
     assert.equal(report.browserInspection.adminSurfaceChecks.length,2);
+    assert.equal(report.browserInspection.adminAccessibilityChecks.length,2);
     assert.equal(report.browserInspection.restorePreflightExamples.length,2);
     assert.equal(report.browserInspection.restoreFileChecks.length,2);
     assert.equal(report.browserInspection.restoreFolderChecks.length,2);
@@ -622,6 +657,7 @@ async function main(){
       tests:report.browserInspection.scenarios,
       adminGateChecks:report.browserInspection.adminGateChecks,
       adminSurfaceChecks:report.browserInspection.adminSurfaceChecks,
+      adminAccessibilityChecks:report.browserInspection.adminAccessibilityChecks,
       restorePreflightExamples:report.browserInspection.restorePreflightExamples,
       restoreFileChecks:report.browserInspection.restoreFileChecks,
       restoreFolderChecks:report.browserInspection.restoreFolderChecks,
