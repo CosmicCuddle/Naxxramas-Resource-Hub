@@ -364,3 +364,20 @@ test('valid replacement of existing resource edits requires explicit late consen
   assert.equal(get('resource-title-edit').value,'Replacement 0');
   assert.match(get('resource-count').textContent,/0 title edits and 0 content edits/);
 });
+
+test('empty file-picker event cannot leave in-progress source verification disabled',async()=>{
+  const h=harness(),picker=h.nodes.get('resource-source-file');
+  let finish;
+  picker.files=[{name:'site-content.html',size:engine.BASE_LENGTH,
+    text:()=>new Promise(resolve=>{finish=resolve;})}];
+  const reading=picker.listeners.change();
+  assert.equal(picker.disabled,true);
+  picker.files=[]; // Represents a cancelled or cleared picker event.
+  await picker.listeners.change();
+  finish('<verified original source>');
+  await reading;
+  assert.equal(picker.disabled,false);
+  assert.equal(h.nodes.get('resource-controls').hidden,false);
+  assert.equal(h.nodes.get('resource-choice').children.length,414);
+  assert.match(h.nodes.get('resource-status').textContent,/Original website verified/);
+});
