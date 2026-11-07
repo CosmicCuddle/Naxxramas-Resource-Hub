@@ -58,3 +58,14 @@ The review ZIP save and recovery reader now validate the **same three original n
 A malformed navigation document is rejected **before a review ZIP is offered**, and the reader independently rejects forged ZIPs carrying modified navigation despite regenerated matching CRC-32 and SHA-256 metadata. Tests use the original content/navigation.json fixture for valid archives, and specifically try missing records, route substitutions, unknown fields, unsafe icons, invalid lengths and embedded control characters. Failed save/recovery leaves previously edited in-memory drafts intact.
 
 **Limits:** An internally consistent ZIP can still originate from untrusted input. Exact source-hash matching, original token/link validation, overwrite confirmation, 414-resource preservation and independent backup remain separate gates. No original webpage, Admin control, resource data, production writer, public asset or source layout is altered. Treat these new changes as pending until exact-head CI passes.
+
+
+### Local page source refresh — most recent folder wins (Part 12)
+
+The **four-page plus navigation source-folder picker** in the development editor is now staged before committing: it reads and validates all five selected files into temporary memory, then changes the active source only if that folder is still the most recently selected one. An older asynchronous read or old failed selection cannot overwrite a newer loaded folder or its success/error message.
+
+If there are **unsaved page or navigation edits at the moment replacement becomes possible**, the editor now requests consent **after reading and validation**, immediately before changing the active source. This also catches new edits made while a large folder is being read. Cancelling keeps the original source and all in-memory edits; an invalid folder also keeps them. No original website files, review ZIPs, Git commits or resource titles are automatically written.
+
+Dedicated tests exercise overlapping folder reads, edits made mid-import, refusal/approval and old-load errors after a newer successful selection. Focused isolated runtime checks for the first three scenarios passed before CI. This guard does **not** replace the source SHA-256 checks performed when a saved draft is restored; it is a separate anti-data-loss safeguard around **source folder selection**.
+
+**Status:** Development-only on protected draft PR #56; the full exact-head CI checks must pass before the change is considered verified. No real website Admin Save or publish action was performed.
