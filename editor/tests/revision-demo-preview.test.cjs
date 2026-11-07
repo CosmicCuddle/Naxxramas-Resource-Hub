@@ -127,6 +127,8 @@ test('fictional UI can hold draft, refuse stale revision, and keep it for compar
   assert.match(h.el('held-summary').textContent,/Version 1/);
   assert.equal(h.el('check-draft').disabled,false);
   h.el('revision-two').click();
+  assert.equal(h.confirms,0,
+    'already reviewed text is held safely and must not ask to discard it');
   h.el('check-draft').click();
   assert.match(h.el('demo-status').textContent,/Older draft refused/);
   assert.equal(h.el('demo-status').dataset.kind,'stale');
@@ -161,5 +163,24 @@ test('invalid example input is reported without corrupting a held draft',async()
   h.el('edit-title').value='BAD';
   await h.el('prepare-draft').click();
   assert.match(h.el('demo-status').textContent,/Invalid title/);
+  assert.match(h.el('held-summary').textContent,/Version 1/);
+});
+
+test('new typing after holding a reviewed example requires consent before changing version',async()=>{
+  const h=interfaceHarness();await tick();
+  h.el('edit-title').value='Reviewed title';
+  await h.el('prepare-draft').click();
+  assert.match(h.el('held-summary').textContent,/Version 1/);
+  h.el('edit-title').value='Changed again since review';
+  h.el('edit-title').handlers.input();
+  h.el('revision-two').click();
+  assert.equal(h.confirms,1);
+  assert.match(h.el('revision-label').textContent,/Version 1/);
+  assert.equal(h.el('edit-title').value,'Changed again since review');
+  assert.match(h.el('held-summary').textContent,/Version 1/);
+  h.chooseApproval(true);
+  h.el('revision-two').click();
+  assert.equal(h.confirms,2);
+  assert.match(h.el('revision-label').textContent,/Version 2/);
   assert.match(h.el('held-summary').textContent,/Version 1/);
 });
