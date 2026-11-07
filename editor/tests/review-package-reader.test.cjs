@@ -140,3 +140,21 @@ test('browser editor exposes read-only ZIP recovery with no direct source import
       assert.equal(item.includes(forbidden),false,forbidden);
   }
 });
+
+test('a forged but correctly checksummed malformed page edit is not a verified restorable draft',async()=>{
+  const files=unpackLocal(await bytes());
+  const pageFile=files.find(f=>f.path===P);
+  const page=JSON.parse(pageFile.content);
+  page.files[0].edits={'T:100':{unexpected:'non-string value'}};
+  pageFile.content=JSON.stringify(page)+'\\n';
+  const manifestFile=files.find(f=>f.path===M);
+  const manifest=JSON.parse(manifestFile.content);
+  const expected=manifest.payloads.find(x=>x.path===P);
+  expected.sha256=await writer.sha256(pageFile.content);
+  expected.utf8Bytes=new TextEncoder().encode(pageFile.content).byteLength;
+  manifestFile.content=JSON.stringify(manifest)+'\\n';
+  const forged=await fromFiles(files);
+  // All ZIP CRCs and declared SHA-256 bytes now agree, but the payload
+  // still violates the source-checked editor's basic type contract.
+  await assert.rejects(reader.inspect(forged,writer,review),/unsafe or corrupted/);
+});
