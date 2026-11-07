@@ -135,5 +135,49 @@ function summarizeAdminReturn(width,start,focused,after,tabs,{activated=false}={
     ownerApprovedForProduction:false
   });
 }
+
+/*
+ * OWNER-REVIEW PREFLIGHT ONLY. Never sends Enter or any other input.
+ * The harness supplies a real Tab-reached original-button snapshot from
+ * the exact canonical public prefix and verified isolated Chrome counts.
+ * A passing preflight does NOT authorise or perform a keyboard activation.
+ */
+function reviewReturnEnterPreflight(width,start,focused,tabs,environment){
+  const required=['expectedPath','formSubmissions','nonLocalResponses',
+    'mainFrameNavigations'];
+  if(!environment||typeof environment!=='object'||
+     Array.isArray(environment)||
+     Object.keys(environment).length!==required.length||
+     required.some(k=>!Object.hasOwn(environment,k))||
+     environment.expectedPath!==ROUTE_PREFIX||
+     ['formSubmissions','nonLocalResponses','mainFrameNavigations']
+       .some(k=>!Number.isSafeInteger(environment[k])||environment[k]!==0))
+    throw Error('Return Enter preflight refused noncanonical route or unsafe browser traffic.');
+  const trail=summarizeAdminReturn(width,start,focused,focused,tabs,
+    {activated:false});
+  if(!trail.actualTabReachedReturn||tabs<1||
+     !trail.activationWithheldForSafety||
+     !trail.noPasswordEntered||
+     !trail.visitorPrivilegeNeverEnabled)
+    throw Error('Return Enter preflight requires a real safe Tab-discovered original exit.');
+  // No ancestor link or extra keyboard/click handler may hijack Enter.
+  if([start,focused].some(s=>
+    s.returnInsideLink||s.returnAncestorInlineHandler||
+    s.returnOwnKeyboardHandler))
+    throw Error('Return Enter preflight refused competing navigation handlers.');
+  return Object.freeze({
+    format:'naxx-private-admin-return-enter-preflight-v1',
+    width,tabPresses:tabs,canonicalPublishedPathVerified:true,
+    originalButtonTabFocused:true,competingHandlersAbsent:true,
+    passwordAndVisitorPrivilegeSafe:true,
+    formAndExternalResponsesAbsent:true,
+    unexpectedMainFrameNavigationAbsent:true,
+    safeForSeparateOwnerReview:true,
+    realReturnEnterDispatched:false,
+    originalAdminSaveTested:false,
+    ownerActivationApproved:false,
+    productionApprovalGranted:false
+  });
+}
 module.exports={FORMAT,MAX_RETURN_TABS,RETURN_KEYS,ROUTE_ROOT,ROUTE_PREFIX,adminReturnSnapshot,
-  checkReturnSnapshot,summarizeAdminReturn};
+  checkReturnSnapshot,summarizeAdminReturn,reviewReturnEnterPreflight};
