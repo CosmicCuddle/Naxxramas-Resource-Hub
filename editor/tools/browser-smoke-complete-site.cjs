@@ -26,7 +26,7 @@ const {KEYS:ENTRY_KEYS,MAX_TABS,adminKeyboardEntrySnapshot,
   check:checkKeyboardEntry,summarize:summarizeKeyboardEntry}=
   require('./private-admin-keyboard-entry-probe.cjs');
 const {MAX_RETURN_TABS,RETURN_KEYS,ROUTE_PREFIX,adminReturnSnapshot,
-  checkReturnSnapshot,summarizeAdminReturn}=
+  checkReturnSnapshot,summarizeAdminReturn,reviewReturnEnterPreflight}=
   require('./private-admin-return-entry-probe.cjs');
 const {restoreBrowserProbe}=require('./private-restore-browser-probe.cjs');
 const {fileReviewBrowserProbe}=require('./private-restore-file-browser-probe.cjs');
@@ -205,7 +205,7 @@ async function inspectBrowser(site,work){
         socket.send(JSON.stringify({id,method,params}));
       });
     }
-    let eventError=null;
+    let eventError=null,mainFrameNavigations=0;
     socket.addEventListener('message',e=>{
       let x;try{x=JSON.parse(e.data);}catch(_){return;}
       if(x.id&&pending.has(x.id)){
@@ -215,6 +215,8 @@ async function inspectBrowser(site,work){
         else wait.resolve(x.result);
         return;
       }
+      if(x.method==='Page.frameNavigated'&&!x.params?.frame?.parentId)
+        mainFrameNavigations++;
       if(x.method==='Network.responseReceived'){
         // data:/blob:/about: are self-contained browser resources, not
         // network responses. Count any real HTTP(S) reply from another
@@ -330,6 +332,7 @@ async function inspectBrowser(site,work){
     const adminKeyboardChecks=[];
     const adminReturnChecks=[];
     const adminPrefixedReturnChecks=[];
+    const adminReturnEnterPreflightChecks=[];
     for(const width of [1440,390]){
       await send('Emulation.setDeviceMetricsOverride',{
         width,height:900,deviceScaleFactor:1,mobile:width<500
@@ -546,6 +549,7 @@ async function inspectBrowser(site,work){
         return checkReturnSnapshot(result.result?.value);
       }
       const initial=await observePrefixedReturn();
+      const initialMainFrameNavigations=mainFrameNavigations;
       let focused=initial,tabs=0;
       while(!focused.returnFocused&&tabs<MAX_RETURN_TABS){
         const ev=RETURN_KEYS.tab;
@@ -570,6 +574,21 @@ async function inspectBrowser(site,work){
          safe.visitorPrivilegeNeverEnabled!==true)
         throw Error('Canonical-prefix Admin return produced an unsafe trail.');
       adminPrefixedReturnChecks.push(safe);
+      // Strict passive preflight for a *future, separately authorised*
+      // Enter activation. This only checks the real Tab trail and traffic;
+      // no Enter key or original Admin editing action is dispatched.
+      const preflight=reviewReturnEnterPreflight(width,initial,focused,tabs,{
+        expectedPath:ROUTE_PREFIX,
+        formSubmissions:metrics.formSubmissions,
+        nonLocalResponses:metrics.nonLocalResponses,
+        mainFrameNavigations:mainFrameNavigations-initialMainFrameNavigations
+      });
+      if(preflight.safeForSeparateOwnerReview!==true||
+         preflight.realReturnEnterDispatched!==false||
+         preflight.ownerActivationApproved!==false||
+         preflight.productionApprovalGranted!==false)
+        throw Error('Original return Enter preflight produced an unsafe approval state.');
+      adminReturnEnterPreflightChecks.push(preflight);
     }
     // A SECOND, independent trial starts with the original login CLOSED,
     // reloading the disposable home page before any key is sent. Only Tab
@@ -808,7 +827,7 @@ async function inspectBrowser(site,work){
     assert.equal(metrics.nonLocalResponses,0,'Non-local browser responses are forbidden.');
     return {
       safeLocalBrowserCheck:true,pass:true,
-      scenarios:checks,adminGateChecks,adminSurfaceChecks,adminAccessibilityChecks,adminKeyboardChecks,adminReturnChecks,adminPrefixedReturnChecks,adminKeyboardEntryChecks,restorePreflightExamples,restoreFileChecks,restoreFolderChecks,saveReviewChecks,unifiedReviewChecks,
+      scenarios:checks,adminGateChecks,adminSurfaceChecks,adminAccessibilityChecks,adminKeyboardChecks,adminReturnChecks,adminPrefixedReturnChecks,adminReturnEnterPreflightChecks,adminKeyboardEntryChecks,restorePreflightExamples,restoreFileChecks,restoreFolderChecks,saveReviewChecks,unifiedReviewChecks,
       localReadRequests:metrics.localReadRequests,
       rejectedExternalRequests:metrics.rejectedExternalRequests,
       nonLocalResponses:metrics.nonLocalResponses,
@@ -869,6 +888,8 @@ async function main(){
     assert.equal(report.browserInspection.adminAccessibilityChecks.length,2);
     assert.equal(report.browserInspection.adminKeyboardChecks.length,2);
     assert.equal(report.browserInspection.adminReturnChecks.length,2);
+    assert.equal(report.browserInspection.adminPrefixedReturnChecks.length,2);
+    assert.equal(report.browserInspection.adminReturnEnterPreflightChecks.length,2);
     assert.equal(report.browserInspection.adminKeyboardEntryChecks.length,2);
     assert.equal(report.browserInspection.restorePreflightExamples.length,2);
     assert.equal(report.browserInspection.restoreFileChecks.length,2);
@@ -889,6 +910,8 @@ async function main(){
       adminAccessibilityChecks:report.browserInspection.adminAccessibilityChecks,
       adminKeyboardChecks:report.browserInspection.adminKeyboardChecks,
       adminReturnChecks:report.browserInspection.adminReturnChecks,
+      adminPrefixedReturnChecks:report.browserInspection.adminPrefixedReturnChecks,
+      adminReturnEnterPreflightChecks:report.browserInspection.adminReturnEnterPreflightChecks,
       adminKeyboardEntryChecks:report.browserInspection.adminKeyboardEntryChecks,
       restorePreflightExamples:report.browserInspection.restorePreflightExamples,
       restoreFileChecks:report.browserInspection.restoreFileChecks,
