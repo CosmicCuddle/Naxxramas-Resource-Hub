@@ -64,11 +64,14 @@ function adminReturnSnapshot(){
 function checkReturnSnapshot(value,{closed=false}={}){
   if(!value||typeof value!=='object'||Array.isArray(value)||
      value.format!==FORMAT||Object.keys(value).length!==FIELDS.length+1||
-     FIELDS.some(k=>typeof value[k]!=='boolean')||
-     value.passwordPresent!==true||value.passwordEmpty!==true||
-     value.protectedEditorHidden!==true||
-     value.visitorPrivilegeOff!==true||value.routeUnchanged!==true)
-    throw Error('Original Admin return snapshot violates isolation safeguards.');
+     FIELDS.some(k=>typeof value[k]!=='boolean'))
+    throw Error('Original Admin return snapshot violates isolation safeguards: shape.');
+  const required=['passwordPresent','passwordEmpty','protectedEditorHidden',
+    'visitorPrivilegeOff','routeUnchanged'];
+  const failed=required.filter(k=>value[k]!==true);
+  if(failed.length)
+    throw Error('Original Admin return snapshot violates isolation safeguards: '+
+      failed.join(','));
   if(closed){
     if(value.adminAreaVisible||value.passwordVisible||
        !value.publicSiteVisible||!value.footerVisible)
