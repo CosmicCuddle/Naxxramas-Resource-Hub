@@ -97,7 +97,11 @@
       announce('Fictional resource '+(currentIndex+1)+' selected.','info');
     }
   });
-  function markTyped(){revisionTicket++;}
+  function markTyped(){
+    revisionTicket++;
+    if(busy)
+      announce('Example text changed during checking. Review your latest text again.','info');
+  }
   title.addEventListener('input',markTyped);
   content.addEventListener('input',markTyped);
   review.addEventListener('click',async function(){
@@ -112,7 +116,8 @@
       var draft=await core.prepare(chosen,window.crypto,index,
         requestedTitle,requestedContent);
       if(ticket!==revisionTicket){
-        announce('The example changed while being checked. Nothing was replaced; review your latest text again.','info');
+        // Newer typing, a version switch or Clear owns the current status.
+        // A late review must not replace either the draft or its message.
         return;
       }
       // A previously reviewed local example must never disappear silently.
@@ -144,6 +149,8 @@
   });
   clear.addEventListener('click',function(){
     if(!heldDraft)return;
+    // Clear also invalidates a review already awaiting its source hashes.
+    revisionTicket++;
     heldDraft=null;
     reviewedValues=null;
     summary.textContent='No fictional draft is held.';
