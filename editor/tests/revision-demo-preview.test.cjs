@@ -204,3 +204,64 @@ test('second prepared example cannot silently overwrite the first held draft',as
   h.el('revision-two').click();
   assert.match(h.el('held-summary').textContent,/Version 1/);
 });
+
+test('clearing held fictional draft during slow verification cannot resurrect it',async()=>{
+  const h=interfaceHarness();await tick();
+  h.el('edit-title').value='Original held example';
+  await h.el('prepare-draft').click();
+  assert.match(h.el('held-summary').textContent,/Version 1/);
+  let finish;
+  h.window.NaxxRevisionDemo.prepare=()=>new Promise(resolve=>{finish=resolve;});
+  h.el('edit-title').value='New attempt awaiting SHA verification';
+  h.el('edit-title').handlers.input();
+  const pending=h.el('prepare-draft').click();
+  assert.equal(h.el('prepare-draft').disabled,true);
+  h.el('clear-draft').click();
+  const message=h.el('demo-status').textContent;
+  assert.match(message,/cleared from memory/);
+  assert.match(h.el('held-summary').textContent,/No fictional draft/);
+  finish({format:'naxx-private-versioned-resource-draft-v1',
+    revision:1,sourceSha256:'a'.repeat(64),changes:[{
+      index:0,title:'Attempt after Clear',content:'Not trusted'}]});
+  await pending;
+  assert.match(h.el('held-summary').textContent,/No fictional draft/);
+  assert.equal(h.el('check-draft').disabled,true);
+  assert.equal(h.el('demo-status').textContent,message);
+  assert.equal(h.confirms,0);
+});
+test('switching fictional versions during SHA verification ignores old review and old status',async()=>{
+  const h=interfaceHarness();await tick();
+  let finish;
+  h.window.NaxxRevisionDemo.prepare=()=>new Promise(resolve=>{finish=resolve;});
+  h.el('edit-title').value='Potentially stale example';
+  h.el('edit-title').handlers.input();
+  const pending=h.el('prepare-draft').click();
+  h.chooseApproval(true);
+  h.el('revision-two').click();
+  const message=h.el('demo-status').textContent;
+  assert.match(h.el('revision-label').textContent,/Version 2/);
+  assert.match(message,/Version 2 displayed/);
+  finish({format:'naxx-private-versioned-resource-draft-v1',
+    revision:1,sourceSha256:'a'.repeat(64),changes:[{index:0,title:'Old pending'}]});
+  await pending;
+  assert.equal(h.el('demo-status').textContent,message);
+  assert.match(h.el('held-summary').textContent,/No fictional draft/);
+  assert.equal(h.el('check-draft').disabled,true);
+});
+test('typing during fictional verification invalidates old review without status rollback',async()=>{
+  const h=interfaceHarness();await tick();
+  let finish;
+  h.window.NaxxRevisionDemo.prepare=()=>new Promise(resolve=>{finish=resolve;});
+  h.el('edit-title').value='Original request';
+  const pending=h.el('prepare-draft').click();
+  h.el('edit-title').value='New typing after review started';
+  h.el('edit-title').handlers.input();
+  const message=h.el('demo-status').textContent;
+  assert.match(message,/text changed during checking/);
+  finish({format:'naxx-private-versioned-resource-draft-v1',
+    revision:1,sourceSha256:'a'.repeat(64),changes:[{index:0,title:'Old request'}]});
+  await pending;
+  assert.equal(h.el('demo-status').textContent,message);
+  assert.equal(h.el('edit-title').value,'New typing after review started');
+  assert.match(h.el('held-summary').textContent,/No fictional draft/);
+});
