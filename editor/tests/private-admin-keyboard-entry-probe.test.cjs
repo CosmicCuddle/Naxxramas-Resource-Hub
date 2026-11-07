@@ -7,7 +7,7 @@ const {
 function fixture({focus='none',open=false,ambiguous=false,
   editorVisible=false,passwordText='',admin=false,form=false,
   tabIndex=0,ariaExpanded=false,ariaControls=false,
-  route='/'}={}){
+  entryShown=true,route='/'}={}){
   const root={nodeType:1,isConnected:true,hidden:false};
   const body={nodeType:1,isConnected:true,hidden:false,
     classList:{contains:k=>k==='visual-admin-active'&&admin}};
@@ -21,7 +21,7 @@ function fixture({focus='none',open=false,ambiguous=false,
       closest(){return null;}
     };
   }
-  const entry=el('BUTTON','Admin',true);
+  const entry=el('BUTTON','Admin',entryShown);
   entry.tabIndex=tabIndex;
   entry.form=form?{}:null;
   entry.closest=selector=>form&&selector==='form'?{}:null;
@@ -102,6 +102,25 @@ test('ambiguous, form, disabled and unsafe visitor entry cannot pass preflight',
   assert.equal(r.entryHasAriaExpanded,true);
   assert.equal(r.entryHasAriaControls,true);
 });
+test('original entry may hide after safe activation without relaxing password or privilege guards',()=>{
+  const pre=fixture(),focused=fixture({focus:'entry'});
+  const opened=fixture({open:true,focus:'password',entryShown:false});
+  assert.equal(opened.unambiguousSafeEntry,false);
+  assert.throws(()=>check(opened),/unambiguousSafeEntry/);
+  const report=summarize(390,pre,focused,opened,2);
+  assert.equal(report.enterOpenedPasswordPanel,true);
+  assert.equal(report.enterFocusedPassword,true);
+  assert.equal(report.passwordStayedEmpty,true);
+  assert.equal(report.protectedEditorAlwaysHidden,true);
+  assert.equal(report.noVisitorPrivilegeGranted,true);
+  assert.throws(()=>summarize(390,pre,focused,{
+    ...opened,passwordEmpty:false
+  },2),/passwordEmpty/);
+  assert.throws(()=>summarize(390,pre,focused,{
+    ...opened,visitorPrivilegeOff:false
+  },2),/visitorPrivilegeOff/);
+});
+
 test('unexpected post-Enter privilege, password data and route changes fail closed',()=>{
   const original=fixture(),focused=fixture({focus:'entry'}),opened=fixture({open:true});
   for(const altered of [

@@ -26,6 +26,10 @@ The **first** private Chrome trial at commit `2d32394` reached the visitor Admin
 
 The follow-up retest uses the Chromium/Puppeteer-compatible **Enter control key** only on the one already focused, verified, non-form visitor Admin button. CR is not printable password text; the test still requires the password to remain empty and all privileges to remain off. We must use the follow-up real-Chrome outcome rather than treat the first raw-key result as a verified accessibility defect.
 
+**Further test result:** the first standard-Enter run at `c4408cc` reached the post-activation observation but was rejected by a broad safety assertion requiring the original visitor Admin button to remain visible and uniquely named **after opening**. That requirement is not necessarily valid: the original UI may replace or hide the visitor button when the password panel appears. It did **not** yet identify which Boolean failed, so do not infer that the original button definitely disappeared or that any credential or privilege was exposed.
+
+The follow-up verifier requires the visitor entry to be unique and visible **before Enter**, while allowing only the entry's *post-activation appearance* to change. It still strictly refuses a nonempty password, exposed editing controls, visitor privilege escalation or navigation, and now reports only the name of any failed Boolean safety invariant (never source text or credentials). A passing focused unit test is not a substitute for the next real-Chrome result.
+
 References: https://chromedevtools.github.io/devtools-protocol/tot/Input/ and https://github.com/puppeteer/puppeteer/blob/main/packages/puppeteer-core/src/common/USKeyboardLayout.ts .
 
 This is a real keyboard interaction test in an isolated browser, not a claim of full keyboard accessibility. A button outside the first 80 Tab presses is a **bounded negative observation**, not proof of complete keyboard inaccessibility.

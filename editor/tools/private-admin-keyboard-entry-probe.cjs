@@ -76,23 +76,35 @@ function adminKeyboardEntrySnapshot(){
     };
   }.toString()+')()';
 }
-function check(snapshot,{initial=false}={}){
+function check(snapshot,{initial=false,afterActivation=false}={}){
   if(!snapshot||typeof snapshot!=='object'||Array.isArray(snapshot)||
      snapshot.format!==FORMAT||Object.keys(snapshot).length!==FIELDS.length+1||
-     FIELDS.some(k=>typeof snapshot[k]!=='boolean')||
-     !snapshot.passwordPresent||!snapshot.passwordEmpty||
-     !snapshot.protectedEditorHidden||!snapshot.visitorPrivilegeOff||
-     !snapshot.routeUnchanged||!snapshot.unambiguousSafeEntry||
-     !snapshot.entryVisible||
-     (initial&&snapshot.passwordVisible))
-    throw Error('Keyboard-only Admin entry snapshot violated a visitor safety invariant.');
+     FIELDS.some(k=>typeof snapshot[k]!=='boolean'))
+    throw Error('Keyboard-only Admin entry snapshot violated a visitor safety invariant: shape.');
+  const failed=[];
+  // NEVER relax these safeguards, even when the original entry switches
+  // appearance after Enter. Only fixed Boolean field names leave QA.
+  for(const [key,expected] of [
+    ['passwordPresent',true],['passwordEmpty',true],
+    ['protectedEditorHidden',true],['visitorPrivilegeOff',true],
+    ['routeUnchanged',true]
+  ])if(snapshot[key]!==expected)failed.push(key);
+  if(!afterActivation){
+    if(!snapshot.unambiguousSafeEntry)failed.push('unambiguousSafeEntry');
+    if(!snapshot.entryVisible)failed.push('entryVisible');
+  }
+  if(initial&&snapshot.passwordVisible)failed.push('initialPasswordVisible');
+  if(failed.length)
+    throw Error('Keyboard-only Admin entry snapshot violated a visitor safety invariant: '+
+      failed.join(','));
   return Object.freeze({...snapshot});
 }
 function summarize(width,pre,focused,after,tabs){
   if(![390,1440].includes(width)||!Number.isSafeInteger(tabs)||
      tabs<0||tabs>MAX_TABS)
     throw Error('Invalid keyboard entry viewport or Tab budget.');
-  const p=check(pre,{initial:true}),f=check(focused),a=check(after);
+  const p=check(pre,{initial:true}),f=check(focused),
+    a=check(after,{afterActivation:f.entryFocused&&tabs>0});
   if(!f.entryFocused&&tabs!==MAX_TABS&&
      !(p.entryEligibleForTab===false&&tabs===0))
     throw Error('Enter must not be dispatched on any non-Admin control.');
