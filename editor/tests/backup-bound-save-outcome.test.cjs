@@ -119,7 +119,7 @@ test('forged backup result, stale bundle identity and false permission are refus
   }),/Independent reviewed/);
   assert.throws(()=>decide({
     ...base,observedHead:'INVALID'
-  }),/Malformed remote head/);
+  }),/Remote head observation has an invalid identity/);
 });
 test('bridge cannot read GitHub credentials, send, write, publish or update refs',()=>{
   const src=fs.readFileSync(path.resolve(__dirname,'..','tools',

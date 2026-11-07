@@ -22,6 +22,26 @@ permissions:
   contents: read
 
 jobs:
+  save-outcome-contract:
+    # Short, independent guard so an assertion failure is visible before
+    # the large, physical-source editor suite completes.
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout reviewed source without write credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Prove exact-old-head and uncertain Save refusal contracts
+        run: |
+          node --test editor/tests/exact-head-save-guard.test.cjs
+          node --test editor/tests/uncertain-save-outcome.test.cjs
+          node --test editor/tests/backup-bound-save-outcome.test.cjs
+
   editor-prototype:
     runs-on: ubuntu-latest
     timeout-minutes: 25
