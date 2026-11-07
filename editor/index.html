@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Naxxramas — Local Website Editor (Prototype)</title>
+<style>
+  :root {color-scheme:dark;--bg:#100f0e;--panel:#211e1a;--line:#695339;--gold:#f1ca83;--ink:#f5ede0;--muted:#dbccb7;--focus:#70c8bd}
+  * {box-sizing:border-box}
+  body {margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 system-ui,Segoe UI,Arial,sans-serif}
+  main {max-width:1100px;margin:0 auto;padding:24px}
+  h1 {color:var(--gold);margin:.2em 0;font-size:clamp(1.5rem,3vw,2.1rem)}
+  h2 {font-size:1.28rem;color:var(--gold)}
+  p {margin:.6em 0 1em}
+  .subtitle {color:var(--muted)}
+  .panel {background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;margin:20px 0}
+  label {display:block;font-weight:650;margin-bottom:8px;color:var(--gold)}
+  input,select,textarea,button {font:inherit}
+  input[type="search"],input[type="text"],select,textarea {width:100%;padding:11px;border:1px solid #aa8b60;border-radius:8px;background:#171513;color:var(--ink)}
+  input[type="file"] {display:block;width:100%;max-width:100%;padding:10px;background:#171513;border:1px dashed #b89d6b;border-radius:8px}
+  textarea {resize:vertical;min-height:72px}
+  button {background:#3a3022;color:#fff1d7;border:1px solid #bca16e;padding:11px 18px;border-radius:9px;min-height:45px;cursor:pointer;font-weight:650}
+  button:hover:not(:disabled) {background:#54402b}
+  button:disabled {opacity:.43;cursor:not-allowed}
+  :focus-visible {outline:3px solid var(--focus);outline-offset:3px}
+  .actions {display:flex;flex-wrap:wrap;gap:12px;margin:16px 0}
+  .field {border:1px solid #4c4032;padding:14px;border-radius:10px;margin:12px 0}
+  .field.edited {border-color:var(--focus)}
+  .preview-frame {width:100%;height:560px;border:1px solid #aa8b60;border-radius:10px;background:#100e0d}
+  .preview-wrap {margin-top:16px}
+  .preview-wrap[hidden] {display:none}
+  .field label {font-size:.93rem}
+  .grid {display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .status {padding:12px 14px;border-left:4px solid #6db8ab;background:#191f1d;margin:12px 0}
+  .status.error {border-left-color:#e99b83;background:#34201c}
+  .hint {color:var(--muted);font-size:.94rem}
+  select[size] {min-height:220px;line-height:1.6;overflow:auto}
+  select[size] option {padding:5px 8px}
+  #resource-controls[hidden] {display:none}
+  .notice {padding:12px 14px;border:1px solid var(--line);border-radius:8px}
+  a {color:#91e2d2}
+  @media (max-width:720px) {.grid {grid-template-columns:1fr} main {padding:14px} .panel {padding:14px}}
+</style>
+<script defer src="export-zip.js"></script>
+<script defer src="preview.js"></script>
+<script defer src="resource-title-core.js"></script>
+<script defer src="resource-title-ui.js"></script>
+<script defer src="editor.js"></script>
+<script defer src="review-package.js"></script>
+<script defer src="review-package-reader.js"></script>
+<script defer src="review-package-reader-ui.js"></script>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Naxxramas — Local Website Editor</h1>
+    <p class="subtitle">Development prototype • Your published website is not connected to this editor.</p>
+  </header>
+  <section class="panel" aria-labelledby="start-title">
+    <h2 id="start-title">1. Open your website folder</h2>
+    <p>Download and extract the <strong>development branch</strong> of your Resource Hub, then open this <code>editor/index.html</code> file in Microsoft Edge or Google Chrome.</p>
+    <label for="folder">Choose the extracted Naxxramas-Resource-Hub folder</label>
+    <input id="folder" type="file" webkitdirectory multiple aria-describedby="folder-help">
+    <p id="folder-help" class="hint">This reads four HTML page files and one navigation JSON file from your chosen folder. It does not upload, overwrite or publish anything. Resource titles use the separate original-file picker in section 4 below.</p>
+    <p class="notice"><strong>First-stage coverage:</strong> New Players, Server Rules, Apply to Join and Game Clients (existing text and link addresses). Section 4 adds local drafts for original resource titles and multiline content only. Original IDs, custom fields, page layout, image editing and full backup export are not available.</p>
+  </section>
+  <section class="panel" aria-labelledby="edit-title">
+    <h2 id="edit-title">2. Edit your page</h2>
+    <div class="grid">
+      <div><label for="page">Page</label><select id="page"></select></div>
+      <div><label for="search">Find wording to change</label><input id="search" type="search" placeholder="e.g. progression, application, loot"></div>
+    </div>
+    <label style="margin-top:12px;color:var(--ink);font-weight:500"><input type="checkbox" id="show-changed-only"> Show only fields I have changed</label>
+    <p id="changed-count" class="hint">0 edits not yet exported</p>
+    <div id="status" class="status" role="status" aria-live="polite">No files loaded. Choose your extracted folder above.</div>
+    <h2 id="page-title">New Players</h2>
+    <div id="fields"></div>
+    <div class="actions">
+      <button id="preview-page" type="button" disabled>Preview Current Page</button>
+      <button id="revert-page" type="button" disabled>Revert Page Edits</button>
+    </div>
+    <div id="preview-wrap" class="preview-wrap" hidden>
+      <h2>Local Page Preview</h2>
+      <p class="hint" id="preview-caption">This is a simplified offline preview, not the full live website.</p>
+      <iframe id="preview-frame" class="preview-frame" sandbox="" referrerpolicy="no-referrer" title="Offline preview of the edited page"></iframe>
+      <p class="hint">Links, images, embedded applications and scripts cannot run in this preview. Nothing is published or sent online.</p>
+    </div>
+  </section>
+  <section class="panel" aria-labelledby="nav-title-heading">
+    <h2 id="nav-title-heading">3. Edit sidebar navigation</h2>
+    <p>Change the wording and Warcraft icons for the <strong>three newer menu entries</strong>.
+       Their links and page addresses stay fixed, so navigation cannot be accidentally redirected.</p>
+    <label for="nav-page">Choose menu entry</label>
+    <select id="nav-page"></select>
+    <div class="grid" style="margin-top:16px">
+      <div><label for="nav-label">Menu label</label><input id="nav-label" type="text" maxlength="50" disabled></div>
+      <div><label for="nav-title">Page heading / tooltip</label><input id="nav-title" type="text" maxlength="90" disabled></div>
+    </div>
+    <div style="margin-top:14px">
+      <label for="nav-intro">Page introduction</label>
+      <textarea id="nav-intro" rows="3" maxlength="280" disabled></textarea>
+    </div>
+    <div style="margin-top:14px">
+      <label for="nav-icon">Warcraft icon filename</label>
+      <input id="nav-icon" type="text" maxlength="90" placeholder="inv_misc_book_09.jpg" disabled>
+      <p class="hint">Enter an existing WoW icon filename ending in .jpg, not a website link.
+      The editor will reject unsafe icon names before exporting.</p>
+    </div>
+    <div class="actions"><button type="button" id="revert-nav" disabled>Revert Navigation Edits</button></div>
+  </section>
+  <section class="panel" aria-labelledby="resource-title-heading">
+    <h2 id="resource-title-heading">4. Resource titles and content — private draft trial</h2>
+    <p>Edit existing <strong>titles and multiline content</strong> of the original 414 resources. Everything else—including IDs, class links, scripts and custom fields—stays protected. Changes remain in browser memory until you download a JSON draft. This screen cannot overwrite the website, create replacement HTML or publish to GitHub.</p>
+    <label for="resource-source-file">Choose the original site-content.html file</label>
+    <input id="resource-source-file" type="file" accept=".html,text/html" aria-describedby="resource-file-help">
+    <p id="resource-file-help" class="hint">Select the 30.9 MB <code>site-content.html</code> from your extracted website folder. A SHA-256 fingerprint check must pass before titles are shown. No original website scripts are run.</p>
+    <div id="resource-status" class="status" role="status" aria-live="polite">No original resource file loaded.</div>
+    <div id="resource-controls" hidden>
+      <label for="resource-search">Find a resource by title, section, or number</label>
+      <input id="resource-search" type="search" placeholder="Search the 414 resources" disabled>
+      <p id="resource-result-count" class="hint">0 matching resources</p>
+      <label for="resource-choice">Choose a resource to edit</label>
+      <select id="resource-choice" size="9" aria-describedby="resource-selected-caption" disabled></select>
+      <p id="resource-selected-caption" class="hint">Choose a resource above.</p>
+      <label for="resource-title-edit">Resource title</label>
+      <input id="resource-title-edit" type="text" maxlength="160" autocomplete="off" spellcheck="true" disabled>
+      <label for="resource-content-edit" style="margin-top:16px">Resource content (multiline plain text)</label>
+      <textarea id="resource-content-edit" rows="12" maxlength="30000" spellcheck="true" disabled aria-describedby="resource-content-help"></textarea>
+      <p id="resource-content-help" class="hint">Line breaks and intentional empty content are supported. This is a text editor, <strong>not a rich-text/HTML editor</strong>. Formatting is stored as text; HTML markup and scripts cannot be added in a draft. Review before applying—clearing an existing content field requires confirmation.</p>
+      <div class="actions">
+        <button type="button" id="resource-apply" disabled>Apply Resource Edits</button>
+        <button type="button" id="resource-revert" disabled>Revert Selected Resource</button>
+      </div>
+      <p id="resource-count" class="hint">No original resources loaded.</p>
+      <div class="actions">
+        <button type="button" id="resource-save-draft" disabled>Save Resource Draft (.json)</button>
+        <button type="button" id="resource-load-draft" disabled>Load Resource Draft</button>
+        <button type="button" id="resource-clear" disabled>Discard All Resource Edits</button>
+        <input id="resource-draft-file" type="file" accept=".json,application/json" hidden>
+      </div>
+      <p class="hint">The resource draft is intentionally <strong>separate</strong> from the page-editing draft below. It contains only your changed titles and content—not all 414 resource records, scripts or a full website backup. The new draft format can also load older title-only drafts; loading always requires the same verified original website version.</p>
+    </div>
+  </section>
+  <section class="panel" aria-labelledby="save-title">
+    <h2 id="save-title">5. Save page and navigation changes</h2>
+    <p>These actions download changes to the four page fragments and sidebar navigation only. The separate resource-title draft in section 4 is not included. Neither action publishes to GitHub.</p>
+    <div class="actions">
+      <button id="save-draft" type="button" disabled>Save Draft (.json)</button>
+      <button id="load-draft" type="button" disabled>Load Saved Draft</button>
+      <button id="export-changes" type="button" disabled>Export Changed Files (.zip)</button>
+      <button id="revert-all" type="button" disabled>Discard All Local Edits</button>
+      <input id="draft-file" type="file" accept=".json,application/json" hidden>
+    </div>
+    <div class="field" aria-labelledby="review-package-heading">
+      <h3 id="review-package-heading" style="margin:0;color:var(--gold)">Combined private editing review package</h3>
+      <p>Save resource edits and page/navigation edits together as <strong>separate drafts inside one ZIP</strong>. The package includes a review manifest with hashes. It is <strong>NOT a GitHub-ready website update</strong> or a full repository backup.</p>
+      <div class="actions">
+        <button type="button" id="save-review-package">Save Combined Review Package (.zip)</button>
+      </div>
+      <div id="review-package-status" class="status" role="status" aria-live="polite">Load and edit either area before saving a review package.</div>
+      <p class="hint">You can also open the review ZIP below instead of extracting it manually. This will check archive integrity and offer the individual JSON drafts. No file is sent online or automatically installed.</p>
+      <div class="field" aria-labelledby="recover-review-heading">
+        <h3 id="recover-review-heading" style="margin:0;color:var(--gold)">Open a saved combined review ZIP</h3>
+        <p>Choose the private review ZIP you previously downloaded. The editor checks its file list, checksums and draft formats before offering the separate drafts for recovery. Restoring a draft requires its matching original source and asks before replacing unsaved edits. Nothing changes the website files automatically.</p>
+        <label for="open-review-zip">Choose saved review ZIP</label>
+        <input id="open-review-zip" type="file" accept=".zip,application/zip" aria-describedby="open-review-status">
+        <div id="open-review-status" class="status" role="status" aria-live="polite">No review ZIP selected.</div>
+        <div class="actions">
+          <button type="button" id="restore-zip-page" disabled>Restore Page Draft in Editor</button>
+          <button type="button" id="restore-zip-resource" disabled>Restore Resource Draft in Editor</button>
+        </div>
+        <p class="hint">These two actions check the original source again before loading and ask before replacing unsaved edits. You must first load your source folder in section 1, or your original resource file in section 4. If you prefer, download the JSON drafts separately instead:</p>
+        <div class="actions">
+          <button type="button" id="recover-page-draft" disabled>Download Page Draft (.json)</button>
+          <button type="button" id="recover-resource-draft" disabled>Download Resource Draft (.json)</button>
+        </div>
+        <p class="hint">Downloaded JSON drafts can still be opened with <strong>Load Saved Draft</strong> in section 5 or <strong>Load Resource Draft</strong> in section 4. Neither option writes to your website or GitHub. The ZIP is not a full backup.</p>
+      </div>
+    </div>
+    <p class="hint">A saved draft contains just your edits and the fingerprints of the original four HTML files and navigation JSON. Keep it private until reviewed. The changed-files ZIP preserves GitHub folder paths and includes a manifest and review instructions.</p>
+    <p class="hint">For a pristine recovery copy, use the separate <a href="https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/tree/backup/pristine-pre-editor-redesign-2026-11-05" target="_blank" rel="noopener noreferrer">preserved GitHub backup branch</a>. A full repository backup is different from this changed-files export.</p>
+  </section>
+</main>
+</body>
+</html>

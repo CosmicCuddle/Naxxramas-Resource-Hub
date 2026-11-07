@@ -1,0 +1,57 @@
+# Original website administrator acceptance gates
+
+**Status (6 November 2026): DEVELOPMENT ONLY. Not approved for release.**
+
+This checklist protects the existing Naxxramas Resource Hub's administrator interface while the multi-file Save/Restore editor is developed. It applies to the disposable, full-website private Chrome snapshot and future separately approved, reversible testing. It must not be interpreted as permission to authenticate to production, replace the original editor or publish files.
+
+## Confirmed evidence
+
+| Check | Status | Evidence / limit |
+| --- | --- | --- |
+| Original admin entry present | **Confirmed** | The real visitor-facing Admin button was identified without exposing its source text |
+| Desktop password panel | **Confirmed** | Isolated Chrome at 1440px, protected commit `9f86f775`; password field became visible |
+| Mobile password panel | **Confirmed** | Isolated Chrome at 390px, same protected commit |
+| No-login safety | **Confirmed in private test** | No password typed/submitted; no admin privileges enabled; original navigation and resource shell remained |
+| Original editing controls present | **Confirmed, structural only** | Browser sees the hidden visitor-state editing button and password field |
+| 414-resource and complete-site reconstruction | **Confirmed for previous read-only fixtures** | Separate source/round-trip tests; not proof of authenticated editing |
+| Password keyboard accessibility | **Diagnostic in development** | Reports only whether field is labelled, keyboard-focusable, focused on open, or within a declared ARIA modal; results do not automatically alter HTML |
+
+The confirmed no-login checks come from the dedicated [editor prototype Chrome run](https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/actions/runs/42261782068) on the original, disposable site snapshot. The exact full editor suite for subsequent changes must still be checked. The page is opened privately on a loopback-only local server with remote requests blocked.
+
+## Second browser trial — open Admin from Tab and Enter only
+
+The original Admin panel is reloaded **closed** inside the private browser. A bounded sequence of true Tab key presses searches for the **one safe, visible, non-form visitor entry button**. Enter is dispatched only when Tab has actually focused it, and only that key may activate the entry. We observe whether the password panel opens and receives focus, while refusing any credential, form, original-admin-privilege or route change. If not reached within 80 presses, the result is diagnostic and there is no Enter. No source or production file changes are made.
+
+The previous separate keyboard test confirmed Tab moved focus from the open password field and Shift+Tab returned it, while Escape **left the panel open**. This does **not** by itself show an accessibility violation or specify how to close the original Admin interface. See [keyboard entry/dismissal evidence](EDITOR-ADMIN-KEYBOARD-ENTRY-AND-DISMISSAL.md).
+
+## Real Chrome keyboard trail in an isolated website copy
+
+A separate no-credential keyboard trail has been added to the private complete-site Chrome test. After the previously verified visitor Admin entry opens, it sends **Tab**, **Shift+Tab**, then **Escape** with Chrome's keyboard protocol, recording only focus, visibility and visitor-privilege booleans. It refuses to proceed if the original password is not empty or the protected editor is visible. It does not type passwords, press Enter, submit forms or authenticate. These are **real keyboard events in a disposable browser**, but only a partial keyboard test, not a full accessibility or authenticated administrator acceptance.
+
+The keyboard trail flags any unexpected focus or dismissal behaviour for owner review. **Do not automatically alter the original Admin interface** or interpret a panel that stays open as a proven defect until intended interaction is confirmed.
+
+## Parallel no-login keyboard and mobile diagnostics
+
+The new passive Admin accessibility probe measures the original opened password panel at desktop (1440px) and mobile (390px) widths inside the existing disposable Chrome test. It reports only presence, focus, accessible-label and layout flags; no text, credential or identifier values are exported. Protected editing controls must remain hidden and visitor privileges must remain off. A failed accessibility diagnostic **does not silently change the website or claim the login is inaccessible**; it becomes an acceptance question for CosmicCuddle. Full Tab/Escape/screen-reader behaviour and original authenticated editing remain **untested**.
+
+See [the original Admin feature preservation matrix](EDITOR-ADMIN-FEATURE-PRESERVATION-MATRIX.md).
+
+## Additional Stage 7 preparation — exact resource-field preservation
+
+A proposed **read-only, no-login** test now compares every original resource object with the version staged by an actual browser-generated editing ZIP. Only title/content string literal bytes named in that ZIP may change. All original property keys, order, IDs, class/section associations and unknown custom fields must remain byte-for-byte identical, with the complete non-resource DATA shell preserved. The test deliberately damages protected properties and must reject those changes. It is **not** authenticated administrator acceptance. See [the owner-facing administrator preservation matrix](EDITOR-ADMIN-FEATURE-PRESERVATION-MATRIX.md).
+
+## Still required before administrator feature acceptance
+
+1. **Keyboard and modal review:** inspect accessibility observations; do not quietly change the original login design or weaken access control.
+2. **Legitimate administrator acceptance:** only with CosmicCuddle's explicit authorization, test authenticated entry in a safe, isolated environment. Do not store, log, request in GitHub comments or embed any credential in test code or fixtures.
+3. **One original resource edit:** exercise editing of a title and multiline content through the *actual original* administrator UI; compare exact hashes and check all 413 unrelated resources remain untouched.
+4. **Custom data preservation:** inspect preservation of every original resource field and association, all original 27 direct DATA members and the separate 29-item side collection; don't reduce the scope to the 414-item main array.
+5. **Other admin capabilities:** verify original create/edit/remove and navigation or management controls according to their existing intended permissions, using fictional disposable records and explicit approval for any destructive operation.
+6. **Independent restoration:** retain a *separate complete* source/asset/Git backup; restore it successfully somewhere else; prove the rollback procedure before any production-level writer or migration.
+7. **Repeatable version-safe saves:** test two successive edits, conflict refusal from older drafts, hard failure on unknown/unsafe paths and exact complete-site compatibility. Do not allow silent rebases or automatic loss of existing editor drafts.
+8. **Desktop/mobile and asset parity:** test real keyboard focus paths, custom images, media, search, page navigation, original Game Clients administrator states and non-invasive layout fidelity.
+9. **Owner release decision:** CosmicCuddle must first approve the canonical 415-file overlay versus 418-file source tree, the real writing path, rollback and any merge or publication. PR #56 remains a draft until those decisions.
+
+## Current restriction
+
+This development branch has **no approved live GitHub save transaction**, no authenticated admin test, and no owner-approved canonical resource layout. A browser showing the password panel is **not** a passed administrator Save/Restore test. Do not change the live website, original server settings, external forms or public assets to satisfy a prototype test.

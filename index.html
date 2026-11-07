@@ -35,8 +35,8 @@
       var classPanelStyleURL = new URL("assets/naxx-home-class-selector.css?v=1", siteRoot).href;
       var threePagesStyleURL = new URL("assets/naxx-three-pages.css?v=3", siteRoot).href;
       var gameClientsStyleURL = new URL("assets/naxx-game-clients-guide.css?v=1", siteRoot).href;
-      var threePagesURL = new URL("assets/naxx-three-pages.js?v=2", siteRoot).href;
-      var gameClientsURL = new URL("assets/naxx-game-clients-guide.js?v=1", siteRoot).href;
+      var threePagesURL = new URL("assets/naxx-three-pages.js?v=3", siteRoot).href;
+      var gameClientsURL = new URL("assets/naxx-game-clients-guide.js?v=2", siteRoot).href;
       html = html.replace(/<\/head>/i, '<link rel="stylesheet" href="' + styleURL + '"><link rel="stylesheet" href="' + new URL("assets/naxx-theme-v2.css", siteRoot).href + '"><link rel="stylesheet" href="' + new URL("assets/naxx-theme-v3.css?v=2", siteRoot).href + '"><link rel="stylesheet" href="' + compactStyleURL + '"><link rel="stylesheet" href="' + classPanelStyleURL + '"><link rel="stylesheet" href="' + threePagesStyleURL + '"><link rel="stylesheet" href="' + gameClientsStyleURL + '"></head>');
       var closingBody = html.toLowerCase().lastIndexOf("</body>");
       html = html.slice(0, closingBody) + '<script src="' + scriptURL + '"><\/script>'

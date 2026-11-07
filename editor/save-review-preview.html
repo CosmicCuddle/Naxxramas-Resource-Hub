@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'none'; img-src 'none'; frame-src 'none'; form-action 'none'; object-src 'none'; base-uri 'none'">
+<title>Naxxramas — Proposed Save Review (Private Trial)</title>
+<style>
+:root{color-scheme:dark;--bg:#100f0e;--card:#211e1a;--line:#806747;--gold:#f1ca83;--ink:#f5ede0;--muted:#dbccb7;--focus:#70c8bd}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 system-ui,Segoe UI,Arial,sans-serif}
+main{max-width:940px;margin:auto;padding:clamp(14px,4vw,32px)}
+h1{font-size:clamp(1.6rem,4vw,2.15rem);line-height:1.25;color:var(--gold);margin:.4em 0}
+h2{font-size:1.25rem;color:var(--gold);margin:.2em 0 12px}
+h3{font-size:1.08rem;margin:10px 0}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:clamp(14px,3vw,24px);margin:18px 0}
+.notice{padding:12px 14px;border:1px solid var(--gold);border-radius:8px;background:#322719}
+label{display:block;font-weight:650;color:var(--gold);margin:15px 0 8px}
+input[type=file]{width:100%;min-height:50px;background:#151310;color:var(--ink);border:1px dashed #bca16e;border-radius:8px;padding:12px}
+button{font:inherit;color:var(--ink);background:#3a3022;border:1px solid #bca16e;border-radius:8px;min-height:48px;padding:10px 15px;cursor:pointer}
+button:hover:not(:disabled){background:#54402b}
+button:disabled{opacity:.55;cursor:not-allowed}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+.actions{display:flex;flex-wrap:wrap;gap:12px;margin:15px 0}
+.status{padding:14px 16px;border-left:4px solid var(--focus);background:#17211f;border-radius:6px}
+.status[data-decision=stale],.status[data-decision=resource-conflict],.status[data-decision=invalid-source],.status[data-decision=invalid-receipt],.status[data-decision=rejected]{border-left-color:#eda08a;background:#2a1d1b}
+.muted{color:var(--muted)}
+li{margin:8px 0}
+#file-list{padding-left:24px;overflow-wrap:anywhere}
+code{font:0.85em/1.5 ui-monospace,Consolas,monospace;color:#b7dfd8;overflow-wrap:anywhere}
+#file-list strong{display:block}
+.file-note{display:block;color:var(--muted);font-size:.9em}
+.small{font-size:.92em}
+a{color:#91e2d2}
+</style>
+<script defer src="restore-preflight-core.js"></script>
+<script defer src="save-review-core.js"></script>
+<script defer src="save-review-examples.js"></script>
+<script defer src="save-review.js"></script>
+</head>
+<body>
+<main>
+<header>
+<h1>Review a proposed website save</h1>
+<p class="muted">Private prototype — separate from the working website editor</p>
+<p class="notice"><strong>READ ONLY.</strong> This page cannot save, restore, overwrite, upload, merge or publish anything. It only explains the *proposed file changes* described by two JSON documents.</p>
+</header>
+<section class="panel" aria-labelledby="demo-heading">
+<h2 id="demo-heading">1. Try fictional examples</h2>
+<p>Use these examples to see what a future Save review could look like. They contain no real resource text or website edits.</p>
+<div class="actions">
+<button type="button" id="sample-current">Example: current revision</button>
+<button type="button" id="sample-stale">Example: older draft</button>
+<button type="button" id="sample-conflict">Example: resource changed</button>
+</div>
+</section>
+<section class="panel" aria-labelledby="files-heading">
+<h2 id="files-heading">2. Review local JSON files (optional)</h2>
+<p>This advanced test accepts an <strong>experimental 414-resource manifest</strong> and its <strong>checksum-only change receipt</strong>. Your working editor does not produce these files yet. Existing v2/v3 editor drafts are not compatible and will not be altered.</p>
+<label for="current-manifest">Current version manifest (.json)</label>
+<input id="current-manifest" type="file" accept=".json,application/json" aria-describedby="manifest-description">
+<p id="manifest-description" class="muted small">Maximum 256 KiB. Describes the current revision and all resource fingerprints.</p>
+<label for="planned-receipt">Proposed change receipt (.json)</label>
+<input id="planned-receipt" type="file" accept=".json,application/json" aria-describedby="receipt-description">
+<p id="receipt-description" class="muted small">Maximum 256 KiB. A receipt contains file paths, byte counts and checksums—not the actual changed text.</p>
+<div class="actions">
+<button type="button" id="review-selected">Review selected files (read only)</button>
+<button type="button" id="reject-review">Dismiss proposal (keep my files)</button>
+<button type="button" id="clear-review">Clear selections and example</button>
+</div>
+<p class="muted small">Dismiss hides only this preview. It does not delete your files or reject a real GitHub pull request. Review again to reopen the same selected JSON documents.</p>
+</section>
+<section class="panel" aria-labelledby="result-heading">
+<h2 id="result-heading">3. Understand what would change</h2>
+<div class="status" id="review-status" data-decision="missing" data-blocked="true" role="status" aria-live="polite" aria-atomic="true">
+<p id="review-message">Choose an example or select both files.</p>
+<p id="review-details" class="muted">No change receipt has been reviewed.</p>
+</div>
+<div id="changed-files" hidden>
+<h3>Proposed file list</h3>
+<ul id="file-list"></ul>
+<p class="muted small">These are claimed changes from the selected receipt. No actual source file or proposed HTML has been checked in this browser.</p>
+</div>
+<h3>What happens next in a real saving system?</h3>
+<ol>
+<li><strong>Keep the original draft.</strong> Never discard earlier work automatically.</li>
+<li><strong>Recheck current source and every proposed file</strong> against a trusted GitHub commit and complete website build.</li>
+<li><strong>Review the real changes and backup.</strong> Only an owner-approved release could move beyond review.</li>
+</ol>
+<p class="notice"><strong>Important:</strong> A matching JSON receipt does not authenticate its contents, rebuild the complete website or prove the GitHub branch is unchanged. This page never authorises an update.</p>
+</section>
+<section class="panel">
+<h2>Existing website remains protected</h2>
+<p>Resource fields, other page drafts, navigation, original administrator tools, scripts and media are outside this review screen. The working Save/Load buttons are unchanged.</p>
+<p class="muted"><a href="restore-folder-check.html">View the separate 414-file folder integrity checker</a></p>
+</section>
+</main>
+</body>
+</html>

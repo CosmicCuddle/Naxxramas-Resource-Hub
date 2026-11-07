@@ -1,0 +1,216 @@
+name: Naxxramas editor prototype checks
+
+on:
+  pull_request:
+    paths:
+      - 'editor/**'
+      - '.github/workflows/naxx-editor-prototype.yml'
+      - 'game-clients/content.html'
+      - 'assets/naxx-game-clients-guide.js'
+      - 'index.html'
+  push:
+    branches:
+      - 'feature/multi-file-editor-export-2026-11-05'
+    paths:
+      - 'editor/**'
+      - '.github/workflows/naxx-editor-prototype.yml'
+      - 'game-clients/content.html'
+      - 'assets/naxx-game-clients-guide.js'
+      - 'index.html'
+
+permissions:
+  contents: read
+
+jobs:
+  save-outcome-contract:
+    # Short, independent guard so an assertion failure is visible before
+    # the large, physical-source editor suite completes.
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout reviewed source without write credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Prove exact-old-head and uncertain Save refusal contracts
+        run: |
+          node --test editor/tests/exact-head-save-guard.test.cjs
+          node --test editor/tests/uncertain-save-outcome.test.cjs
+          node --test editor/tests/backup-bound-save-outcome.test.cjs
+
+  editor-prototype:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout reviewed files
+        uses: actions/checkout@v4
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify keyboard-only visitor Admin entry Tab and safe Enter contracts
+        run: node --test editor/tests/private-admin-keyboard-entry-probe.test.cjs
+      - name: Verify allowed Tab, Shift-Tab and Escape observation contracts without credentials
+        run: node --test editor/tests/private-admin-keyboard-browser-probe.test.cjs
+      - name: Validate passive original Admin keyboard and mobile diagnostic safety
+        run: node --test editor/tests/private-admin-a11y-browser-probe.test.cjs
+      - name: Quick-check simulated conditional branch saves and last-moment races
+        run: |
+          node --test editor/tests/conditional-github-lease.test.cjs
+          node editor/tools/rehearse-conditional-github-lease.cjs
+      - name: Verify exact expected-old Git ref safety contract (fictional, no network)
+        run: node --test editor/tests/exact-head-save-guard.test.cjs
+      - name: Verify uncertain Save outcomes cannot automatically retry or publish
+        run: node --test editor/tests/uncertain-save-outcome.test.cjs
+      - name: Quick-check owner-facing proposed Save review and stale receipt safety
+        run: node --test editor/tests/save-review-preview.test.cjs
+      - name: Quick-check separate unified owner review receipt and path safety
+        run: node --test editor/tests/unified-review-preview.test.cjs
+      - name: Quick-check original resource draft bridge and separate page drafts
+        run: node --test editor/tests/legacy-draft-bridge.test.cjs
+      - name: Verify mixed original page/resource drafts reconcile both unapproved source layouts
+        run: node --test editor/tests/reconcile-mixed-source-layouts.test.cjs
+      - name: Verify direct ZIP draft restore preserves unfinished work
+        run: |
+          node --test editor/tests/page-draft-restore-safety.test.cjs
+          node --test editor/tests/review-zip-direct-restore.test.cjs
+          node --test editor/tests/resource-title-ui.test.cjs
+      - name: Verify full initial 415-resource staging from real browser review ZIP (private only)
+        run: node --test editor/tests/browser-zip-complete-source.test.cjs
+      - name: Verify whole tracked-site preservation and rollback from real browser review ZIP
+        run: node --test editor/tests/browser-zip-full-site-rollback.test.cjs
+      - name: Validate editor, ZIP exports and Game Clients
+        run: node --test editor/tests/*.test.cjs
+      - name: Exercise resource title draft UI in a real local Chrome browser
+        run: node editor/tools/browser-smoke-title-draft.cjs
+      - name: Read-only inventory of original website file
+        run: node editor/tools/inspect-legacy.cjs
+      - name: Verify entire clean tracked repository checkout before any future backup
+        run: node editor/tools/audit-full-checkout.cjs
+      - name: Read-only lexical audit of legacy DATA shape
+        run: node editor/tools/audit-legacy-shape.cjs
+      - name: Safe static-JSON inventory of legacy DATA
+        run: node editor/tools/audit-legacy-json.cjs
+      - name: Prove byte-exact reconstruction of the original resources
+        run: node editor/tools/check-legacy-roundtrip.cjs
+      - name: Inventory resource field and association types without values
+        run: node editor/tools/audit-resource-schema.cjs
+      - name: Verify original 414 content fields and safe edit size limits
+        run: node editor/tools/audit-resource-content.cjs
+      - name: Audit separate 29-item side collection without printing values
+        run: node editor/tools/audit-side-collection.cjs
+      - name: Audit deeper side-object shapes and possible literal cross-references
+        run: node editor/tools/audit-side-nested.cjs
+      - name: Audit possible legacy DATA collection usages without executing scripts
+        run: node editor/tools/audit-side-usage.cjs
+      - name: Classify original read-write access candidates without executing scripts
+        run: node editor/tools/audit-side-consumers.cjs
+      - name: Audit inline image preservation without exporting media
+        run: node editor/tools/audit-legacy-media.cjs
+      - name: Audit exact storage cost before choosing a source-file layout
+        run: node editor/tools/audit-source-storage-budget.cjs
+      - name: Rehearse 414 independent resource files without duplicating the non-resource shell
+        run: node editor/tools/rehearse-resource-only-overlay.cjs
+      - name: Rehearse two source-bound editing sessions and reject stale drafts
+        run: node editor/tools/rehearse-versioned-resource-sessions.cjs
+      - name: Independently verify all 414 physical source files and rebuilt website hash before draft review
+        run: node editor/tools/verify-physical-resource-sources.cjs
+      - name: Calculate read-only GitHub path and checksum review before any proposed source edit
+        run: node editor/tools/plan-private-github-source-review.cjs
+      - name: Stage and verify actual proposed source bytes in a deleted private temporary folder
+        run: node editor/tools/rehearse-reviewed-source-package.cjs
+      - name: Rehearse local Git head pin and verify checked-out website against exact workflow commit
+        run: node editor/tools/rehearse-local-git-head-preflight.cjs --ci-checkout
+      - name: Simulate stale remote GitHub branch refs without network or write permissions
+        run: node editor/tools/rehearse-remote-github-head-preflight.cjs --simulate
+      - name: Simulate conditional remote branch update with two racing editor sessions (in memory only)
+        run: node editor/tools/rehearse-conditional-github-lease.cjs
+      - name: Verify current development branch on GitHub twice (read-only same-repo check)
+        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == 'CosmicCuddle/Naxxramas-Resource-Hub' && github.event.pull_request.head.ref == 'feature/multi-file-editor-export-2026-11-05')
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
+            node editor/tools/rehearse-remote-github-head-preflight.cjs --ci-remote
+          else
+            node editor/tools/rehearse-remote-github-head-preflight.cjs --ci-pr-remote
+          fi
+      - name: Rehearse 414 separate resource files and delete temporary package
+        run: node editor/tools/rehearse-resource-files.cjs
+      - name: Verify one safe resource-title edit leaves 413 others untouched
+        run: node editor/tools/rehearse-title-edit.cjs
+      - name: Prove multiline content changes preserve all other resources and original website bytes
+        run: node editor/tools/rehearse-content-edit.cjs
+      - name: Rehearse one changed resource fragment in a private temp tree and verify complete rebuild
+        run: node editor/tools/rehearse-edited-resource-files.cjs
+      - name: Rehearse multiple draft edits as separately checksummed resource fragments with safe rollback
+        run: node editor/tools/rehearse-resource-change-set.cjs
+      - name: Rehearse proposed GitHub resource tree with 414 paths and exact original rollback
+        run: node editor/tools/rehearse-proposed-resource-tree.cjs
+
+  complete-site-private-chrome:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout protected draft source (read only)
+        uses: actions/checkout@v4
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify complete disposable site in isolated local Chrome
+        run: node editor/tools/browser-smoke-complete-site.cjs
+
+  private-admin-metadata-parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out original content without write credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Prove every original custom resource property is preserved in review ZIP candidate
+        run: node --test editor/qa/admin-metadata-parity.test.cjs
+
+  private-git-tree-intent:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout private Git source review without write credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Reconstruct original Git tree and verify proposed blob identities without writes
+        run: node --test editor/qa/browser-zip-git-tree-intent.test.cjs
+
+  private-backup-bound-browser-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out complete fetched website history (read only)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify real private Git bundle and browser ZIP use the same original checkout
+        run: node --test editor/qa/backup-bound-browser-review.test.cjs

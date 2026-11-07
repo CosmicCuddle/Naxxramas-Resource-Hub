@@ -7,6 +7,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
 const source = fs.readFileSync(path.join(__dirname,"..","naxx-three-pages.js"),"utf8");
+const navSettings=JSON.parse(fs.readFileSync(path.join(__dirname,"..","..","content/navigation.json"),"utf8"));
 const origin = "https://cosmiccuddle.github.io/Naxxramas-Resource-Hub/";
 const fixtures = {
   "new-players": '<section class="naxx-guide-card" id="progression">The guide remains visible.</section>',
@@ -75,6 +76,8 @@ function createHarness(slug,fail) {
   const context = {
     document,location:loc,URL,MutationObserver,
     fetch(url){
+      if (url.href===origin+"content/navigation.json")
+        return Promise.resolve({ok:true,json(){return Promise.resolve(navSettings);}});
       fetchCount++;
       assert.equal(url.href,origin+slug+"/content.html");
       if(fail)return Promise.resolve({ok:false});
