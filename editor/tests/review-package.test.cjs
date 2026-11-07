@@ -140,3 +140,29 @@ test('review ZIP preserves valid page text, links and multiline Unicode draft fi
   assert.equal(result.entryCount,3);
   assert.equal(result.manifest.publishable,false);
 });
+
+test('review ZIP rejects unsupported routes and unsafe navigation fields before saving',async()=>{
+  const mutations=[
+    draft=>{delete draft.navigation.document;},
+    draft=>{draft.navigation.document.pages.pop();},
+    draft=>{draft.navigation.document.pages[0].slug='rules';},
+    draft=>{draft.navigation.document.pages[0].group='External';},
+    draft=>{draft.navigation.document.pages[0].icon='https://example.invalid/unsafe.jpg';},
+    draft=>{draft.navigation.document.pages[0].icon='../evil.jpg';},
+    draft=>{draft.navigation.document.pages[0].label='x'.repeat(51);},
+    draft=>{draft.navigation.document.pages[0].title='x'.repeat(91);},
+    draft=>{draft.navigation.document.pages[0].intro='x'.repeat(281);},
+    draft=>{draft.navigation.document.pages[0].label='Line\nBreak';},
+    draft=>{draft.navigation.document.pages[0].unexpected='unsafe';},
+    draft=>{draft.navigation.document.pages[0].title=' ';},
+    draft=>{draft.navigation.document.unexpected='unsafe';}
+  ];
+  for(const mutation of mutations){
+    const input=pageDraft();
+    mutation(input);
+    const before=JSON.stringify(input);
+    await assert.rejects(review.build(input,null,zip),
+      /Unrecognised page\/navigation draft/);
+    assert.equal(JSON.stringify(input),before,'Rejected draft must be retained untouched');
+  }
+});
