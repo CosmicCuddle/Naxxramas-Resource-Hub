@@ -110,7 +110,8 @@ test('resource checksum, shell seal and complete source checksum fail closed',as
     /Complete source length or SHA-256/);
 
   const forged=snapshot(split.records,0,null);
-  forged.fragments[0]+=' ';
+  forged.fragments[0]=forged.fragments[0].replace(/[A-Za-z]/,c=>c==='X'?'Y':'X');
+  assert.equal(Buffer.byteLength(forged.fragments[0]),Buffer.byteLength(split.records[0]));
   forged.manifest.resources[0].sha256=hash(Buffer.from(forged.fragments[0]));
   // Even a self-consistent changed per-record hash must not bypass the
   // independently trusted full runtime checksum.
