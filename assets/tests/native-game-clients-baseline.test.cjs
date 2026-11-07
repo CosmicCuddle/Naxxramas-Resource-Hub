@@ -68,7 +68,13 @@ function pageHarness(variant){
   const interval=setInterval(()=>{
    if(stage==="ready"){
     const d=frame.contentDocument;
-    if(!d)return;
+    // The original 31 MB website may expose a search input before its
+    // scripts finish registering listeners. Never type into a loading page.
+    // A genuinely stuck page still fails within a bounded deadline.
+    if(!d||d.readyState!=="complete"){
+     if(++cycles>220){fail="Original website did not finish loading before search";lastState=currentState();finish();}
+     return;
+    }
     const nav=d.getElementById("mainNav"),input=d.getElementById("searchInput");
     if(!nav||!input||!d.getElementById("resourceGrid")){
      if(++cycles>80){fail="Root site did not initialise";finish();}
@@ -79,7 +85,7 @@ function pageHarness(variant){
     firstState=currentState();visual=homeStyleSnapshot();loaded=true;
     input.value="Mage";
     input.dispatchEvent(new frame.contentWindow.Event("input",{bubbles:true}));
-    stage="search";
+    stage="search";cycles=0; // Search timeout begins AFTER original scripts finish loading.
     return;
    }
    if(stage==="search"){
@@ -143,7 +149,7 @@ function pageHarness(variant){
     if(after>=80)finish();
    }
   },200);
-  setTimeout(()=>{if(!out.textContent.startsWith("AB_RESULT:")){fail="Probe timed out";lastState=currentState();finish();}},25000);
+  setTimeout(()=>{if(!out.textContent.startsWith("AB_RESULT:")){fail="Probe timed out";lastState=currentState();finish();}},70000);
  }
  const script="("+runProbe.toString()+")("+JSON.stringify(variant)+");";
  return '<!doctype html><html><head><meta charset="utf-8"><title>Baseline verification</title></head>'+
@@ -189,10 +195,10 @@ function browserDump(browser,url){
  return new Promise((resolve,reject)=>{
   const args=["--headless=new","--no-sandbox","--disable-gpu","--disable-dev-shm-usage",
   "--no-first-run","--disable-extensions","--disable-background-networking",
-  "--virtual-time-budget=34000","--window-size=1500,1000","--dump-dom",url];
+  "--virtual-time-budget=80000","--window-size=1500,1000","--dump-dom",url];
   const child=cp.spawn(browser,args,{stdio:["ignore","pipe","pipe"]});
   let stdout="",stderr="",finished=false;
-  const timer=setTimeout(()=>{child.kill("SIGKILL");complete(Error("Chrome timed out: "+stderr.slice(-300)));},75000);
+  const timer=setTimeout(()=>{child.kill("SIGKILL");complete(Error("Chrome timed out: "+stderr.slice(-300)));},110000);
   function complete(error,value){if(finished)return;finished=true;clearTimeout(timer);error?reject(error):resolve(value);}
   child.stdout.on("data",x=>{stdout+=x.toString();if(stdout.length>1000000)complete(Error("Excessive Chrome output"));});
   child.stderr.on("data",x=>stderr=(stderr+x.toString()).slice(-1200));
