@@ -25,6 +25,14 @@
       if(!file||file.path!==path||!shaPattern.test(file.sourceSha256)||
          !file.edits||typeof file.edits!=='object'||Array.isArray(file.edits))
         throw Error('Page draft path or original SHA-256 is missing.');
+      // A saved ZIP must not call malformed edit payloads "verified" just
+      // because its transport CRC and SHA-256 happen to match. The actual
+      // editor separately checks each edit against its source-bound token.
+      Object.entries(file.edits).forEach(function(entry){
+        if(!/^(?:T|H):(?:0|[1-9][0-9]*)$/.test(entry[0])||
+           typeof entry[1]!=='string'||entry[1].length>30000)
+          throw Error('Page draft contains an invalid edit token or value.');
+      });
     });
     return draft;
   }
