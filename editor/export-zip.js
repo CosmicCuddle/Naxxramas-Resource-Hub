@@ -93,7 +93,7 @@
     var maxEntry=16*1024*1024,maxArchive=20*1024*1024,total=22;
     entries.forEach(function(item){
       if(!item||!safePath(item.path)||!ALLOWED_REVIEW_PATHS.has(item.path))
-        throw new Error('Unsafe private review ZIP entry.');
+        throw new Error('Unsafe, unapproved or duplicate ZIP path.');
       var data=bytes(item.content);
       if(!(data instanceof Uint8Array)||data.length<1||data.length>maxEntry)
         throw new Error('Review ZIP contains an empty or oversized recovery file. Keep your drafts.');
