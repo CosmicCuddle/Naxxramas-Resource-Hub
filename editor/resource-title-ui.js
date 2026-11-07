@@ -107,10 +107,12 @@
     setTimeout(function(){URL.revokeObjectURL(url);},15000);
   }
   picker.addEventListener('change',async function(){
-    var ticket=++sourceLoadRevision;
-    // Capture the chosen file before awaiting its 31 MB read and verification.
+    // An empty/cancelled picker event must not invalidate an in-flight read
+    // without giving the original attempt a chance to release its controls.
     var file=picker.files&&picker.files[0];
     if(!file)return;
+    var ticket=++sourceLoadRevision;
+    // Capture the chosen file before awaiting its 31 MB read and verification.
     loading=true;picker.disabled=true;updateButtons();
     try{
       if(file.name!=='site-content.html'||file.size!==core.BASE_LENGTH)
