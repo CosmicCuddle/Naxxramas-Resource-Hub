@@ -7,6 +7,7 @@
   'use strict';
   var core=window.NaxxResourceTitles;
   var model=null,changes=new Map(),contentChanges=new Map(),activeIndex=null,loading=false;
+  var sourceLoadRevision=0;
   var $=function(id){return document.getElementById(id);};
   var picker=$('resource-source-file'),draftPicker=$('resource-draft-file');
   var search=$('resource-search'),list=$('resource-choice'),title=$('resource-title-edit'),content=$('resource-content-edit');
@@ -106,28 +107,38 @@
     setTimeout(function(){URL.revokeObjectURL(url);},15000);
   }
   picker.addEventListener('change',async function(){
+    var ticket=++sourceLoadRevision;
+    // Capture the chosen file before awaiting its 31 MB read and verification.
     var file=picker.files&&picker.files[0];
     if(!file)return;
+    loading=true;picker.disabled=true;updateButtons();
     try{
-      if(model&&(hasAnyEdits()||hasPendingInput())&&
-         !window.confirm('Replace the loaded resource draft and discard your current title changes? Save your draft first if needed.'))
-        return;
       if(file.name!=='site-content.html'||file.size!==core.BASE_LENGTH)
         throw Error('Select the original site-content.html from the correct website version.');
-      loading=true;picker.disabled=true;updateButtons();
       notice('Reading and verifying the original website file locally…',false);
       var source=await file.text();
       var verified=await core.open(source,window.crypto);
+      // An older read must never replace a newer selection, even if its
+      // SHA-256 calculation completes last.
+      if(ticket!==sourceLoadRevision)return;
+      if(model&&(hasAnyEdits()||hasPendingInput())&&
+         !window.confirm('Replace your current unsaved resource title and content edits with this verified source? Save your draft first if needed.')){
+        notice('Resource source change cancelled. Your existing edits were kept.',false);
+        return;
+      }
       // No source HTML is stored or displayed, only verified resource summaries.
       model=verified;changes=new Map();contentChanges=new Map();activeIndex=null;
       search.value='';controls.hidden=false;
       refreshList(0);
       notice('Original website verified. You can edit titles and multiline content locally.',false);
     }catch(err){
-      notice((err&&err.message)||'The original website could not be verified.',true);
-      // Failed imports never discard an already verified draft.
+      if(ticket===sourceLoadRevision)
+        notice((err&&err.message)||'The original website could not be verified.',true);
+      // Failed or obsolete imports never discard an already verified draft.
     }finally{
-      loading=false;picker.disabled=false;picker.value='';updateButtons();
+      if(ticket===sourceLoadRevision){
+        loading=false;picker.disabled=false;picker.value='';updateButtons();
+      }
     }
   });
   search.addEventListener('input',function(){
