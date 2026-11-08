@@ -10,7 +10,7 @@ const branch='editor-saves/private-review-01';
 const capability={format:'naxx-editor-local-save-capability-v1',ready:true,
   authenticated:true,repository:'CosmicCuddle/Naxxramas-Resource-Hub',
   publishDisabled:true,backupVerified:true,exactOldHeadEnforced:true,
-  branch,expectedHead:sha};
+  branch,expectedHead:sha,csrfToken:'d'.repeat(64)};
 const receipt={format:'naxx-editor-local-save-result-v1',
   result:'saved-and-independently-verified',
   repository:capability.repository,branch,parentCommit:sha,commit:next,
@@ -138,4 +138,62 @@ test('fresh timestamps alone do not make an unchanged draft appear unsaved',asyn
     getPageDraft:()=>({files:[{path:'rules/content.html',edits:{'T:1':'Same'}}],
       navigation:null,createdAt:String(++tick)}),getResourceDraft:()=>null});
   assert.equal(result.changedDuringSave,false);
+});
+
+const previewCapability={...capability,ready:false,authenticated:false,
+  backupVerified:false,exactOldHeadEnforced:false,
+  branch:null,expectedHead:null,reviewReady:true};
+const previewReceipt={format:'naxx-editor-local-review-result-v1',
+  reviewOnly:true,sourceChecked:true,gitHubWrite:false,published:false,
+  expectedGitCommit:sha,checkedResourceCount:414,
+  changedResources:2,changedPageAndNavigationFiles:1};
+
+test('source review works with a read-only companion even though GitHub Save is disabled',async()=>{
+  const calls=[];
+  const fetchFn=async(url,opts)=>{
+    calls.push({url,opts});
+    return response(url.endsWith('/status')?previewCapability:previewReceipt);
+  };
+  const result=await client.reviewChanges(inputs(fetchFn));
+  assert.equal(result.reviewOnly,true);
+  assert.equal(result.changedResources,2);
+  assert.equal(result.changedPageAndNavigationFiles,1);
+  assert.equal(result.published,false);
+  assert.equal(result.changedDuringReview,false);
+  assert.equal(calls.length,2);
+  assert.equal(calls[1].url,'/api/editor/review');
+  assert.equal(calls[1].opts.method,'POST');
+  assert.equal(calls[1].opts.headers['X-Naxx-Csrf-Token'],'d'.repeat(64));
+  assert.equal(calls.some(x=>x.url==='/api/editor/save'),false);
+});
+test('source review refuses fake published evidence, a missing local session and wrong source',async()=>{
+  for(const invalid of [
+    {...previewReceipt,published:true},
+    {...previewReceipt,sourceChecked:false},
+    {...previewReceipt,expectedGitCommit:'unknown'},
+    {...previewReceipt,gitHubWrite:true},
+    {...previewReceipt,changedResources:-1}
+  ]){
+    const fetchFn=async(url)=>response(url.endsWith('/status')?
+      previewCapability:invalid);
+    await assert.rejects(client.reviewChanges(inputs(fetchFn)),/review failed/);
+  }
+  await assert.rejects(client.reviewChanges(inputs(async()=>response({
+    ...previewCapability,csrfToken:'bad'}))),/protocol/);
+  await assert.rejects(client.reviewChanges(inputs(async()=>response({
+    ...previewCapability,reviewReady:false}))),/not ready/);
+});
+test('source review reports typing after snapshot as unreviewed without saving',async()=>{
+  const page={files:[{path:'rules/content.html',edits:{'T:1':'Before'}}],
+    navigation:null};
+  let reviews=0;
+  const fetchFn=async(url)=>{
+    if(url.endsWith('/status'))return response(previewCapability);
+    reviews++;page.files[0].edits['T:1']='After';
+    return response(previewReceipt);
+  };
+  const result=await client.reviewChanges({...inputs(fetchFn),
+    getPageDraft:()=>page,getResourceDraft:()=>null});
+  assert.equal(result.changedDuringReview,true);
+  assert.equal(reviews,1);
 });
