@@ -100,3 +100,16 @@ test('no remote writer, repository ref updater or publish code is present',()=>{
   assert.match(source,/update-ref/);
   assert.match(source,/privateGitCloneDeleted:true/);
 });
+
+test('all 415 source overlay paths are a Set and local Git staging uses Set membership and size',()=>{
+  const {filePaths,COUNT}=require('../tools/rehearse-resource-only-overlay.cjs');
+  const values=filePaths();
+  assert.equal(values instanceof Set,true);
+  assert.equal(values.size,COUNT+1);
+  assert.equal(values.has('content/resource-overlays/manifest.json'),true);
+  const code=fs.readFileSync(path.join(editor,'tools',
+    'rehearse-conditional-local-git-save.cjs'),'utf8');
+  assert.match(code,/resourcePaths\.size\s*\+\s*view\.changeSet\.size/);
+  assert.match(code,/resourcePaths\.has\(relative\)/);
+  assert.doesNotMatch(code,/resourcePaths\.length\b|resourcePaths\.includes\(/);
+});
