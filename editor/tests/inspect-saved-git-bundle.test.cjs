@@ -179,6 +179,9 @@ test('extra Git ref hidden in otherwise checksum-consistent saved bundle is refu
     const made=cp.spawnSync('git',['-C',source,'bundle','create',
       output,'--all','HEAD'],{encoding:'utf8',stdio:['ignore','pipe','pipe']});
     assert.equal(made.status,0,'Synthetic bundle with extra ref must be created');
+    // Git's bundle creator uses the process umask; the real backup creator
+    // explicitly uses mode 0600. Keep that genuine security requirement.
+    if(process.platform!=='win32')fs.chmodSync(output,0o600);
     git(source,'branch','-D','unexpected-extra-ref');
     const receiptName=output+'.receipt.json';
     const noticeName=output+'.READ_ME_FIRST.txt';
@@ -221,6 +224,9 @@ test('extra Git notes ref is refused even when branches and tags all match',()=>
     const made=cp.spawnSync('git',['-C',source,'bundle','create',
       output,'--all','HEAD'],{encoding:'utf8',stdio:['ignore','pipe','pipe']});
     assert.equal(made.status,0);
+    // This hand-made malformed test bundle must meet the same permissions
+    // as the approved private backup writer before ref validation is tested.
+    if(process.platform!=='win32')fs.chmodSync(output,0o600);
     git(source,'update-ref','-d','refs/notes/injected-test');
     const receiptName=output+'.receipt.json';
     const saved=JSON.parse(fs.readFileSync(receiptName,'utf8'));
