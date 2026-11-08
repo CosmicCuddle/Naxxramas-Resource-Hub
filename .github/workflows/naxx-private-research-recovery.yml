@@ -11,6 +11,8 @@ on:
       - 'editor/tests/pinned-local-revision-chain.test.cjs'
       - 'editor/tools/inspect-remote-commit-tree.cjs'
       - 'editor/tests/inspect-remote-commit-tree.test.cjs'
+      - 'editor/tools/inspect-release-surface.cjs'
+      - 'editor/tests/inspect-release-surface.test.cjs'
       - '.github/workflows/naxx-private-research-recovery.yml'
   workflow_dispatch:
 
@@ -119,3 +121,46 @@ jobs:
 # contents:read. No repository write token, webhook, artifact upload, release,
 # push, merge, deployment or retained private bundle.
 
+
+  inspect-github-release-surface:
+    name: Read GitHub branch/Pages release settings (never authorize Save)
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 57 && github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact PR head without persisted credentials
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+          lfs: false
+          submodules: false
+      - name: Install Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Confirm inspector syntax and simulated safety refusals
+        run: |
+          node --check editor/tools/inspect-release-surface.cjs
+          node --check editor/tests/inspect-release-surface.test.cjs
+          node --test editor/tests/inspect-release-surface.test.cjs
+      - name: Query only known GitHub branch, ruleset and Pages endpoints
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+        run: node editor/tools/inspect-release-surface.cjs --ci-pr57-settings
+      - name: Confirm no original source or checkout change
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+          printf '%s  %s\n' '34455f6d901c538e2491a8c16681692e4c02d918b1984d7d0ba081aacb1049e8' 'site-content.html' | sha256sum -c -
+
+# This audit does not access GitHub secrets or hosting-provider settings.
+# A report of unprotected branches or unreadable Pages must block Save
+# approval; this reporting-only job never writes, merges, or publishes.
