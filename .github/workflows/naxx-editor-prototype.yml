@@ -240,6 +240,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Rehearse restoring original Git history to one private sandbox-only branch with no remote writes
+        run: node --test editor/tests/rehearse-private-sandbox-branch-seed.test.cjs
       - name: Verify retained Git history backup against exact commit with fresh private restore
         run: node --test editor/tests/verify-retained-backup.test.cjs
       - name: Bind real browser ZIP staging to an existing restored Git history backup before test Save
