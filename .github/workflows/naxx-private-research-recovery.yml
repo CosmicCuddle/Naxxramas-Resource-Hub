@@ -9,6 +9,8 @@ on:
       - 'editor/tests/inspect-saved-git-bundle.test.cjs'
       - 'editor/tools/verify-pinned-local-revision-chain.cjs'
       - 'editor/tests/pinned-local-revision-chain.test.cjs'
+      - 'editor/tools/inspect-remote-commit-tree.cjs'
+      - 'editor/tests/inspect-remote-commit-tree.test.cjs'
       - '.github/workflows/naxx-private-research-recovery.yml'
   workflow_dispatch:
 
@@ -74,5 +76,46 @@ jobs:
           test -z "$(git status --porcelain=v1 --untracked-files=all)"
           printf '%s  %s\n' '34455f6d901c538e2491a8c16681692e4c02d918b1984d7d0ba081aacb1049e8' 'site-content.html' | sha256sum -c -
 
-# No repository write tokens, uploaded test artifacts, release, push, merge,
-# deployment, external requests, or persistence of synthetic Git backups.
+  verify-authenticated-remote-tree:
+    name: Read GitHub PR head/tree and match exact pinned checkout (never Save)
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 57 && github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact PR HEAD without stored credentials
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+          lfs: false
+          submodules: false
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify pure failure handling and local Git object integrity
+        run: |
+          node --check editor/tools/inspect-remote-commit-tree.cjs
+          node --check editor/tests/inspect-remote-commit-tree.test.cjs
+          node --test editor/tests/inspect-remote-commit-tree.test.cjs
+      - name: Authenticate read-only GitHub reference, Git commit tree and local source
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+        run: node editor/tools/inspect-remote-commit-tree.cjs --ci-research-remote
+      - name: Verify original tracked checkout was not modified or exposed
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+          printf '%s  %s\n' '34455f6d901c538e2491a8c16681692e4c02d918b1984d7d0ba081aacb1049e8' 'site-content.html' | sha256sum -c -
+
+# Research CI makes three fixed HTTPS GETs to GitHub's official API with
+# contents:read. No repository write token, webhook, artifact upload, release,
+# push, merge, deployment or retained private bundle.
+
