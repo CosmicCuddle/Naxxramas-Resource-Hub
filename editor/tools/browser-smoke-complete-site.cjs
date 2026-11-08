@@ -893,7 +893,7 @@ async function inspectBrowser(site,work){
           const enter={key:'Enter',code:'Enter',windowsVirtualKeyCode:13,
             nativeVirtualKeyCode:13,modifiers:0};
           await send('Input.dispatchKeyEvent',{
-            type:'keyDown',...enter,text:'\\r',unmodifiedText:'\\r'
+            type:'keyDown',...enter,text:'\r',unmodifiedText:'\r'
           });
           await send('Input.dispatchKeyEvent',{type:'keyUp',...enter});
           await delay(100);
