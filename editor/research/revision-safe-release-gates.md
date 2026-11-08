@@ -12,6 +12,10 @@ Before considering a real Save, read [Durable Backup and Rollback Acceptance Pla
 
 See [415-file vs 418-file source-layout decision brief](415-vs-418-source-layout-decision.md) for measured uncompressed file sizes, independent CI evidence and trade-offs. **Neither layout is approved.**
 
+## Remote GitHub Save boundary
+
+Read [Remote GitHub Source Trust and Safe Save Boundary](remote-github-save-trust-boundary.md) before designing a real Save. GitHub REST `force:false` is not an exact-old-head condition; a future, separately approved GitHub GraphQL `updateRefs` operation must require the reviewed `beforeOid`, the intended `afterOid`, and `force:false`. Two read-only HEAD observations cannot reserve a branch. A held and independently tested **owner backup** is a separate release prerequisite. **No real ref update is authorized.**
+
 ## Scope and preservation requirements
 
 - Keep the existing original `site-content.html` and its SHA-256 `34455f6d901c538e2491a8c16681692e4c02d918b1984d7d0ba081aacb1049e8` (30,976,969 bytes) as an immutable, independently checked reference.
