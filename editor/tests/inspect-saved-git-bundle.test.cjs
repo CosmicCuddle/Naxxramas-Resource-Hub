@@ -58,7 +58,7 @@ test('separately pinned saved bundle is independently recovered without modifyin
     assert.equal(result.savedBundleSha256,hash(before));
     assert.equal(result.trackedFilesVerified,2);
     assert.equal(result.existingBundleRestoredInDisposableCheckout,true);
-    assert.equal(result.fullGitHistoryAndTrackedFilesMatched,true);
+    assert.equal(result.locallyFetchedGitHistoryAndTrackedFilesMatched,true);
     assert.equal(result.temporaryRestorationDeleted,true);
     assert.equal(result.savedBundleFilesPresentAtCheck,true);
     assert.equal(result.durableOwnerRetentionIndependentlyProven,false);
