@@ -180,9 +180,10 @@
     </div>
     <div class="field" aria-labelledby="github-save-heading">
       <h3 id="github-save-heading" style="margin:0;color:var(--gold)">Save directly to GitHub — development connection</h3>
-      <p>Future Save will store verified edits on a separate development branch. <strong>It will not publish your public website.</strong> A trusted local Save service must first be connected and verify your backup, exact Git version, and file protections. This service is not yet available; keep using private drafts meanwhile.</p>
+      <p>Future Save will store verified edits on a separate development branch. <strong>It will not publish your public website.</strong> The read-only local companion can now verify a review ZIP against a pinned source checkout. Real GitHub Save still requires a separately approved secure service, restored backup, exact branch version and file protections. Keep using private drafts meanwhile.</p>
       <div class="actions">
         <button type="button" id="github-check-connection">Check Save Connection</button>
+        <button type="button" id="github-review" disabled>Review Changes Safely</button>
         <button type="button" id="github-save" disabled>Save to GitHub (development branch)</button>
       </div>
       <div id="github-save-status" class="status" role="status" aria-live="polite">No verified GitHub Save connection. Local drafts are still available.</div>
