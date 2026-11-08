@@ -2,6 +2,7 @@
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
+const http=require('node:http');
 const path=require('node:path');
 const {createCompanion,makeReviewResult,parseArgs}=require('../tools/local-save-companion.cjs');
 const sha='a'.repeat(40);
@@ -128,8 +129,17 @@ test('refuses missing CSRF, wrong Origin, wrong protocol, and unsuitable content
 });
 test('does not trust Host headers, cross-origin preflights or another URL path',async()=>{
   await session(async()=>makeReviewResult(mockPlan,sha),async(base)=>{
-    const wrong=await fetch(base+'/api/editor/status',{headers:{Host:'website.evil.invalid'}});
-    assert.equal(wrong.status,403);
+    // Node fetch ignores custom Host; native HTTP really sends a forged Host.
+    const wrong=await new Promise((resolve,reject)=>{
+      const req=http.get(base+'/api/editor/status',{
+        headers:{Host:'website.evil.invalid'}
+      },response=>{
+        response.resume();
+        response.on('end',()=>resolve(response.statusCode));
+      });
+      req.on('error',reject);
+    });
+    assert.equal(wrong,403);
     const preflight=await fetch(base+'/api/editor/review',{
       method:'OPTIONS',headers:{Origin:'https://evil.invalid'}
     });
