@@ -235,6 +235,8 @@ jobs:
         run: |
           node --test editor/tests/github-save-client.test.cjs
           node --test editor/tests/local-save-companion.test.cjs
+      - name: Verify sandbox Git blob, full tree, and one-parent commit staging rules
+        run: node --test editor/tests/stage-sandbox-git-objects.test.cjs
       - name: Verify expected-old GitHub GraphQL ref transport in disposable mock repository
         run: node --test editor/tests/conditional-remote-ref-transport.test.cjs
       - name: Review real 31 MB original source over local loopback
