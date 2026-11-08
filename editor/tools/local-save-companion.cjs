@@ -61,6 +61,41 @@ function makeReviewResult(plan, expectedCommit) {
     changedResources:plan.proposedResourceChanges
   });
 }
+function makeDisposableCommitResult(proof) {
+  if(!proof||proof.format!=='naxx-disposable-conditional-local-git-save-v1'||
+     proof.onlyDisposableGitClone!==true||
+     proof.candidateGitCommitCreatedAndVerified!==true||
+     proof.independentTreeShaMatched!==true||
+     proof.resourceSourceBlobs!==415||
+     !Number.isInteger(proof.changedOriginalGitBlobs)||
+     proof.changedOriginalGitBlobs<2||proof.changedOriginalGitBlobs>6||
+     proof.stagedPathsVerified!==415+proof.changedOriginalGitBlobs||
+     proof.exactOldLocalRefAdvanceVerified!==true||
+     proof.staleSecondLocalSaveRejected!==true||
+     proof.originalLocalRefRecovered!==true||
+     proof.privateGitCloneDeleted!==true||
+     proof.originalSiteRollbackVerified!==true||
+     proof.originalSourceCommitUnchanged!==true||
+     proof.temporaryCandidateDeleted!==true||
+     proof.originalRepositoryWritten!==false||
+     proof.githubWrites!==0||
+     proof.githubSaveEnabled!==false||
+     proof.githubRemoteCASProven!==false||
+     proof.ownerHeldBackupRetained!==false||
+     proof.sourceLayoutApproved!==false||
+     proof.canPush!==false||proof.canPublish!==false)
+    throw Error('Disposable commit proof did not meet the complete local rollback requirements.');
+  return Object.freeze({
+    format:'naxx-editor-local-test-commit-result-v1',
+    testOnly:true,realGitHubSave:false,published:false,
+    initialResourceSourceFiles:415,
+    changedExistingGitFiles:proof.changedOriginalGitBlobs,
+    totalCandidateFileChanges:proof.stagedPathsVerified,
+    exactOldLocalRefVerified:true,staleSecondSaveRejected:true,
+    originalSourceRestored:true,temporaryCloneDeleted:true,
+    githubWrites:0
+  });
+}
 function buildReviewer(checkout,expectedCommit) {
   if (typeof checkout !== 'string' || !path.isAbsolute(checkout) ||
       !COMMIT.test(expectedCommit || ''))
@@ -73,6 +108,7 @@ function buildReviewer(checkout,expectedCommit) {
 function createCompanion(options={}) {
   const editorDir=options.editorDir || path.resolve(__dirname,'..');
   const review=typeof options.review==='function' ? options.review : null;
+  const testCommit=typeof options.testCommit==='function' ? options.testCommit : null;
   const session=crypto.randomBytes(32).toString('hex');
   let reviewing=false;
   const server=http.createServer(async(req,res)=>{
@@ -110,11 +146,13 @@ function createCompanion(options={}) {
         ready:false,authenticated:false,repository:REPO,
         publishDisabled:true,backupVerified:false,
         exactOldHeadEnforced:false,branch:null,expectedHead:null,
-        reviewReady:!!review,csrfToken:session
+        reviewReady:!!review,disposableCommitTrialReady:!!testCommit,
+        csrfToken:session
       });
       return;
     }
-    if(req.method==='POST' && (url==='/api/editor/save'||url==='/api/editor/review')){
+    if(req.method==='POST' && (url==='/api/editor/save'||
+       url==='/api/editor/review'||url==='/api/editor/test-commit')){
       const origin='http://'+host;
       const csrf=req.headers['x-naxx-csrf-token'];
       const submitted=typeof csrf==='string' && /^[a-f0-9]{64}$/.test(csrf) ?
@@ -122,14 +160,17 @@ function createCompanion(options={}) {
       const match=crypto.timingSafeEqual(submitted,Buffer.from(session,'hex'));
       if(req.headers.origin!==origin ||
          (req.headers['sec-fetch-site'] && req.headers['sec-fetch-site']!=='same-origin') ||
-         req.headers['x-naxx-editor-protocol']!=='naxx-local-review-v1' ||
+         req.headers['x-naxx-editor-protocol']!==
+           (url==='/api/editor/test-commit' ?
+             'naxx-local-test-commit-v1':'naxx-local-review-v1') ||
          !match){
         reject(403,'Local editor session or origin was not verified.');return;
       }
       if(url==='/api/editor/save'){
         reject(423,'Real GitHub Save remains disabled. No repository files were written.');return;
       }
-      if(!review){reject(503,'No pinned source review is configured.');return;}
+      const handler=url==='/api/editor/test-commit'?testCommit:review;
+      if(!handler){reject(503,'No pinned source review or disposable commit trial is configured.');return;}
       if(reviewing){reject(409,'Another review is already running.');return;}
       if(req.headers['content-type']!=='application/zip'){
         reject(415,'A protected editor review ZIP is required.');return;
@@ -149,16 +190,21 @@ function createCompanion(options={}) {
           chunks.push(chunk);
         }
         if(total!==sizeHeader)throw Error('Review ZIP length did not match.');
-        const checked=await review(Buffer.concat(chunks));
-        // Even an injected handler must not forge a production Save receipt.
-        if(!checked||checked.format!=='naxx-editor-local-review-result-v1'||
-           checked.reviewOnly!==true||checked.sourceChecked!==true||
-           checked.gitHubWrite!==false||checked.published!==false||
-           checked.checkedResourceCount!==414||
-           !Number.isInteger(checked.changedResources)||
-           !Number.isInteger(checked.changedPageAndNavigationFiles))
-          throw Error('The source review did not return trustworthy read-only evidence.');
-        reply(200,checked);
+        const checked=await handler(Buffer.concat(chunks));
+        if(url==='/api/editor/test-commit') {
+          // This response describes only a local, deleted Git clone.
+          // It is intentionally incompatible with the real GitHub Save receipt.
+          reply(200,makeDisposableCommitResult(checked));
+        } else {
+          if(!checked||checked.format!=='naxx-editor-local-review-result-v1'||
+             checked.reviewOnly!==true||checked.sourceChecked!==true||
+             checked.gitHubWrite!==false||checked.published!==false||
+             checked.checkedResourceCount!==414||
+             !Number.isInteger(checked.changedResources)||
+             !Number.isInteger(checked.changedPageAndNavigationFiles))
+            throw Error('The source review did not return trustworthy read-only evidence.');
+          reply(200,checked);
+        }
       } catch(_) {
         reject(422,'Source review refused this package. No GitHub files were changed.');
       } finally{reviewing=false;}
@@ -221,4 +267,5 @@ if(require.main===module){
     process.exitCode=1;
   }
 }
-module.exports={createCompanion,buildReviewer,makeReviewResult,parseArgs};
+module.exports={createCompanion,buildReviewer,makeReviewResult,
+  makeDisposableCommitResult,parseArgs};
