@@ -93,3 +93,18 @@ test('verification module does not contain GitHub write APIs or saved credential
   assert.match(text,/verifyRecovery/);
   assert.match(text,/verifyBackupBinding/);
 });
+
+test('symlinked backup file and redirected backup folder are refused before restore',()=>{
+  if(process.platform==='win32')return;
+  fixture(({checkout,backup,privateDir})=>{
+    const link=path.join(privateDir,'symlink.bundle');
+    fs.symlinkSync(backup,link);
+    assert.throws(()=>resolvedBackupPath(checkout,link),/symlink/);
+    assert.throws(()=>verifyRetainedBackup(checkout,link,{requireWebsite:false}),/symlink/);
+    const alias=path.join(path.dirname(privateDir),'folder-alias');
+    fs.symlinkSync(privateDir,alias,'dir');
+    const moved=path.join(alias,path.basename(backup));
+    assert.throws(()=>resolvedBackupPath(checkout,moved),/symlink/);
+    assert.throws(()=>verifyRetainedBackup(checkout,moved,{requireWebsite:false}),/symlink/);
+  });
+});
