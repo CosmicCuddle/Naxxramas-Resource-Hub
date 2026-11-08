@@ -241,6 +241,8 @@ jobs:
         run: |
           node --test editor/tests/github-save-client.test.cjs
           node --test editor/tests/local-save-companion.test.cjs
+      - name: Verify isolated server-side GitHub sandbox API serialization and credential safety
+        run: node --test editor/tests/github-sandbox-api.test.cjs
       - name: Verify sandbox Git blob, full tree, and one-parent commit staging rules
         run: node --test editor/tests/stage-sandbox-git-objects.test.cjs
       - name: Rehearse complete source-backed Git object to conditional ref lifecycle without any live network
