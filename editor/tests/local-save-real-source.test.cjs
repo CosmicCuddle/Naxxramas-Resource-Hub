@@ -9,6 +9,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
 const crypto=require('node:crypto'),cp=require('node:child_process'),vm=require('node:vm');
 const {createCompanion,buildReviewer}=require('../tools/local-save-companion.cjs');
+const {rehearse}=require('../tools/rehearse-conditional-local-git-save.cjs');
 const client=require('../github-save-client.js');
 const {PAGES,NAV,runs}=require('../tools/plan-page-draft.cjs');
 const {SOURCE_SHA}=require('../tools/audit-source-storage-budget.cjs');
@@ -57,7 +58,8 @@ test('real original source: one browser review succeeds, no real Save, no Git or
   assert.equal(source.length,30976969);
   assert.equal(sha(source),SOURCE_SHA);
   const {pages,resources}=drafts(),tools=zipTools();
-  const server=createCompanion({editorDir:editor,review:buildReviewer(root,head)});
+  const server=createCompanion({editorDir:editor,review:buildReviewer(root,head),
+    testCommit:zip=>rehearse(root,zip,head)});
   await new Promise((ok,fail)=>server.once('error',fail).listen(0,'127.0.0.1',ok));
   const base='http://127.0.0.1:'+server.address().port;
   let posts=0;
@@ -92,6 +94,26 @@ test('real original source: one browser review succeeds, no real Save, no Git or
         'X-Naxx-Editor-Protocol':'naxx-local-review-v1'}
     });
     assert.equal(blocked.status,423);
+    const trial=await fetch(base+'/api/editor/test-commit',{
+      method:'POST',body:zip.blob,headers:{
+        Origin:base,'Content-Type':'application/zip',
+        'X-Naxx-Csrf-Token':capability.csrfToken,
+        'X-Naxx-Editor-Protocol':'naxx-local-test-commit-v1'
+      }
+    });
+    assert.equal(trial.status,200,'Disposable Git commit must be checked over loopback');
+    const evidence=await trial.json();
+    assert.equal(evidence.format,'naxx-editor-local-test-commit-result-v1');
+    assert.equal(evidence.testOnly,true);
+    assert.equal(evidence.realGitHubSave,false);
+    assert.equal(evidence.initialResourceSourceFiles,415);
+    assert.equal(evidence.changedExistingGitFiles,3);
+    assert.equal(evidence.totalCandidateFileChanges,418);
+    assert.equal(evidence.exactOldLocalRefVerified,true);
+    assert.equal(evidence.staleSecondSaveRejected,true);
+    assert.equal(evidence.originalSourceRestored,true);
+    assert.equal(evidence.temporaryCloneDeleted,true);
+    assert.equal(evidence.githubWrites,0);
     assert.equal(gitStatus(),before);
     assert.equal(sha(fs.readFileSync(path.join(root,'site-content.html'))),SOURCE_SHA);
   }finally{
