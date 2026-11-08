@@ -235,6 +235,8 @@ jobs:
         run: |
           node --test editor/tests/github-save-client.test.cjs
           node --test editor/tests/local-save-companion.test.cjs
+      - name: Verify expected-old GitHub GraphQL ref transport in disposable mock repository
+        run: node --test editor/tests/conditional-remote-ref-transport.test.cjs
       - name: Review real 31 MB original source over local loopback
         run: node --test editor/tests/local-save-real-source.test.cjs
       - name: Commit 415-resource proposal only to disposable Git clone; check exact old ref and restoration
