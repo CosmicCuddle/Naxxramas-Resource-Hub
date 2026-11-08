@@ -10,6 +10,7 @@
   var SHA256 = /^[0-9a-f]{64}$/;
   var BRANCH = /^editor-saves\/[a-z0-9][a-z0-9._/-]{0,100}$/;
   var MAX_PACKAGE_BYTES = 8 * 1024 * 1024;
+  var TOKEN = /^[a-f0-9]{64}$/;
 
   function allowedHost(location) {
     return !!location && location.protocol === 'http:' &&
@@ -28,10 +29,12 @@
         data.repository !== EXPECTED_REPOSITORY ||
         data.publishDisabled !== true || data.backupVerified !== true ||
         data.exactOldHeadEnforced !== true ||
-        !safeBranch(data.branch) || !SHA.test(data.expectedHead)) {
+        !safeBranch(data.branch) || !SHA.test(data.expectedHead) ||
+        !TOKEN.test(data.csrfToken)) {
       throw Error('The trusted Save service is not ready for a protected development-branch Save.');
     }
-    return Object.freeze({branch: data.branch, expectedHead: data.expectedHead});
+    return Object.freeze({branch: data.branch, expectedHead: data.expectedHead,
+      csrfToken: data.csrfToken});
   }
   function validateReceipt(data, capability) {
     if (!data || data.format !== 'naxx-editor-local-save-result-v1' ||
@@ -53,14 +56,22 @@
       throw Error('The trusted Save service did not return an approved response.');
     return response.json();
   }
-  async function connect(location, fetchFn) {
+  async function readStatus(location, fetchFn) {
     if (!allowedHost(location))
       throw Error('Open the editor using the trusted local Save service. File downloads still work without it.');
     if (typeof fetchFn !== 'function') throw Error('Browser network support is unavailable.');
     var response = await fetchFn('/api/editor/status', {
       method: 'GET', cache: 'no-store', credentials: 'same-origin', redirect: 'error'
     });
-    return validateCapability(await jsonReply(response));
+    var data = await jsonReply(response);
+    if (!data || data.format !== 'naxx-editor-local-save-capability-v1' ||
+        data.repository !== EXPECTED_REPOSITORY ||
+        data.publishDisabled !== true || !TOKEN.test(data.csrfToken))
+      throw Error('The local editor connection did not match the protected protocol.');
+    return data;
+  }
+  async function connect(location, fetchFn) {
+    return validateCapability(await readStatus(location, fetchFn));
   }
   function editSignature(page, resource) {
     // Ignore page-draft creation timestamps: they change on each getDraft().
@@ -96,7 +107,8 @@
         redirect: 'error', headers: {
           'Content-Type': 'application/zip',
           'X-Naxx-Editor-Protocol': 'naxx-local-save-v1',
-          'X-Naxx-Expected-Head': capability.expectedHead
+          'X-Naxx-Expected-Head': capability.expectedHead,
+          'X-Naxx-Csrf-Token': capability.csrfToken
         }, body: packageResult.blob
       });
       verified = validateReceipt(await jsonReply(response), capability);
@@ -115,42 +127,139 @@
     return Object.freeze({...verified, changedDuringSave: changedDuringSave});
   }
 
+  function validateReviewResult(data) {
+    if (!data || data.format !== 'naxx-editor-local-review-result-v1' ||
+        data.reviewOnly !== true || data.sourceChecked !== true ||
+        data.gitHubWrite !== false || data.published !== false ||
+        !SHA.test(data.expectedGitCommit) ||
+        data.checkedResourceCount !== 414 ||
+        !Number.isInteger(data.changedResources) ||
+        !Number.isInteger(data.changedPageAndNavigationFiles) ||
+        data.changedResources < 0 || data.changedResources > 414 ||
+        data.changedPageAndNavigationFiles < 0 ||
+        data.changedPageAndNavigationFiles > 5 ||
+        data.changedResources + data.changedPageAndNavigationFiles < 1)
+      throw Error('The source review response was not a verified, read-only result.');
+    return Object.freeze({
+      expectedGitCommit:data.expectedGitCommit,
+      changedResources:data.changedResources,
+      changedPageAndNavigationFiles:data.changedPageAndNavigationFiles,
+      published:false,reviewOnly:true
+    });
+  }
+  async function reviewChanges(options) {
+    var location=options && options.location;
+    if (!allowedHost(location) || typeof options.fetchFn !== 'function' ||
+        typeof options.build !== 'function' ||
+        typeof options.getPageDraft !== 'function' ||
+        typeof options.getResourceDraft !== 'function')
+      throw Error('Source review requires the protected local editor components.');
+    var capability=await readStatus(location,options.fetchFn);
+    if (capability.reviewReady !== true)
+      throw Error('The local source-review service is not ready.');
+    var pages=options.getPageDraft(), resources=options.getResourceDraft();
+    var captured=editSignature(pages,resources);
+    var prepared=await options.build(pages,resources,options.zipTools);
+    if (!prepared || !(prepared.blob instanceof Blob) ||
+        prepared.blob.size < 22 || prepared.blob.size > MAX_PACKAGE_BYTES ||
+        !prepared.manifest || prepared.manifest.publishable !== false ||
+        prepared.manifest.githubReady !== false)
+      throw Error('The local review ZIP was not verified before sending.');
+    var result;
+    try {
+      var response=await options.fetchFn('/api/editor/review',{
+        method:'POST',cache:'no-store',credentials:'same-origin',
+        redirect:'error',headers:{
+          'Content-Type':'application/zip',
+          'X-Naxx-Editor-Protocol':'naxx-local-review-v1',
+          'X-Naxx-Csrf-Token':capability.csrfToken
+        },body:prepared.blob
+      });
+      result=validateReviewResult(await jsonReply(response));
+    }catch(_) {
+      throw Error('Local source review failed. Nothing was saved. Keep your existing drafts.');
+    }
+    var changedDuringReview=true;
+    try {
+      changedDuringReview=editSignature(options.getPageDraft(),
+        options.getResourceDraft())!==captured;
+    }catch(_){/* Unapplied input may not be represented in the captured ZIP. */}
+    return Object.freeze({...result,changedDuringReview:changedDuringReview});
+  }
   var api = Object.freeze({allowedHost: allowedHost, safeBranch: safeBranch,
     validateCapability: validateCapability, validateReceipt: validateReceipt,
-    connect: connect, save: save});
+    readStatus:readStatus,connect: connect, save: save,
+    validateReviewResult:validateReviewResult,reviewChanges:reviewChanges});
   root.NaxxGitHubSaveClient = api;
   if (typeof module !== 'undefined' && module.exports)module.exports = api;
 
   if (typeof document === 'undefined') return;
   var button = document.getElementById('github-save');
   var check = document.getElementById('github-check-connection');
+  var reviewButton = document.getElementById('github-review');
   var status = document.getElementById('github-save-status');
-  if (!button || !check || !status) return;
-  var busy = false, ready = false;
+  if (!button || !check || !reviewButton || !status) return;
+  var busy = false, ready = false, canReview = false;
   function notice(message, error) {
     status.textContent = message;
     status.classList.toggle('error', !!error);
   }
   async function updateConnection() {
-    ready = false;
-    button.disabled = true;
+    ready = false;canReview = false;
+    button.disabled = true;reviewButton.disabled = true;
     if (!allowedHost(root.location)) {
       notice('Direct GitHub Save requires a trusted local service, not an ordinary downloaded HTML file. Draft downloads remain available.', false);
       return;
     }
     try {
-      var capability = await connect(root.location, root.fetch.bind(root));
-      ready = true;
-      button.disabled = false;
-      notice('Development branch ' + capability.branch + ' is ready for a protected Save. Publishing is separate.', false);
+      var statusInfo = await readStatus(root.location, root.fetch.bind(root));
+      canReview = statusInfo.reviewReady === true;
+      reviewButton.disabled = !canReview;
+      if (statusInfo.ready === true) {
+        var capability = validateCapability(statusInfo);
+        ready = true;button.disabled = false;
+        notice('Development branch ' + capability.branch +
+          ' is ready for a protected Save. Publishing remains separate.', false);
+      } else if (canReview) {
+        notice('Local source review is available. Save to GitHub is still disabled; you can check your edits without publishing.', false);
+      } else {
+        notice('No verified Save connection yet. Private local drafts are still available.', true);
+      }
     } catch (_) {
-      notice('No verified Save connection yet. Your existing local drafts are safe and can still be downloaded.', true);
+      notice('No verified local editor connection yet. Existing drafts can still be downloaded.', true);
     }
   }
   check.addEventListener('click', function () { if (!busy)updateConnection(); });
+  reviewButton.addEventListener('click',async function(){
+    if (busy || !canReview) return;
+    busy = true;
+    reviewButton.disabled = true;check.disabled = true;button.disabled = true;
+    notice('Reviewing your edits against the protected source files…',false);
+    try {
+      var pages=root.NaxxLocalPageReview,resources=root.NaxxLocalResourceReview;
+      var draftReview=root.NaxxEditorReview;
+      if (!pages || !resources || !draftReview || !root.NaxxEditorZip)
+        throw Error('Original draft editors have not loaded.');
+      var result=await reviewChanges({location:root.location,
+        fetchFn:root.fetch.bind(root),getPageDraft:pages.getDraft,
+        getResourceDraft:resources.getDraft,
+        build:draftReview.build,zipTools:root.NaxxEditorZip});
+      notice('Source review passed: ' + result.changedResources +
+        ' resource(s), ' + result.changedPageAndNavigationFiles +
+        ' page/navigation file(s). ' +
+        (result.changedDuringReview ?
+          'New edits made during review are NOT included. ' : '') +
+        'This is NOT a GitHub Save or publication.', false);
+    }catch(error){
+      notice((error && error.message) || 'Source review refused. Local drafts were kept.',true);
+    }finally{
+      busy=false;check.disabled=false;
+      button.disabled=!ready;reviewButton.disabled=!canReview;
+    }
+  });
   button.addEventListener('click', async function () {
     if (busy || !ready) return;
-    busy = true;button.disabled = true;check.disabled = true;
+    busy = true;button.disabled = true;reviewButton.disabled = true;check.disabled = true;
     notice('Checking your edits and protected Save connection…', false);
     try {
       var pages = root.NaxxLocalPageReview;
@@ -172,6 +281,7 @@
       notice((error && error.message) || 'Save unavailable. Local drafts were kept.', true);
     } finally {
       busy = false;check.disabled = false;button.disabled = true;
+      reviewButton.disabled = !canReview;
     }
   });
   updateConnection();
