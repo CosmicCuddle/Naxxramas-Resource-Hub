@@ -117,7 +117,7 @@ test('missing receipt, modified private notice and extra untrusted fields refuse
       fs.writeFileSync(noticeFile,notice,{mode:0o600});
       const modified=JSON.parse(receipt.toString('utf8'));
       modified.falseOwnerApproval=true;
-      fs.writeFileSync(receiptFile,JSON.stringify(modified)+'\n');
+      fs.writeFileSync(receiptFile,JSON.stringify(modified,null,2)+'\n');
       assert.throws(()=>inspectSavedBackup(source,output,pins,
         {requireWebsite:false}),/receipt disagrees/);
     }finally{
@@ -132,12 +132,12 @@ test('false fetched-ref claim, wrong commit and incomplete restore evidence are 
     const record=JSON.parse(original.toString('utf8'));
     try{
       record.fetchedRefs[0].id='f'.repeat(40);
-      fs.writeFileSync(receiptFile,JSON.stringify(record)+'\n');
+      fs.writeFileSync(receiptFile,JSON.stringify(record,null,2)+'\n');
       assert.throws(()=>inspectSavedBackup(source,output,pins,
         {requireWebsite:false}),/ref receipt differs/);
       record.fetchedRefs[0].id=JSON.parse(original.toString('utf8')).fetchedRefs[0].id;
       record.independentRestoreVerified=false;
-      fs.writeFileSync(receiptFile,JSON.stringify(record)+'\n');
+      fs.writeFileSync(receiptFile,JSON.stringify(record,null,2)+'\n');
       assert.throws(()=>inspectSavedBackup(source,output,pins,
         {requireWebsite:false}),/receipt disagrees/);
     }finally{fs.writeFileSync(receiptFile,original);}
@@ -188,6 +188,47 @@ test('extra Git ref hidden in otherwise checksum-consistent saved bundle is refu
     fs.writeFileSync(receiptName,JSON.stringify(saved,null,2)+'\n');
     const {instructions}=require('../tools/create-local-git-backup.cjs');
     fs.writeFileSync(noticeName,instructions(saved));
+    assert.throws(()=>inspectSavedBackup(source,output,{
+      ...pins,expectedBundleSha256:saved.bundleSha256
+    },{requireWebsite:false}),/unexpected or changed refs/);
+  });
+});
+
+test('canonical receipt validation rejects duplicate JSON keys and ambiguous encodings',()=>{
+  fixture(({source,output,pins})=>{
+    const file=output+'.receipt.json';
+    const original=fs.readFileSync(file);
+    try{
+      const canonical=original.toString('utf8');
+      const duplicate=canonical.trimEnd().slice(0,-1)+
+        ',"sourceCommit":'+JSON.stringify(pins.expectedCommit)+'}\n';
+      fs.writeFileSync(file,duplicate);
+      assert.throws(()=>inspectSavedBackup(source,output,pins,
+        {requireWebsite:false}),/not canonical JSON/);
+      fs.writeFileSync(file,JSON.stringify(JSON.parse(canonical))+'\n');
+      assert.throws(()=>inspectSavedBackup(source,output,pins,
+        {requireWebsite:false}),/not canonical JSON/);
+      fs.writeFileSync(file,canonical.slice(0,-1));
+      assert.throws(()=>inspectSavedBackup(source,output,pins,
+        {requireWebsite:false}),/not canonical JSON/);
+    }finally{fs.writeFileSync(file,original);}
+  });
+});
+test('extra Git notes ref is refused even when branches and tags all match',()=>{
+  fixture(({source,output,pins})=>{
+    // All state is synthetic and disposable, never the original website.
+    git(source,'update-ref','refs/notes/injected-test','refs/heads/main');
+    const made=cp.spawnSync('git',['-C',source,'bundle','create',
+      output,'--all','HEAD'],{encoding:'utf8',stdio:['ignore','pipe','pipe']});
+    assert.equal(made.status,0);
+    git(source,'update-ref','-d','refs/notes/injected-test');
+    const receiptName=output+'.receipt.json';
+    const saved=JSON.parse(fs.readFileSync(receiptName,'utf8'));
+    saved.bundleBytes=fs.statSync(output).size;
+    saved.bundleSha256=hash(fs.readFileSync(output));
+    fs.writeFileSync(receiptName,JSON.stringify(saved,null,2)+'\n');
+    const {instructions}=require('../tools/create-local-git-backup.cjs');
+    fs.writeFileSync(output+'.READ_ME_FIRST.txt',instructions(saved));
     assert.throws(()=>inspectSavedBackup(source,output,{
       ...pins,expectedBundleSha256:saved.bundleSha256
     },{requireWebsite:false}),/unexpected or changed refs/);
