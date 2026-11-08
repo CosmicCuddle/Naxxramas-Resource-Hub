@@ -4,7 +4,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const http=require('node:http');
 const path=require('node:path');
-const {createCompanion,makeReviewResult,parseArgs}=require('../tools/local-save-companion.cjs');
+const {createCompanion,makeReviewResult,makeDisposableCommitResult,parseArgs}=require('../tools/local-save-companion.cjs');
 const sha='a'.repeat(40);
 const mockPlan={
   format:'naxx-private-browser-zip-to-git-review-v1',
@@ -17,8 +17,8 @@ const mockPlan={
   repositoryFilesWritten:0,gitHubWrites:0,
   existingPageAndNavigationChanges:2,proposedResourceChanges:3
 };
-async function session(review,run){
-  const server=createCompanion({review,editorDir:path.resolve(__dirname,'..')});
+async function session(review,run,testCommit=null){
+  const server=createCompanion({review,testCommit,editorDir:path.resolve(__dirname,'..')});
   await new Promise((ok,bad)=>server.once('error',bad).listen(0,'127.0.0.1',ok));
   const base='http://127.0.0.1:'+server.address().port;
   try{return await run(base);}
@@ -193,4 +193,78 @@ test('CLI arguments and source files cannot enable real remote Save',()=>{
   const src=fs.readFileSync(path.join(__dirname,'..','tools','local-save-companion.cjs'),'utf8');
   assert.doesNotMatch(src,/update_ref|updateRefs|git\s+push|github\.com\/repos\/.*\/git\/refs/);
   assert.match(src,/Real GitHub Save remains disabled/);
+});
+
+const disposableProof={
+  format:'naxx-disposable-conditional-local-git-save-v1',
+  onlyDisposableGitClone:true,candidateGitCommitCreatedAndVerified:true,
+  independentTreeShaMatched:true,resourceSourceBlobs:415,
+  changedOriginalGitBlobs:3,stagedPathsVerified:418,
+  exactOldLocalRefAdvanceVerified:true,staleSecondLocalSaveRejected:true,
+  originalLocalRefRecovered:true,privateGitCloneDeleted:true,
+  originalSiteRollbackVerified:true,originalSourceCommitUnchanged:true,
+  temporaryCandidateDeleted:true,originalRepositoryWritten:false,
+  githubWrites:0,githubSaveEnabled:false,githubRemoteCASProven:false,
+  ownerHeldBackupRetained:false,sourceLayoutApproved:false,
+  canPush:false,canPublish:false
+};
+test('test-only HTTP commit endpoint verifies a disposable clone without ever enabling real GitHub Save',async()=>{
+  let calls=0;
+  await session(async()=>makeReviewResult(mockPlan,sha),async(base)=>{
+    const info=await status(base);
+    assert.equal(info.ready,false);
+    assert.equal(info.disposableCommitTrialReady,true);
+    const attempt=await fetch(base+'/api/editor/test-commit',{
+      method:'POST',body:payload,headers:{
+        ...headers(base,info.csrfToken),
+        'X-Naxx-Editor-Protocol':'naxx-local-test-commit-v1'
+      }
+    });
+    assert.equal(attempt.status,200);
+    const receipt=await attempt.json();
+    assert.equal(receipt.format,'naxx-editor-local-test-commit-result-v1');
+    assert.equal(receipt.testOnly,true);
+    assert.equal(receipt.realGitHubSave,false);
+    assert.equal(receipt.published,false);
+    assert.equal(receipt.initialResourceSourceFiles,415);
+    assert.equal(receipt.totalCandidateFileChanges,418);
+    assert.equal(receipt.githubWrites,0);
+    assert.equal(calls,1);
+    const save=await fetch(base+'/api/editor/save',{
+      method:'POST',body:payload,headers:headers(base,info.csrfToken)
+    });
+    assert.equal(save.status,423);
+  },async(zip)=>{
+    calls++;assert.ok(Buffer.isBuffer(zip));return disposableProof;
+  });
+});
+test('test-only commit rejects missing handler, forged results and wrong protocol',async()=>{
+  await session(async()=>makeReviewResult(mockPlan,sha),async(base)=>{
+    const info=await status(base);
+    assert.equal(info.disposableCommitTrialReady,false);
+    const result=await fetch(base+'/api/editor/test-commit',{
+      method:'POST',body:payload,headers:{
+        ...headers(base,info.csrfToken),
+        'X-Naxx-Editor-Protocol':'naxx-local-test-commit-v1'
+      }
+    });
+    assert.equal(result.status,503);
+  });
+  await session(null,async(base)=>{
+    const info=await status(base);
+    const deny=await fetch(base+'/api/editor/test-commit',{
+      method:'POST',body:payload,headers:headers(base,info.csrfToken)
+    });
+    assert.equal(deny.status,403);
+    const bad=await fetch(base+'/api/editor/test-commit',{
+      method:'POST',body:payload,headers:{
+        ...headers(base,info.csrfToken),
+        'X-Naxx-Editor-Protocol':'naxx-local-test-commit-v1'
+      }
+    });
+    assert.equal(bad.status,422);
+  },async()=>({...disposableProof,githubWrites:1}));
+  assert.throws(()=>makeDisposableCommitResult({...disposableProof,canPublish:true}));
+  assert.throws(()=>makeDisposableCommitResult({...disposableProof,privateGitCloneDeleted:false}));
+  assert.throws(()=>makeDisposableCommitResult({...disposableProof,stagedPathsVerified:417}));
 });
