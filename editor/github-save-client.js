@@ -62,6 +62,14 @@
     });
     return validateCapability(await jsonReply(response));
   }
+  function editSignature(page, resource) {
+    // Ignore page-draft creation timestamps: they change on each getDraft().
+    return JSON.stringify({
+      files: page ? page.files : null,
+      navigation: page ? page.navigation : null,
+      resources: resource ? resource.changes : null
+    });
+  }
   async function save(options) {
     var location = options && options.location;
     if (!allowedHost(location))throw Error('Save needs the trusted local editor service.');
@@ -73,6 +81,7 @@
     // Fetch a fresh capability immediately before building and sending a draft.
     var capability = await connect(location, fetchFn);
     var page = options.getPageDraft(), resource = options.getResourceDraft();
+    var capturedSignature = editSignature(page, resource);
     var packageResult = await options.build(page, resource, options.zipTools);
     if (!packageResult || !(packageResult.blob instanceof Blob) ||
         packageResult.blob.size < 22 ||
@@ -80,7 +89,7 @@
         !packageResult.manifest || packageResult.manifest.githubReady !== false ||
         packageResult.manifest.publishable !== false)
       throw Error('A safe, bounded private editing package could not be prepared.');
-    var response;
+    var response, verified;
     try {
       response = await fetchFn('/api/editor/save', {
         method: 'POST', cache: 'no-store', credentials: 'same-origin',
@@ -90,12 +99,20 @@
           'X-Naxx-Expected-Head': capability.expectedHead
         }, body: packageResult.blob
       });
-      return validateReceipt(await jsonReply(response), capability);
+      verified = validateReceipt(await jsonReply(response), capability);
     } catch (_) {
       // Any failed, malformed or lost response could follow an unseen write.
       // Never retry automatically, silently discard the draft or claim Saved.
       throw Error('Save result is uncertain or refused. Keep all local edits and do NOT retry automatically. Check the development branch before another Save.');
     }
+    var changedDuringSave = true;
+    try {
+      changedDuringSave = editSignature(options.getPageDraft(),
+        options.getResourceDraft()) !== capturedSignature;
+    } catch (_) {
+      // New unapplied text also means the owner has edits not in this Save.
+    }
+    return Object.freeze({...verified, changedDuringSave: changedDuringSave});
   }
 
   var api = Object.freeze({allowedHost: allowedHost, safeBranch: safeBranch,
@@ -144,7 +161,10 @@
       var result = await save({location: root.location, fetchFn: root.fetch.bind(root),
         getPageDraft: pages.getDraft, getResourceDraft: resources.getDraft,
         build: review.build, zipTools: root.NaxxEditorZip});
-      notice('Saved and independently verified on development branch ' + result.branch +
+      notice((result.changedDuringSave ?
+        'An earlier draft was saved; edits made during Save are NOT stored. ' :
+        'Saved and independently verified. ') +
+        'Development branch: ' + result.branch +
         '. Your public website was NOT published. Keep your draft until you review this change.', false);
       ready = false; // Force a fresh remote check before another Save.
     } catch (error) {
