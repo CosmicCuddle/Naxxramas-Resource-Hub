@@ -1,6 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
-const {createGitHubSandboxApi,ensureRepo,FORMAT,strictHttpsTransport}=
+const {createGitHubSandboxApi,ensureRepo,approvedTransportRoute,
+  APPROVED_SANDBOX,FORMAT,strictHttpsTransport}=
   require('../tools/github-sandbox-api.cjs');
 const {treeOid}=require('../tools/rehearse-browser-zip-git-tree-intent.cjs');
 const {MUTATION}=require('../tools/conditional-remote-ref-transport.cjs');
@@ -45,7 +46,8 @@ function connect(m){
 test('production repository, missing opt-in, insecure sandbox name and main branch are blocked',()=>{
   for(const name of [
     'CosmicCuddle/Naxxramas-Resource-Hub','Other/sandbox',
-    'CosmicCuddle/Naxxramas-Editor-Save-Sandbox-../evil'
+    'CosmicCuddle/Naxxramas-Editor-Save-Sandbox-../evil',
+    'CosmicCuddle/Naxxramas-Editor-Save-Sandbox-02'
   ])assert.throws(()=>ensureRepo(name));
   const m=mock();
   assert.throws(()=>createGitHubSandboxApi({
@@ -218,4 +220,49 @@ test('privacy is rechecked immediately before ref update and fails closed if san
   await assert.rejects(fake.objects.createBlob({
     repository:REPO,content:'YQ==',encoding:'base64'
   }),/PRIVATE|identity/);
+});
+
+test('exact owner-approved PRIVATE sandbox is the ONLY server transport repository',()=>{
+  assert.equal(ensureRepo(REPO),APPROVED_SANDBOX);
+  assert.throws(()=>ensureRepo('CosmicCuddle/Naxxramas-Editor-Save-Sandbox-02'),/separate editor sandbox/);
+  assert.throws(()=>ensureRepo(REPO+'/other'),/separate editor sandbox/);
+});
+test('strict network transport permits only expected Git endpoints and exact protected GraphQL shapes',()=>{
+  const base='/repos/'+APPROVED_SANDBOX+'/git/';
+  const identity=JSON.stringify({
+    query:'query NaxxEditorSandboxRepository($owner:String!,$name:String!){repository(owner:$owner,name:$name){id nameWithOwner visibility isPrivate isArchived isDisabled isLocked}}',
+    variables:{owner:'CosmicCuddle',name:'Naxxramas-Editor-Save-Sandbox-01'}
+  });
+  const mutation=JSON.stringify({
+    query:MUTATION,
+    variables:{input:{
+      repositoryId:'R_verifiedSandbox01',clientMutationId:'test-safe',
+      refUpdates:[{
+        name:'refs/heads/'+branch,beforeOid:OLD,afterOid:NEW,force:false
+      }]
+    }}
+  });
+  assert.equal(approvedTransportRoute('POST','/graphql',identity),true);
+  assert.equal(approvedTransportRoute('POST','/graphql',mutation),true);
+  assert.equal(approvedTransportRoute('POST',base+'blobs','{}'),true);
+  assert.equal(approvedTransportRoute('POST',base+'trees','{}'),true);
+  assert.equal(approvedTransportRoute('POST',base+'commits','{}'),true);
+  assert.equal(approvedTransportRoute('GET',base+'commits/'+OLD,''),true);
+  assert.equal(approvedTransportRoute('GET',base+'trees/'+OLD+'?recursive=1',''),true);
+  assert.equal(approvedTransportRoute('GET',base+'ref/heads/'+branch,''),true);
+  for(const bad of [
+    ['GET','/graphql',identity],
+    ['POST','/graphql','{not a valid JSON}'],
+    ['POST','/graphql',identity.replace('Naxxramas-Editor-Save-Sandbox-01','Naxxramas-Resource-Hub')],
+    ['POST','/graphql',mutation.replace('"force":false','"force":true')],
+    ['POST','/graphql',mutation.replace('"repositoryId":"R_verifiedSandbox01"','"repositoryId":""')],
+    ['POST','/graphql',mutation.replace('refs/heads/'+branch,'refs/heads/main')],
+    ['POST',base+'refs','{}'],
+    ['POST',base+'trees/../../../Naxxramas-Resource-Hub','{}'],
+    ['GET',base+'commits/'+OLD+'?recursive=1',''],
+    ['GET',base+'trees/'+OLD,''],
+    ['GET',base+'ref/heads/main',''],
+    ['GET',base+'ref/heads/'+branch,'{}'],
+    ['GET','/repos/CosmicCuddle/Naxxramas-Editor-Save-Sandbox-02/git/commits/'+OLD,'']
+  ])assert.equal(approvedTransportRoute(...bad),false,bad.join(' '));
 });
