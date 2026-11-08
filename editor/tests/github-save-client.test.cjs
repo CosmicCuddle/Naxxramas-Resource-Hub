@@ -64,7 +64,7 @@ test('a valid Save packages existing in-memory drafts and posts once to local se
     getPageDraft:()=>{pageCalls++;return {page:true};},
     getResourceDraft:()=>{resourceCalls++;return {resource:true};},
     build:async(p,r)=>{buildCalls++;assert.deepEqual(p,{page:true});assert.deepEqual(r,{resource:true});return fakePackage;}});
-  assert.equal(pageCalls,1);assert.equal(resourceCalls,1);assert.equal(buildCalls,1);
+  assert.equal(pageCalls,2);assert.equal(resourceCalls,2);assert.equal(buildCalls,1);
   assert.equal(calls.length,2);
   assert.equal(calls[0].url,'/api/editor/status');
   assert.equal(calls[0].opts.method,'GET');
@@ -114,4 +114,28 @@ test('browser adapter cannot contain GitHub tokens, direct GitHub endpoints or h
   assert.doesNotMatch(text,/https:\/\/api\.github\.com|Bearer\s+|Authorization\s*:/);
   assert.doesNotMatch(text,/localStorage|sessionStorage|setInterval\s*\(|git\s+push/);
   assert.match(text,/do NOT retry automatically/);
+});
+
+test('edits typed during an in-flight Save are explicitly marked unsaved, without a second POST',async()=>{
+  const current={format:'test-page',files:[{path:'rules/content.html',edits:{'T:1':'Original'}}],
+    navigation:null,createdAt:'time-1'};
+  let posts=0;
+  const fetchFn=async(url)=>{
+    if(url.endsWith('/status'))return response(capability);
+    posts++;
+    current.files[0].edits['T:1']='Typed during network request';
+    return response(receipt);
+  };
+  const result=await client.save({...inputs(fetchFn),getPageDraft:()=>current,
+    getResourceDraft:()=>null});
+  assert.equal(result.changedDuringSave,true);
+  assert.equal(posts,1);
+});
+test('fresh timestamps alone do not make an unchanged draft appear unsaved',async()=>{
+  let tick=0;
+  const fetchFn=async(url)=>response(url.endsWith('/status')?capability:receipt);
+  const result=await client.save({...inputs(fetchFn),
+    getPageDraft:()=>({files:[{path:'rules/content.html',edits:{'T:1':'Same'}}],
+      navigation:null,createdAt:String(++tick)}),getResourceDraft:()=>null});
+  assert.equal(result.changedDuringSave,false);
 });
