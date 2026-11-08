@@ -17,7 +17,7 @@ function mock(){
     if(req.path==='/graphql'){
       const payload=JSON.parse(req.body);
       if(payload.query.startsWith('query'))
-        body={data:{repository:{id:'R_verifiedSandbox01',nameWithOwner:REPO}}};
+        body={data:{repository:{id:'R_verifiedSandbox01',nameWithOwner:REPO,visibility:'PRIVATE',isPrivate:true,isArchived:false,isDisabled:false,isLocked:false}}};
       else body={data:{updateRefs:{clientMutationId:payload.variables.input.clientMutationId}}};
     }else if(req.path.includes('/git/ref/'))
       body={ref:'refs/heads/'+branch,object:{sha:OLD}};
