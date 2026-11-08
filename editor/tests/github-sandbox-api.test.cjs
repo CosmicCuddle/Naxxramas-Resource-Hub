@@ -141,3 +141,81 @@ test('unknown GitHub response is uncertain, never automatically retried or leaks
     err=>!err.message.includes('SECRET')&&/OUTCOME_UNCERTAIN/.test(err.message));
   assert.equal(calls,1);
 });
+
+test('GitHub must confirm PRIVATE and active status before any blob upload, not just a safe repository name',async()=>{
+  const exact={
+    id:'R_verifiedSandbox01',nameWithOwner:REPO,visibility:'PRIVATE',
+    isPrivate:true,isArchived:false,isDisabled:false,isLocked:false
+  };
+  for(const change of [
+    {visibility:'PUBLIC',isPrivate:false},
+    {visibility:'INTERNAL',isPrivate:true},
+    {isPrivate:false},
+    {isArchived:true},
+    {isDisabled:true},
+    {isLocked:true},
+    {visibility:undefined},
+    {isPrivate:undefined}
+  ]){
+    const paths=[];
+    const testApi=createGitHubSandboxApi({
+      enabledForExplicitSandboxTest:true,disposableTestApproved:true,
+      token:'ghs_FictionalSecret_NOT_REAL',repository:REPO,branch,
+      request:async req=>{
+        paths.push(req.path);
+        if(req.path!=='/graphql')throw Error('Unexpected object request');
+        return {status:200,body:JSON.stringify({
+          data:{repository:{...exact,...change}}
+        })};
+      }
+    });
+    await assert.rejects(testApi.objects.createBlob({
+      repository:REPO,content:'YQ==',encoding:'base64'
+    }),/PRIVATE|identity/);
+    assert.equal(paths.length,0,'No network or object request before identity check');
+    await assert.rejects(testApi.readRepositoryNodeId(),/PRIVATE/);
+    await assert.rejects(testApi.objects.createBlob({
+      repository:REPO,content:'YQ==',encoding:'base64'
+    }),/PRIVATE|identity/);
+    assert.deepEqual(paths,['/graphql'],'Refused before sending any Git object');
+  }
+});
+
+test('privacy is rechecked immediately before ref update and fails closed if sandbox turned public',async()=>{
+  let lookups=0,mutations=0;
+  const fake=createGitHubSandboxApi({
+    enabledForExplicitSandboxTest:true,disposableTestApproved:true,
+    token:'ghs_FictionalSecret_NOT_REAL',repository:REPO,branch,
+    request:async req=>{
+      assert.equal(req.path,'/graphql');
+      const body=JSON.parse(req.body);
+      if(body.query.startsWith('query')){
+        lookups++;
+        return {status:200,body:JSON.stringify({
+          data:{repository:{
+            id:'R_verifiedSandbox01',nameWithOwner:REPO,
+            visibility:lookups===1?'PRIVATE':'PUBLIC',
+            isPrivate:lookups===1,isArchived:false,isDisabled:false,isLocked:false
+          }}
+        })};
+      }
+      mutations++;
+      return {status:200,body:'{"data":{}}'};
+    }
+  });
+  await fake.readRepositoryNodeId();
+  await assert.rejects(fake.refs.updateRefs(MUTATION,{
+    input:{
+      repositoryId:'R_verifiedSandbox01',
+      clientMutationId:'naxx-sandbox-private-check',
+      refUpdates:[{
+        name:'refs/heads/'+branch,beforeOid:OLD,afterOid:NEW,force:false
+      }]
+    }
+  }),/PRIVATE/);
+  assert.equal(lookups,2);
+  assert.equal(mutations,0,'No Git branch mutation after sandbox becomes public');
+  await assert.rejects(fake.objects.createBlob({
+    repository:REPO,content:'YQ==',encoding:'base64'
+  }),/PRIVATE|identity/);
+});
