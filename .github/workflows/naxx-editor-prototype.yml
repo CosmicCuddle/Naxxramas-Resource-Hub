@@ -18,6 +18,12 @@ on:
       - 'assets/naxx-game-clients-guide.js'
       - 'index.html'
 
+# Keep only the latest workflow for a given PR or branch. Draft changes
+# should not leave multiple obsolete 30 MB editor test suites queued.
+concurrency:
+  group: naxx-editor-prototype-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
