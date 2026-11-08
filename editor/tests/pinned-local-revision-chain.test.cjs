@@ -221,3 +221,18 @@ test('symlink and malformed UTF-8 resource blobs fail closed',()=>{
     write(recordPath(12),Buffer.from([0xff,0xfe,0xfd]));
   },'Invalid resource blob encoding');
 });
+
+
+test('a new protected object member is rejected even alongside a valid title edit',()=>{
+  badCommit(()=>{
+    const next=secondRecords.slice();
+    const updated=replaceTitleInRecord(next[6],
+      'Fictional title plus forbidden metadata').record;
+    const open=updated.indexOf('{');
+    assert.ok(open>=0,'Original record must be a literal object');
+    next[6]=updated.slice(0,open+1)+
+      'unexpectedProtectedField: "must never be added",'+
+      updated.slice(open+1);
+    stage(next,3,secondManifest.sourceSha256);
+  },'Invalid protected object member in resource');
+});
