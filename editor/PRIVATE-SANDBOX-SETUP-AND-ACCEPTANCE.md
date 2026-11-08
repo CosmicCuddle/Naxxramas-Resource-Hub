@@ -1,0 +1,79 @@
+# Private GitHub Save sandbox — setup and acceptance gate
+
+**Status: PREPARATION ONLY — draft PR #56.** No separate sandbox repository has been created by this work. This is not permission to import site history, upload files, provide credentials, or activate real GitHub Save or Publish.
+
+## Purpose
+
+Prove an **authenticated** GitHub Save in an independent **private** repository without changing `CosmicCuddle/Naxxramas-Resource-Hub`, its `main` branch, GitHub Pages, or the existing public website. The current source-to-Save integration is already covered by automated local/disposable and *fictional GitHub-service* tests, including the original 30,976,969-byte runtime and 414 resources. An authenticated remote test remains a separate acceptance gate.
+
+## 1. One-time private sandbox creation — owner action
+
+The connected GitHub tools can inspect and edit existing repositories but currently expose **no create-repository action**. CosmicCuddle must create the repository from the GitHub website, or explicitly use another approved setup path. No access token should be pasted into chats, GitHub Issues/PR comments, editor pages, or source files.
+
+- Open <https://github.com/new>.
+- Owner: `CosmicCuddle` (not another account or organisation).
+- Repository name: `Naxxramas-Editor-Save-Sandbox-01`.
+- Visibility: **Private**. **Not Public**.
+- Do not choose a template or fork. Leave **Add a README file**, **Add .gitignore** and **Choose a license** unselected. The repository should start **empty**, to allow an exact copy of the intended original Git history later.
+- Create the repository. **Do not import, upload, push or paste anything yet.**
+- Before importing Git history, check **Settings → Actions → General** and disable workflows in this *sandbox only* until the owner approves a suitable policy; copied website history contains workflow files. Leave GitHub Pages disabled and do not set up deployments.
+
+The URL to check afterwards is <https://github.com/CosmicCuddle/Naxxramas-Editor-Save-Sandbox-01>. That URL being listed in this document is **not evidence** that the repository exists. It may not be visible to the connected GitHub app until repository access is granted by the owner. Do not enable public visibility just to make the app see it.
+
+GitHub's documentation recommends leaving README/licence/.gitignore unselected for importing an existing repository: <https://docs.github.com/en/migrations/importing-source-code/using-the-command-line-to-import-source-code/adding-locally-hosted-code-to-github>.
+
+## 2. Read-only identity and isolation checks before any write
+
+After setup, verify using the authenticated GitHub connection or an equivalent owner-authorised check:
+
+1. The exact full name matches `CosmicCuddle/Naxxramas-Editor-Save-Sandbox-01`.
+2. Visibility is `private`; the connected app can *read* it without making it public.
+3. The repository is **not** `CosmicCuddle/Naxxramas-Resource-Hub`; the actual website's default branch commit and Pages configuration remain unchanged.
+4. No arbitrary webhooks, deploy keys, workflows or GitHub Pages deployment have been enabled.
+5. No test credentials, Git bundle, live connection configuration or original source data are posted in a public Issue or Pull Request.
+
+**Do not attempt a GitHub write while any identity or privacy check fails.**
+
+## 3. Retained source recovery and exact test branch
+
+Before any authenticated remote upload:
+
+- Create a **new private, owner-held, durable backup** of the original *clean, complete* source checkout using `editor/tools/create-local-git-backup.cjs`. It creates one `.bundle` and two sidecars (receipt + recovery notes). Store these **outside Git and off-machine** in the owner's selected private location. Never upload them to public GitHub/CI artifacts.
+- Run `editor/tools/verify-retained-backup.cjs` against that **existing retained** bundle. It verifies the original Git commit, full fetched history and byte-identical files, then independently restores from the saved file. A CI rehearsal that creates/deletes a temporary bundle does **not** count as an owner-held backup.
+- This bundle protects locally fetched Git history and tracked files only; it is **not** a complete server backup and does not include GitHub settings, secrets, untracked files or missing remote history. Record those separately where applicable.
+- With separate owner authorisation, seed the private sandbox from a pinned, backup-matching original Git commit and original complete site tree. Preserve commit/tree SHA-1 identities; avoid creating an unrelated initial README commit. Do not copy deploy secrets.
+- Set up a single private non-publishing test ref `refs/heads/editor-saves/<approved-test>`. No force operations, no updating `main` in either repository.
+- The **proposed** 415-file resource overlay (414 fragments plus manifest), plus modified original website files, is still a *development candidate*, not approval to migrate or merge the live site.
+
+No unreviewed full-history mirror push is authorised by this checklist.
+
+## 4. Authenticated sandbox test gate (separate approval required)
+
+The server-only code in `editor/tools/github-sandbox-api.cjs` is **not** connected to the normal editor or a persistent credential store. Configure it only after independent review of its API request routes and safety assumptions. Give it only a **short-lived, repository-scoped credential** for this particular sandbox; never a token with access to the real website repository. The browser must never see the token.
+
+Verify, in order:
+
+1. Repository node ID, privacy, exact original head and original Git tree independently.
+2. All 415 proposed resource files and each changed tracked file match the locally reviewed bytes/Git blob hashes; unchanged original files must survive.
+3. Each object upload returns the expected blob SHA. Tree identity matches the independent full-website tree. Commit has exactly the intended previous head as parent.
+4. Update **only** the `editor-saves/*` ref using GitHub GraphQL `updateRefs` with `beforeOid` equal to the previous exact commit and `force:false`. A simple pre-read is not a lock.
+5. Independently reread the remote ref, complete tree and commit. Prove a stale concurrent Save fails. On timeout or uncertain result, **never retry automatically**; preserve the editor draft and inspect the branch.
+6. Test restoration from the *owner-retained* recovery copy, confirm unaffected site/Admin assets and document a rollback decision. Remote writes to the original website are still prohibited.
+
+Do not disclose the credential or captured GitHub response bodies if they could contain private data.
+
+## 5. Status and owner approval boundaries
+
+| Item | Gate |
+| --- | --- |
+| Draft-branch local browser Save, full-source reconciliation and isolated local Git commit | CI evidence available in PR #56; verify exact latest SHA |
+| Server adapter with fictional GitHub responses | Implemented and tested; **not a real authenticated GitHub Save** |
+| Private test repository created and visible | **Not confirmed** |
+| Original history seeded into separate test repository | **Not done** |
+| Durable owner-held, restore-tested backup | **Not confirmed** |
+| Authorised scoped test credential | **Not provisioned** |
+| Authenticated sandbox write, conflict and rollback | **Not performed** |
+| One-click Save to actual Resource Hub development branch | **Disabled** |
+| `main` merge, live website or Pages publication | **Not authorised** |
+
+Owner approval to **create an empty private sandbox** does **not** authorise importing history, remote writes, production Save, source-layout migration, or publishing. Each risk boundary needs separate verification and explicit approval.
