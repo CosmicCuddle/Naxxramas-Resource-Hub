@@ -64,6 +64,10 @@ function createGitHubSandboxApi(options) {
   let verifiedNodeId=null;
   let pendingAfter=null;
   function assertTarget(value){if(value!==repository)throw Error('Sandbox API target repository mismatch.');}
+  function assertPrivateIdentity(){
+    if(verifiedNodeId===null)
+      throw Error('Private sandbox repository identity must be verified BEFORE object access.');
+  }
   async function call(method,path,payload){
     const serialized=payload===undefined?'':JSON.stringify(payload);
     if(Buffer.byteLength(serialized)>MAX_JSON)throw Error('Sandbox Git request exceeded 64 MiB limit.');
@@ -87,18 +91,28 @@ function createGitHubSandboxApi(options) {
   }
   const branchPath=branch.split('/').map(encodeURIComponent).join('/');
   async function readRepositoryNodeId(){
+    // A failed refresh invalidates earlier identity. Refuse public,
+    // internal, archived, locked or disabled test repositories.
+    verifiedNodeId=null;
+    pendingAfter=null;
     const data=await call('POST','/graphql',{
-      query:'query NaxxEditorSandboxRepository($owner:String!,$name:String!){repository(owner:$owner,name:$name){id nameWithOwner}}',
+      query:'query NaxxEditorSandboxRepository($owner:String!,$name:String!){repository(owner:$owner,name:$name){id nameWithOwner visibility isPrivate isArchived isDisabled isLocked}}',
       variables:{owner,name}
     });
     const value=data&&data.data&&data.data.repository;
-    if(!value||value.nameWithOwner!==repository||!NODE_ID.test(value.id||''))
-      throw Error('The GitHub sandbox repository identity was not verified.');
+    if(!value||value.nameWithOwner!==repository||
+       !NODE_ID.test(value.id||'')||
+       value.visibility!=='PRIVATE'||value.isPrivate!==true||
+       value.isArchived!==false||value.isDisabled!==false||
+       value.isLocked!==false)
+      throw Error('The GitHub test repository is not a verified active PRIVATE sandbox.');
     verifiedNodeId=value.id;
-    return Object.freeze({repository,nodeId:verifiedNodeId});
+    return Object.freeze({repository,nodeId:verifiedNodeId,
+      visibility:'PRIVATE',active:true});
   }
   const objects={
     async createBlob({repository:target,content,encoding}){
+      assertPrivateIdentity();
       assertTarget(target);
       if(encoding!=='base64'||typeof content!=='string'||content.length>55*1024*1024||
          !/^[a-zA-Z0-9+/]*={0,2}$/.test(content))
@@ -106,6 +120,7 @@ function createGitHubSandboxApi(options) {
       return call('POST',base+'/git/blobs',{content,encoding});
     },
     async createTree({repository:target,base_tree,tree}){
+      assertPrivateIdentity();
       assertTarget(target);
       if(!SHA.test(base_tree||'')||!Array.isArray(tree)||tree.length<1||tree.length>500||
          tree.some(f=>!f||!(SOURCE_FILES.has(f.path)||TRACKED.has(f.path))||
@@ -114,6 +129,7 @@ function createGitHubSandboxApi(options) {
       return call('POST',base+'/git/trees',{base_tree,tree});
     },
     async createCommit({repository:target,message,tree,parents}){
+      assertPrivateIdentity();
       assertTarget(target);
       if(typeof message!=='string'||message.length>180||
          !SHA.test(tree||'')||!Array.isArray(parents)||parents.length!==1||!SHA.test(parents[0]||''))
@@ -121,6 +137,7 @@ function createGitHubSandboxApi(options) {
       return call('POST',base+'/git/commits',{message,tree,parents});
     },
     async readCommit(commit){
+      assertPrivateIdentity();
       if(!SHA.test(commit||''))throw Error('Invalid sandbox commit ref.');
       const data=await call('GET',base+'/git/commits/'+commit);
       if(!data||data.sha!==commit||!data.tree||!SHA.test(data.tree.sha||'')||
@@ -131,6 +148,7 @@ function createGitHubSandboxApi(options) {
   };
   const refs={
     async readRef(){
+      assertPrivateIdentity();
       const result=await call('GET',base+'/git/ref/heads/'+branchPath);
       if(!result||result.ref!=='refs/heads/'+branch||!result.object||
          !SHA.test(result.object.sha||''))
@@ -138,8 +156,12 @@ function createGitHubSandboxApi(options) {
       return {repository,branch,oid:result.object.sha};
     },
     async updateRefs(query,variables){
-      if(verifiedNodeId===null)
-        throw Error('Sandbox repository node ID must be verified before ref update.');
+      assertPrivateIdentity();
+      const earlierNodeId=verifiedNodeId;
+      // Refresh actual private/active status at the final write boundary.
+      const current=await readRepositoryNodeId();
+      if(current.nodeId!==earlierNodeId)
+        throw Error('Sandbox repository identity changed before the ref update.');
       const i=variables&&variables.input;
       if(query!==MUTATION||!i||i.repositoryId!==verifiedNodeId||
          !Array.isArray(i.refUpdates)||i.refUpdates.length!==1||
@@ -152,6 +174,7 @@ function createGitHubSandboxApi(options) {
       return call('POST','/graphql',{query,variables});
     },
     async readCommit(){
+      assertPrivateIdentity();
       if(!pendingAfter)throw Error('No conditional sandbox commit was submitted.');
       const saved=await objects.readCommit(pendingAfter);
       const listing=await call('GET',base+'/git/trees/'+saved.treeOid+'?recursive=1');
