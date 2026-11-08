@@ -15,11 +15,13 @@ const crypto=require('node:crypto');
 const {gitBlobOid}=require('./rehearse-browser-zip-git-tree-intent.cjs');
 const {filePaths,COUNT}=require('./rehearse-resource-only-overlay.cjs');
 const {RUNTIME}=require('./plan-private-github-source-review.cjs');
+const {PAGES,NAV}=require('./plan-page-draft.cjs');
 const FORMAT='naxx-sandbox-verified-415-git-object-staging-v1';
 const PRODUCTION='CosmicCuddle/Naxxramas-Resource-Hub';
 const SHA=/^[0-9a-f]{40}$/;
 const REPO=/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 const OVERLAY=new Set(filePaths());
+const EDITABLE_TRACKED=new Set([...PAGES,NAV,RUNTIME]);
 const sha256=x=>crypto.createHash('sha256').update(x).digest('hex');
 function checkedCandidate(input) {
   const proof=input&&input.proof;
@@ -52,7 +54,7 @@ function checkedCandidate(input) {
   const expectedTracked=new Map();
   for(const entry of proof.changedPaths) {
     if(!entry||typeof entry.path!=='string'||
-       entry.path==='index.html'||OVERLAY.has(entry.path)||
+       !EDITABLE_TRACKED.has(entry.path)||OVERLAY.has(entry.path)||
        !['100644','100755'].includes(entry.mode)||
        !SHA.test(entry.newGitBlobOid||'')||
        typeof entry.newSha256!=='string'||
@@ -62,6 +64,8 @@ function checkedCandidate(input) {
       throw Error('Duplicate original Git path in source proof.');
     expectedTracked.set(entry.path,entry);
   }
+  if(expectedTracked.size<2||expectedTracked.size>EDITABLE_TRACKED.size)
+    throw Error('Proposed tracked changes exceed the protected page/resource edit scope.');
   if(!expectedTracked.has(RUNTIME))
     throw Error('Rebuilt complete site source is missing.');
   const seen=new Set(),files=[];
