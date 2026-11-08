@@ -49,6 +49,7 @@
 <script defer src="review-package.js"></script>
 <script defer src="review-package-reader.js"></script>
 <script defer src="review-package-reader-ui.js"></script>
+<script defer src="github-save-client.js"></script>
 </head>
 <body>
 <main>
@@ -142,7 +143,7 @@
     </div>
   </section>
   <section class="panel" aria-labelledby="save-title">
-    <h2 id="save-title">5. Save page and navigation changes</h2>
+    <h2 id="save-title">5. Save and restore drafts</h2>
     <p>These actions download changes to the four page fragments and sidebar navigation only. The separate resource-title draft in section 4 is not included. Neither action publishes to GitHub.</p>
     <div class="actions">
       <button id="save-draft" type="button" disabled>Save Draft (.json)</button>
@@ -176,6 +177,16 @@
         </div>
         <p class="hint">Downloaded JSON drafts can still be opened with <strong>Load Saved Draft</strong> in section 5 or <strong>Load Resource Draft</strong> in section 4. Neither option writes to your website or GitHub. The ZIP is not a full backup.</p>
       </div>
+    </div>
+    <div class="field" aria-labelledby="github-save-heading">
+      <h3 id="github-save-heading" style="margin:0;color:var(--gold)">Save directly to GitHub — development connection</h3>
+      <p>Future Save will store verified edits on a separate development branch. <strong>It will not publish your public website.</strong> A trusted local Save service must first be connected and verify your backup, exact Git version, and file protections. This service is not yet available; keep using private drafts meanwhile.</p>
+      <div class="actions">
+        <button type="button" id="github-check-connection">Check Save Connection</button>
+        <button type="button" id="github-save" disabled>Save to GitHub (development branch)</button>
+      </div>
+      <div id="github-save-status" class="status" role="status" aria-live="polite">No verified GitHub Save connection. Local drafts are still available.</div>
+      <p class="hint">This Save control cannot run from a downloaded <code>file://</code> page or from the published website. It will only activate from a separately reviewed, locally hosted editor service. You will never enter a GitHub token into this page. A failed or uncertain save will keep all local edits and never retry automatically.</p>
     </div>
     <p class="hint">A saved draft contains just your edits and the fingerprints of the original four HTML files and navigation JSON. Keep it private until reviewed. The changed-files ZIP preserves GitHub folder paths and includes a manifest and review instructions.</p>
     <p class="hint">For a pristine recovery copy, use the separate <a href="https://github.com/CosmicCuddle/Naxxramas-Resource-Hub/tree/backup/pristine-pre-editor-redesign-2026-11-05" target="_blank" rel="noopener noreferrer">preserved GitHub backup branch</a>. A full repository backup is different from this changed-files export.</p>
