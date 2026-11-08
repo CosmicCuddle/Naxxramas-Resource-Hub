@@ -25,7 +25,16 @@ function resolvedBackupPath(checkout,bundle) {
      typeof bundle!=='string'||!path.isAbsolute(bundle)||
      path.extname(bundle)!=='.bundle')
     throw Error('A clean source checkout and absolute private Git bundle filename are required.');
-  const root=fs.realpathSync(checkout),name=fs.realpathSync(bundle);
+  // Never let a symlink (including a redirected parent folder) stand in
+  // for an owner-selected private backup. Resolve and check the exact path.
+  const supplied=path.resolve(bundle);
+  const entry=fs.lstatSync(supplied);
+  if(!entry.isFile()||entry.isSymbolicLink())
+    throw Error('Retained backup must be a regular file, never a symlink.');
+  const name=fs.realpathSync(supplied);
+  if(name!==supplied)
+    throw Error('Retained backup path uses a symlinked directory.');
+  const root=fs.realpathSync(checkout);
   const relative=path.relative(root,name);
   if(relative==='' || (relative!=='..'&&!relative.startsWith('..'+path.sep)&&
      !path.isAbsolute(relative)))
