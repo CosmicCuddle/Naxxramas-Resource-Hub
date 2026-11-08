@@ -158,10 +158,6 @@ function createGitHubSandboxApi(options) {
     async updateRefs(query,variables){
       assertPrivateIdentity();
       const earlierNodeId=verifiedNodeId;
-      // Refresh actual private/active status at the final write boundary.
-      const current=await readRepositoryNodeId();
-      if(current.nodeId!==earlierNodeId)
-        throw Error('Sandbox repository identity changed before the ref update.');
       const i=variables&&variables.input;
       if(query!==MUTATION||!i||i.repositoryId!==verifiedNodeId||
          !Array.isArray(i.refUpdates)||i.refUpdates.length!==1||
@@ -170,6 +166,11 @@ function createGitHubSandboxApi(options) {
          !SHA.test(i.refUpdates[0].afterOid||'')||
          i.refUpdates[0].force!==false)
         throw Error('Unsafe conditional sandbox branch update was refused.');
+      // Do not query GitHub for a malformed or forged mutation. For an
+      // approved mutation, recheck private status immediately before writing.
+      const current=await readRepositoryNodeId();
+      if(current.nodeId!==earlierNodeId)
+        throw Error('Sandbox repository identity changed before the ref update.');
       pendingAfter=i.refUpdates[0].afterOid;
       return call('POST','/graphql',{query,variables});
     },
