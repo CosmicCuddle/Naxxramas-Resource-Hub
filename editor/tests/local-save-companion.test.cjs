@@ -139,7 +139,7 @@ test('rejects oversize or undeclared ZIP and does not invoke reviewer',async()=>
   let count=0;
   await session(async()=>{count++;return makeReviewResult(mockPlan,sha);},async(base)=>{
     const info=await status(base);
-    const large=Buffer.alloc(8*1024*1024+1);
+    const large=Buffer.alloc(20*1024*1024+1);
     const tooLarge=await fetch(base+'/api/editor/review',{
       method:'POST',headers:headers(base,info.csrfToken),body:large
     });
