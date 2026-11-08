@@ -214,3 +214,28 @@ jobs:
           node-version: '22'
       - name: Verify real private Git bundle and browser ZIP use the same original checkout
         run: node --test editor/qa/backup-bound-browser-review.test.cjs
+
+  disposable-local-save-commit:
+    # Isolated Git history and loopback only. No GitHub write token is present.
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout draft source with no persisted GitHub credentials
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check browser Save and read-only companion refusal contracts
+        run: |
+          node --test editor/tests/github-save-client.test.cjs
+          node --test editor/tests/local-save-companion.test.cjs
+      - name: Review real 31 MB original source over local loopback
+        run: node --test editor/tests/local-save-real-source.test.cjs
+      - name: Commit 415-resource proposal only to disposable Git clone; check exact old ref and restoration
+        run: node --test editor/tests/conditional-local-git-save.test.cjs
