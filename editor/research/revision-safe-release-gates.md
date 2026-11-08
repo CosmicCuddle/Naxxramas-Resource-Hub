@@ -4,6 +4,10 @@
 
 **Owner:** CosmicCuddle. The owner decides which source layout and whether any live change is permitted.
 
+## Companion recovery plan
+
+Before considering a real Save, read [Durable Backup and Rollback Acceptance Plan](durable-backup-and-rollback-plan.md). It distinguishes **existing temporary restore rehearsals** from a durable owner-held recovery copy, documents stop conditions after an uncertain GitHub response, and forbids automatic retry or force-push. None of its release checkpoints is currently satisfied by production evidence.
+
 ## Scope and preservation requirements
 
 - Keep the existing original `site-content.html` and its SHA-256 `34455f6d901c538e2491a8c16681692e4c02d918b1984d7d0ba081aacb1049e8` (30,976,969 bytes) as an immutable, independently checked reference.
