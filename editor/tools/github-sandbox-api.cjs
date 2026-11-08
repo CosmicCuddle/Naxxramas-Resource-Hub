@@ -13,11 +13,55 @@ const {RUNTIME}=require('./plan-private-github-source-review.cjs');
 const SOURCE_FILES=filePaths(), TRACKED=new Set([...PAGES,NAV,RUNTIME]);
 const FORMAT='naxx-server-only-github-sandbox-transport-v1';
 const SHA=/^[a-f0-9]{40}$/;
-const TEST_REPO=/^CosmicCuddle\/Naxxramas-Editor-Save-Sandbox-[a-z0-9-]{1,40}$/;
+const APPROVED_SANDBOX='CosmicCuddle/Naxxramas-Editor-Save-Sandbox-01';
 const NODE_ID=/^[A-Za-z0-9_+=-]{3,180}$/;
 const MAX_JSON=64*1024*1024;
+const PRIVATE_IDENTITY_QUERY='query NaxxEditorSandboxRepository($owner:String!,$name:String!){repository(owner:$owner,name:$name){id nameWithOwner visibility isPrivate isArchived isDisabled isLocked}}';
+const API_ROOT='/repos/'+APPROVED_SANDBOX+'/git/';
+const QUERY_REST_SHA=/^[a-f0-9]{40}$/;
+function approvedTransportRoute(method,requestPath,body) {
+  if(typeof requestPath!=='string'||typeof body!=='string'||
+     !['GET','POST'].includes(method)||body.length>MAX_JSON)
+    return false;
+  if(requestPath==='/graphql') {
+    if(method!=='POST')return false;
+    let payload;
+    try {payload=JSON.parse(body);}catch(_) {return false;}
+    if(!payload||typeof payload!=='object'||Array.isArray(payload))
+      return false;
+    if(payload.query===PRIVATE_IDENTITY_QUERY)
+      return payload.variables&&payload.variables.owner==='CosmicCuddle'&&
+        payload.variables.name==='Naxxramas-Editor-Save-Sandbox-01';
+    if(payload.query!==MUTATION||!payload.variables||!payload.variables.input)
+      return false;
+    const i=payload.variables.input;
+    if(!Array.isArray(i.refUpdates)||i.refUpdates.length!==1||
+       typeof i.repositoryId!=='string'||i.repositoryId.length<3||
+       !/^[A-Za-z0-9_+=-]+$/.test(i.repositoryId))
+      return false;
+    const update=i.refUpdates[0],ref=update&&update.name;
+    return typeof ref==='string'&&ref.startsWith('refs/heads/')&&
+      safeBranch(ref.slice('refs/heads/'.length))&&
+      QUERY_REST_SHA.test(update.beforeOid||'')&&
+      QUERY_REST_SHA.test(update.afterOid||'')&&
+      update.force===false;
+  }
+  if(!requestPath.startsWith(API_ROOT))return false;
+  const rest=requestPath.slice(API_ROOT.length);
+  if(method==='POST')
+    return ['blobs','trees','commits'].includes(rest);
+  if(body!=='')return false;
+  if(/^commits\/[a-f0-9]{40}$/.test(rest)||
+     /^trees\/[a-f0-9]{40}\?recursive=1$/.test(rest))
+    return true;
+  if(rest.startsWith('ref/heads/')){
+    const ref=rest.slice('ref/heads/'.length);
+    try {return safeBranch(decodeURIComponent(ref));} catch(_) {return false;}
+  }
+  return false;
+}
 function ensureRepo(repository) {
-  if(typeof repository!=='string'||!TEST_REPO.test(repository))
+  if(repository!==APPROVED_SANDBOX)
     throw Error('Only an expressly named, separate editor sandbox repository is permitted.');
   return repository;
 }
@@ -25,8 +69,7 @@ function strictHttpsTransport() {
   // This transport has no saved credentials and only contacts api.github.com.
   // The adapter itself must be explicitly opted in and given a token in memory.
   return function send({method,path,headers,body}) {
-    if(!['GET','POST'].includes(method)||typeof path!=='string'||
-       !(/^\/repos\/CosmicCuddle\/Naxxramas-Editor-Save-Sandbox-[a-z0-9-]+\/git\//.test(path)||path==='/graphql'))
+    if(!approvedTransportRoute(method,path,body))
       throw Error('Unapproved GitHub sandbox API endpoint.');
     return new Promise((resolve,reject)=>{
       const req=https.request({protocol:'https:',hostname:'api.github.com',port:443,
@@ -96,7 +139,7 @@ function createGitHubSandboxApi(options) {
     verifiedNodeId=null;
     pendingAfter=null;
     const data=await call('POST','/graphql',{
-      query:'query NaxxEditorSandboxRepository($owner:String!,$name:String!){repository(owner:$owner,name:$name){id nameWithOwner visibility isPrivate isArchived isDisabled isLocked}}',
+      query:PRIVATE_IDENTITY_QUERY,
       variables:{owner,name}
     });
     const value=data&&data.data&&data.data.repository;
@@ -196,4 +239,5 @@ function createGitHubSandboxApi(options) {
   return Object.freeze({format:FORMAT,repository,branch,objects:Object.freeze(objects),
     refs:Object.freeze(refs),readRepositoryNodeId});
 }
-module.exports=Object.freeze({FORMAT,ensureRepo,strictHttpsTransport,createGitHubSandboxApi});
+module.exports=Object.freeze({FORMAT,APPROVED_SANDBOX,ensureRepo,
+  approvedTransportRoute,strictHttpsTransport,createGitHubSandboxApi});
