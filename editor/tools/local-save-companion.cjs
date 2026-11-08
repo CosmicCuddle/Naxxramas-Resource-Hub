@@ -17,7 +17,7 @@ const path = require('node:path');
 const {planFromReviewZip} = require('./review-private-combined-zip.cjs');
 
 const REPO = 'CosmicCuddle/Naxxramas-Resource-Hub';
-const MAX_ZIP = 8 * 1024 * 1024;
+const MAX_ZIP = 20 * 1024 * 1024;
 const COMMIT = /^[a-f0-9]{40}$/;
 const ASSETS = new Map([
   ['index.html','text/html; charset=utf-8'],
