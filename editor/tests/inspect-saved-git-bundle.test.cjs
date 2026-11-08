@@ -171,3 +171,25 @@ test('read-only inspection path has no mutating Git refs, network or external pu
   assert.match(src,/durableOwnerRetentionIndependentlyProven:false/);
   assert.match(src,/externallyAuthenticatedGitHubSource:false/);
 });
+
+test('extra Git ref hidden in otherwise checksum-consistent saved bundle is refused',()=>{
+  fixture(({source,output,pins})=>{
+    // Work only in this throwaway synthetic Git repository.
+    git(source,'branch','unexpected-extra-ref','test-page');
+    const made=cp.spawnSync('git',['-C',source,'bundle','create',
+      output,'--all','HEAD'],{encoding:'utf8',stdio:['ignore','pipe','pipe']});
+    assert.equal(made.status,0,'Synthetic bundle with extra ref must be created');
+    git(source,'branch','-D','unexpected-extra-ref');
+    const receiptName=output+'.receipt.json';
+    const noticeName=output+'.READ_ME_FIRST.txt';
+    const saved=JSON.parse(fs.readFileSync(receiptName,'utf8'));
+    saved.bundleBytes=fs.statSync(output).size;
+    saved.bundleSha256=hash(fs.readFileSync(output));
+    fs.writeFileSync(receiptName,JSON.stringify(saved,null,2)+'\n');
+    const {instructions}=require('../tools/create-local-git-backup.cjs');
+    fs.writeFileSync(noticeName,instructions(saved));
+    assert.throws(()=>inspectSavedBackup(source,output,{
+      ...pins,expectedBundleSha256:saved.bundleSha256
+    },{requireWebsite:false}),/unexpected or changed refs/);
+  });
+});
