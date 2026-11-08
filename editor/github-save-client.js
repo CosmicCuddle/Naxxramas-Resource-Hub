@@ -9,7 +9,7 @@
   var SHA = /^[0-9a-f]{40}(?:[0-9a-f]{24})?$/;
   var SHA256 = /^[0-9a-f]{64}$/;
   var BRANCH = /^editor-saves\/[a-z0-9][a-z0-9._/-]{0,100}$/;
-  var MAX_PACKAGE_BYTES = 8 * 1024 * 1024;
+  var MAX_PACKAGE_BYTES = 20 * 1024 * 1024;
   var TOKEN = /^[a-f0-9]{64}$/;
 
   function allowedHost(location) {
