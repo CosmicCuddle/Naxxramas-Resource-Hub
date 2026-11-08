@@ -39,7 +39,7 @@ async function prepareSandboxSource(checkout,zip,expectedCommit,targetRepository
     const overlay=Array.from(filePaths());
     if(overlay.length!==COUNT+1||proof.newOverlayGitBlobs!==COUNT+1||
        proof.sourceLayoutOwnerApproved!==false||
-       proof.reviewedOriginalGitCheckoutUnchanged===false)
+       proof.originalGitBlobsVerified<1)
       throw Error('The physical original resource source did not verify.');
     const modes=new Map(proof.changedPaths.map(x=>[x.path,x.mode]));
     const names=[...overlay,...modes.keys()];
@@ -75,7 +75,7 @@ async function prepareSandboxSource(checkout,zip,expectedCommit,targetRepository
      result.allTemporarySiteCopiesDeleted!==true||
      result.completeSiteRuntimeHashMatched!==true ||
      result.customScriptsAssetsAndUnchangedPagesPreserved!==true ||
-     result.rootIndexPreserved===false)
+     result.originalRootLoaderByteExact!==true)
     throw Error('Original full-site rollback and preservation evidence was not verified.');
   const after=verifyCheckout(checkout,expectedCommit);
   if(before.fingerprintSha256!==after.fingerprintSha256)
