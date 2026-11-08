@@ -38,6 +38,11 @@ function makeReviewResult(plan, expectedCommit) {
       plan.expectedGitCommit !== expectedCommit ||
       plan.cleanGitCheckoutBeforeAndAfter !== true ||
       plan.checkedResourceCount !== 414 ||
+      plan.compatibilityReconstructionVerified !== true ||
+      plan.resourceCandidateRollbackVerified !== true ||
+      plan.originalResourceRuntimeSha256 !== '34455f6d901c538e2491a8c16681692e4c02d918b1984d7d0ba081aacb1049e8' ||
+      plan.sourceLayoutSelected !== false ||
+      plan.completeRepositoryBackup !== false ||
       plan.canApply !== false || plan.canPush !== false ||
       plan.canPublish !== false || plan.repositoryFilesWritten !== 0 ||
       plan.gitHubWrites !== 0 ||
