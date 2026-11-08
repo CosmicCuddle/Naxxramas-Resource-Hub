@@ -8,6 +8,10 @@
 
 Before considering a real Save, read [Durable Backup and Rollback Acceptance Plan](durable-backup-and-rollback-plan.md). It distinguishes **existing temporary restore rehearsals** from a durable owner-held recovery copy, documents stop conditions after an uncertain GitHub response, and forbids automatic retry or force-push. None of its release checkpoints is currently satisfied by production evidence.
 
+## Storage layout decision evidence
+
+See [415-file vs 418-file source-layout decision brief](415-vs-418-source-layout-decision.md) for measured uncompressed file sizes, independent CI evidence and trade-offs. **Neither layout is approved.**
+
 ## Scope and preservation requirements
 
 - Keep the existing original `site-content.html` and its SHA-256 `34455f6d901c538e2491a8c16681692e4c02d918b1984d7d0ba081aacb1049e8` (30,976,969 bytes) as an immutable, independently checked reference.
@@ -21,12 +25,12 @@ Before considering a real Save, read [Durable Backup and Rollback Acceptance Pla
 | --- | --- | --- |
 | Existing fictional repeated-edit browser screen | **Confirmed in previous exact-head CI** | Private Chrome at 1440px and 390px passed visual/control and Tab/Enter checks; **not** a real Save |
 | Previous editor regression suite | **Confirmed in previous exact-head CI** | 499/499 Node editor tests passed at `748b949e322f14e3af6e4b090ad0b6d0a02f3a0c` |
-| Pinned original Git blob → Revision 0 trust | **Awaiting exact-head CI** | `editor/tests/pinned-original-revision-trust.test.cjs` must run on `c26102e604478f8624d27a148f7eae4a23e8e5ce` with a checked-out Git tree and the real 31 MB website |
-| Revision 1+ local Git chain verifier | **Research / unverified** | Eleven disposable original-backed Git test cases in `editor/tests/pinned-local-revision-chain.test.cjs` must pass on its exact research branch; its small stubbed tests are not sufficient |
+| Pinned original Git blob → Revision 0 trust | **Confirmed in PR #56 CI** | Exact-head editor workflow on `c26102e604478f8624d27a148f7eae4a23e8e5ce` passed; this proves pinned local source checks, **not remote GitHub provenance** |
+| Revision 1+ local Git chain verifier | **Confirmed in PR #57 research CI** | At exact head `1ce92e652fdc81f62e00ddad9ff7a1483af6fb9e`, all **11/11** real-source disposable Git history tests passed; this remains a **local, research-only, 415-layout-specific** proof |
 | Real source layout | **Owner decision required** | Compare the **415-file overlay candidate**, which depends on the protected original compatibility shell, against the **418-file full-source candidate**. Neither is canonical |
 | Real browser source acquisition | **Unverified** | Independently pin the exact Git revision and contents; reject uploaded ZIP/manifest-supplied trust values and never execute untrusted website JavaScript |
 | Repeated Save operation | **Not implemented or approved** | A verified revision-bound editor, collision checks, strict path allowlist, exact Git blob preconditions and atomic conditional remote update are required |
-| Whole-site backup and rollback | **Unverified** | Recover the full tracked website, page/navigation drafts, original Admin, all resources, media and approved history after a failed Save |
+| Whole-site backup and rollback | **Temporary rehearsal confirmed; durable backup unverified** | Real Git recovery and **10/10** existing-bundle recheck tests passed, but no independent owner-held retained backup or external-service recovery is yet proved |
 | Original Admin and accessibility acceptance | **Owner testing still required** | Confirm keyboard/Enter/Back behaviors and that real Admin features are unchanged before a release |
 | Production release | **Blocked pending owner approval** | Explicit owner decision, reviewed source layout, backups, rollback, independent tests and a separate deployment plan |
 
