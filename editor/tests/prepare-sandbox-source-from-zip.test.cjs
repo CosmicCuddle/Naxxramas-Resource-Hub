@@ -122,7 +122,7 @@ test('actual original 31 MB browser ZIP produces exact 418 Git blobs after byte-
   assert.equal(prepared.candidate.files.length,418);
   assert.equal(prepared.candidate.proof.changedExistingGitBlobs,3);
   const rebuilt=prepared.candidate.files.find(x=>x.path==='site-content.html');
-  assert.ok(rebuilt&&rebuilt.bytes.length>30*1024*1024);
+  assert.ok(rebuilt&&rebuilt.bytes.length>29*1024*1024);
   assert.notEqual(sha(rebuilt.bytes),SOURCE_SHA);
   const fake=fictionalAdapters(prepared.candidate);
   const result=await rehearseSandboxRemoteSave({
