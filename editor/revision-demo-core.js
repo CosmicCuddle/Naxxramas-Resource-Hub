@@ -139,12 +139,14 @@
       try{existing=resource(example,edit.index);}catch(_){return invalid();}
       var changed=false;
       if(Object.prototype.hasOwnProperty.call(edit,'title')){
-        if(typeof rules.titleValid!=='function'||!rules.titleValid(edit.title))
+        if(typeof rules.titleValid!=='function'||!rules.titleValid(edit.title)||
+           edit.title===existing.title)
           return invalid();
         changed=changed||edit.title!==existing.title;
       }
       if(Object.prototype.hasOwnProperty.call(edit,'content')){
-        if(typeof rules.contentValid!=='function'||!rules.contentValid(edit.content))
+        if(typeof rules.contentValid!=='function'||!rules.contentValid(edit.content)||
+           edit.content===existing.content)
           return invalid();
         changed=changed||edit.content!==existing.content;
       }
