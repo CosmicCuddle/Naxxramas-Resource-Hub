@@ -237,6 +237,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Verify retained Git history backup against exact commit with fresh private restore
+        run: node --test editor/tests/verify-retained-backup.test.cjs
       - name: Check browser Save and read-only companion refusal contracts
         run: |
           node --test editor/tests/github-save-client.test.cjs
