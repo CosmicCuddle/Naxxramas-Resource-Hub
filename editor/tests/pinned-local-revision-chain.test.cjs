@@ -173,3 +173,51 @@ test('Git revision verifier cannot connect, save, merge or deploy',()=>{
     ['verifyPinnedLocalRevisionChain']);
   assert.equal(hash(original),SOURCE_SHA);
 });
+
+
+test('noncanonical or forged manifest data cannot become trusted revision evidence',()=>{
+  badCommit(()=>{
+    const next=secondRecords.slice();
+    next[2]=replaceTitleInRecord(next[2],
+      'Fictional next title for manifest trial').record;
+    stage(next,3,secondManifest.sourceSha256);
+    const file=path.join(dir,...MANIFEST.split('/'));
+    const parsed=JSON.parse(fs.readFileSync(file,'utf8'));
+    parsed.resources[2].sha256='e'.repeat(64);
+    fs.writeFileSync(file,JSON.stringify(parsed)+'\n');
+  },'Invalid claimed fragment checksum in canonical manifest');
+  badCommit(()=>{
+    const next=secondRecords.slice();
+    next[2]=replaceTitleInRecord(next[2],
+      'Fictional next title for duplicate-key trial').record;
+    stage(next,3,secondManifest.sourceSha256);
+    const file=path.join(dir,...MANIFEST.split('/'));
+    const parsed=JSON.parse(fs.readFileSync(file,'utf8'));
+    const body=JSON.stringify(parsed);
+    fs.writeFileSync(file,
+      body.slice(0,-1)+',"revision":3}\n');
+  },'Invalid duplicate top-level key in manifest JSON');
+});
+
+test('incorrect parent fingerprint and no-op revision cannot pass Git chain review',()=>{
+  badCommit(()=>{
+    const next=secondRecords.slice();
+    next[1]=replaceContentInRecord(next[1],
+      'Fictional third revision with a false parent checksum').record;
+    stage(next,3,'f'.repeat(64));
+  },'Invalid chain parent checksum');
+  badCommit(()=>{
+    stage(secondRecords,3,secondManifest.sourceSha256);
+  },'Invalid no-op revision with no edited resource');
+});
+
+test('symlink and malformed UTF-8 resource blobs fail closed',()=>{
+  badCommit(()=>{
+    const file=path.join(dir,...recordPath(9).split('/'));
+    fs.unlinkSync(file);
+    fs.symlinkSync('../manifest.json',file);
+  },'Invalid Git symlink instead of resource file');
+  badCommit(()=>{
+    write(recordPath(12),Buffer.from([0xff,0xfe,0xfd]));
+  },'Invalid resource blob encoding');
+});
