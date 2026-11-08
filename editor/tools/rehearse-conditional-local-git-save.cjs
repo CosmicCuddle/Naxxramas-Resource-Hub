@@ -60,7 +60,7 @@ function performLocalCommit(checkout,view,expectedCommit){
      intent.allOriginalFileModesPreserved!==true)
     throw Error('The independently reviewed temporary Git tree is not ready.');
   const staged=new Set([...resourcePaths,...view.changeSet]);
-  if(staged.size!==resourcePaths.length+view.changeSet.size||
+  if(staged.size!==resourcePaths.size+view.changeSet.size||
      staged.size!==intent.newOverlayGitBlobs+intent.changedExistingGitBlobs)
     throw Error('The temporary candidate changed-path inventory is unsafe.');
   const temp=fs.mkdtempSync(path.join(os.tmpdir(),'naxx-conditional-local-git-'));
@@ -82,7 +82,7 @@ function performLocalCommit(checkout,view,expectedCommit){
       const expectedBytes=read(view.site,relative);
       if(!expectedBytes.equals(read(view.stage,relative)))
         throw Error('Physical private Git staging does not match reviewed bytes.');
-      if(resourcePaths.includes(relative)){
+      if(resourcePaths.has(relative)){
         if(fs.existsSync(target))
           throw Error('Proposed overlay collides with a tracked Git path.');
         fs.mkdirSync(path.dirname(target),{recursive:true,mode:0o700});
