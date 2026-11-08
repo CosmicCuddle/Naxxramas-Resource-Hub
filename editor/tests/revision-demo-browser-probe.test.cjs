@@ -43,3 +43,16 @@ test('probe does not claim real authenticated sources, deployment, or backups',(
   assert.doesNotMatch(expression,/canApply\s*=\s*true/);
   assert.doesNotMatch(expression,/GitHub\.update|gh api|process\.env|credentials/i);
 });
+
+test('disposable Chrome dispatches real Tab and Enter only to verified fictional Version 2 control',()=>{
+  assert.match(smoke,/const revisionDemoKeyboardChecks=\[\]/);
+  assert.match(smoke,/for\(let i=0;i<6;i\+\+\)/);
+  assert.match(smoke,/Input\.dispatchKeyEvent.*rawKeyDown/);
+  assert.match(smoke,/id!=='revision-two'/);
+  assert.match(smoke,/type:'keyDown',\.\.\.enter,text:'\\r',unmodifiedText:'\\r'/);
+  assert.match(smoke,/realChromeTabPresses:6,realChromeEnterPresses:1/);
+  assert.match(smoke,/revisionDemoKeyboardChecks\.length,2/);
+  assert.match(smoke,/revisionDemoKeyboardChecks:report\.browserInspection\.revisionDemoKeyboardChecks/);
+  assert.match(smoke,/metrics\.formSubmissions!==0\|\|metrics\.nonLocalResponses!==0/);
+  assert.match(smoke,/origin\+'\/editor\/revision-demo-preview\.html'/);
+});
