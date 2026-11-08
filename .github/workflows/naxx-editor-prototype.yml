@@ -239,6 +239,8 @@ jobs:
           node-version: '22'
       - name: Verify retained Git history backup against exact commit with fresh private restore
         run: node --test editor/tests/verify-retained-backup.test.cjs
+      - name: Bind real browser ZIP staging to an existing restored Git history backup before test Save
+        run: node --test editor/tests/prepare-backup-bound-sandbox-source.test.cjs
       - name: Check browser Save and read-only companion refusal contracts
         run: |
           node --test editor/tests/github-save-client.test.cjs
