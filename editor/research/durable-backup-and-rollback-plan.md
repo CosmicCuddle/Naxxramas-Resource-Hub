@@ -11,10 +11,10 @@
 An experimental **read-only existing-bundle inspector** now lives at `editor/tools/inspect-saved-git-bundle.cjs`, with an isolated synthetic Git suite at `editor/tests/inspect-saved-git-bundle.test.cjs`.
 
 - It requires independently supplied **source commit, source tree, tracked-file fingerprint and saved bundle SHA-256**. These values must come from a trusted, separately reviewed record; the saved receipt alone cannot establish their authenticity.
-- It reads the existing `.bundle`, `.receipt.json` and `.READ_ME_FIRST.txt` files without modifying them, verifies strict fields and permissions, and checks all locally fetched refs, including rejection of **unexpected extra refs**.
+- It reads the existing `.bundle`, `.receipt.json` and `.READ_ME_FIRST.txt` files without modifying them, verifies strict fields and permissions, and checks every recovered Git ref namespace (including `refs/notes`), rejecting **unexpected extra refs**; requires the backup creator's canonical JSON encoding to reject duplicate or ambiguous receipt fields.
 - It restores the saved bundle inside a disposable local folder using the existing Git recovery verifier, compares exact tracked source bytes/history, rechecks source and saved artifacts for changes during inspection, then removes only the disposable restore folder.
 - **It does not create a backup or independently establish owner retention.** Its result explicitly says `durableOwnerRetentionIndependentlyProven:false`, `externallyAuthenticatedGitHubSource:false`, `canSave:false`, `canPublish:false`. An authenticated remote origin, retained owner-accessible copy, external-service configuration, final storage layout and owner release approval are still separate gates.
-- The new **eight negative/positive test cases** are written and syntactically checked, but have not yet passed full Node CI on this research branch. They use synthetic Git repositories, not the 31 MB original website; final source-backed acceptance remains blocked.
+- The new **ten positive/negative test cases** are written and syntactically checked. The updated verifier passed **9/9 focused simulated checks**, and a separate real Git CLI trial confirmed extra `refs/notes` entries can be hidden from a branches/tags-only inventory. These are not the full Node/Git recovery suite, which has **not passed CI** on this research branch. They use synthetic Git repositories, not the 31 MB original website; final source-backed acceptance remains blocked.
 
 ## 1. Why this is separate from the existing rehearsals
 
