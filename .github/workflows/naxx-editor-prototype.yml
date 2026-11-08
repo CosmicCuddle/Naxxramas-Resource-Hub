@@ -52,8 +52,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - name: Checkout reviewed files
+      - name: Checkout reviewed files with complete Git history and no saved credentials
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
       - name: Use Node.js 22
         uses: actions/setup-node@v4
         with:
