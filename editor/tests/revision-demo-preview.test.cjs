@@ -270,3 +270,53 @@ test('typing during fictional verification invalidates old review without status
   assert.equal(h.el('edit-title').value,'New typing after review started');
   assert.match(h.el('held-summary').textContent,/No fictional draft/);
 });
+
+test('fictional held draft rejects altered checksum, baseline, unsafe changes and duplicate resource',async()=>{
+  const samples=await demo.examples(webcrypto);
+  const original=demo.resource(samples.first,0);
+  const genuine=await demo.prepare(samples.first,webcrypto,0,
+    'Private fictional reviewed title',original.content);
+  const shallow=()=>({...genuine,changes:genuine.changes.map(x=>({...x}))});
+  const attempts=[];
+  const changedHash=shallow();changedHash.changes[0].expectedSha256='c'.repeat(64);
+  attempts.push(['forged resource hash',changedHash]);
+  attempts.push(['wrong original anchor',{
+    ...shallow(),sourceBaselineSha256:'d'.repeat(64)
+  }]);
+  const wrongField=shallow();wrongField.changes[0].protectedNote='overwritten';
+  attempts.push(['unexpected resource field',wrongField]);
+  const unsafe=shallow();unsafe.changes[0].title='<script>unsafe</script>';
+  attempts.push(['unsafe edited title',unsafe]);
+  const unchanged=shallow();unchanged.changes[0].title=original.title;
+  attempts.push(['unchanged title falsely called edit',unchanged]);
+  attempts.push(['duplicate resource indexes',{
+    ...shallow(),changes:[{...genuine.changes[0]},{...genuine.changes[0]}]
+  }]);
+  attempts.push(['empty changes',{...shallow(),changes:[]}]);
+  attempts.push(['unexpected draft key',{...shallow(),adminApproved:true}]);
+  attempts.push(['wrong draft format',{...shallow(),format:'unsupported'}]);
+  attempts.push(['no baseline',{...shallow(),sourceBaselineSha256:undefined}]);
+  for(const [label,payload] of attempts)
+    assert.equal(demo.check(payload,samples.first).decision,'invalid',
+      'Refuse '+label+' rather than reporting a trustworthy match');
+  assert.equal(demo.check(genuine,samples.first).decision,'matching');
+  assert.equal(demo.check(genuine,samples.second).decision,'stale');
+  assert.equal(demo.resource(samples.first,0).title,original.title);
+});
+test('fictional multi-resource metadata check requires sorted distinct verified indexes and real edits',async()=>{
+  const samples=await demo.examples(webcrypto),r0=demo.resource(samples.first,0),
+    r413=demo.resource(samples.first,413);
+  const one=await demo.prepare(samples.first,webcrypto,0,'Changed first',r0.content);
+  const last=await demo.prepare(samples.first,webcrypto,413,
+    r413.title,'Changed last description');
+  const valid={...one,changes:[...one.changes,...last.changes]};
+  assert.equal(demo.check(valid,samples.first).decision,'matching');
+  assert.equal(demo.check({...valid,changes:valid.changes.slice().reverse()},
+    samples.first).decision,'invalid');
+  const wrongContent={...valid,changes:valid.changes.map(x=>({...x}))};
+  wrongContent.changes[1].content=r413.content;
+  assert.equal(demo.check(wrongContent,samples.first).decision,'invalid');
+  const unknownIndex={...one,changes:[{...one.changes[0],index:414}]};
+  assert.equal(demo.check(unknownIndex,samples.first).decision,'invalid');
+  assert.equal(demo.check(valid,samples.second).decision,'stale');
+});
