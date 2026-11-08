@@ -92,8 +92,7 @@ function mirrorRefsMatch(temp,expected){
   // Recheck exact restored ref SET, not just preservation of expected refs.
   const mirror=path.join(temp,'mirror.git');
   const git=cp.spawnSync('git',['-C',mirror,'for-each-ref',
-    '--format=%(refname)%00%(objectname)',
-    'refs/heads','refs/tags','refs/remotes'],{
+    '--format=%(refname)%00%(objectname)'],{
     encoding:'utf8',timeout:30000,maxBuffer:4*1024*1024,
     stdio:['ignore','pipe','pipe']
   });
@@ -131,6 +130,10 @@ function inspectSavedBackup(repo,bundle,pins,options={}){
   let receipt;
   try{receipt=JSON.parse(receiptText);}
   catch(_){throw Error('Private saved recovery receipt is not valid JSON.');}
+  // Require the backup creator's exact JSON encoding. JSON.parse silently
+  // accepts duplicate keys, even though their meaning may be ambiguous.
+  if(receiptText!==JSON.stringify(receipt,null,2)+'\n')
+    throw Error('Saved recovery receipt is not canonical JSON.');
   validateReceipt(receipt,source,bundleBytes,pins);
   if(noticeText!==instructions(receipt))
     throw Error('Saved recovery instructions differ from the expected private notice.');
