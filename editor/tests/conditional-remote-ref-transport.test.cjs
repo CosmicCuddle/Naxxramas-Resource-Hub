@@ -76,16 +76,16 @@ test('a permitted injected sandbox transport checks old ref, updates once, and i
 test('wrong branch, main, real website repository, malformed Git identity and unverified files fail before remote work',()=>{
   const broken=[
     {targetRepository:'CosmicCuddle/Naxxramas-Resource-Hub'},
+    {repositoryId:'invalid node id with spaces'},
     {branch:'main'}, {branch:'feature/multi-file-editor-export-2026-11-05'},
     {branch:'editor-saves/../main'}, {branch:'editor-saves/a.lock'},
     {branch:'editor-saves/a//b'}, {branch:'editor-saves/a/'},
     {parentCommit:NEXT}, {oldCommit:'bad'}, {newCommit:OLD},
     {expectedTree:NEXT}, {fullSiteVerified:false},
     {originalGitHistoryVerified:false}, {disposableTestOnly:false},
-    {boundedSourcePathsVerified:false},{repositoryId:'undefined'}
+    {boundedSourcePathsVerified:false}
   ];
   for(const override of broken){
-    if(Object.hasOwn(override,'repositoryId')&&override.repositoryId==='undefined')continue;
     assert.throws(()=>createSandboxProposal(input(override)),/isolated-test/);
   }
   assert.equal(safeBranch('editor-saves/normal'),true);
@@ -123,6 +123,8 @@ test('forged force, ref name, old sha, new sha, source permissions and mutation 
   }
   for(const invalid of [
     bad({actualGitHubWriteApproved:true}),
+    bad({targetRepositoryNodeId:'R_someOtherRepo'}),
+    bad({},x=>{x.repositoryId='R_otherRepo';}),
     bad({targetRepository:'CosmicCuddle/Naxxramas-Resource-Hub'}),
     bad({canPublish:true}),
     bad({beforeOid:NEXT}),
