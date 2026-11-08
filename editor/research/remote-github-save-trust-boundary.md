@@ -6,10 +6,10 @@
 
 ## Verified technical basis
 
-1. The repository already has the **read-only, double remote-head observation** tool \`editor/tools/rehearse-remote-github-head-preflight.cjs\`. It compares a configured GitHub ref's commit twice against a separately verified local checkout. The reads are **not a lock**, and a pull-request *synthetic merge commit* is not the branch's reviewed head. Its evidence does not authorize writes or authenticate all remote source blobs.
-2. \`editor/tools/plan-exact-head-save-guard.cjs\` simulates the required expected-old-head condition. GitHub's **REST Update a reference** endpoint documents \`sha\` and \`force\`, not a separately supplied expected old SHA. \`force:false\` checks ancestry/fast-forward suitability, not equality with a reviewed head. **Do not use a REST fast-forward PATCH as an exact-commit Save lock.**
-3. GitHub's documented **GraphQL \`updateRefs\` mutation** accepts \`repositoryId\` and \`refUpdates\`; each \`RefUpdate\` may specify \`name\`, \`beforeOid\`, \`afterOid\`, \`force\`. \`beforeOid\` means a reference must currently equal the reviewed old OID, otherwise the update is rejected. Multi-ref updates are atomic within that mutation. This is the proposed *future* server-enforced compare-and-swap (CAS), **not an operation implemented or performed by our code**. Verify actual availability, branch protections, access permissions and error handling in a separately approved disposable test repository before implementation.
-4. \`editor/tools/plan-uncertain-save-outcome.cjs\` and \`review-backup-bound-save-outcome.cjs\` intentionally refuse automatic retry when the result is unknown. A matching read response, a self-asserted manifest, temporary CI backup or a token in a browser does **not** meet the source/safety requirements.
+1. The repository already has the **read-only, double remote-head observation** tool `editor/tools/rehearse-remote-github-head-preflight.cjs`. It compares a configured GitHub ref's commit twice against a separately verified local checkout. The reads are **not a lock**, and a pull-request *synthetic merge commit* is not the branch's reviewed head. Its evidence does not authorize writes or authenticate all remote source blobs.
+2. `editor/tools/plan-exact-head-save-guard.cjs` simulates the required expected-old-head condition. GitHub's **REST Update a reference** endpoint documents `sha` and `force`, not a separately supplied expected old SHA. `force:false` checks ancestry/fast-forward suitability, not equality with a reviewed head. **Do not use a REST fast-forward PATCH as an exact-commit Save lock.**
+3. GitHub's documented **GraphQL `updateRefs` mutation** accepts `repositoryId` and `refUpdates`; each `RefUpdate` may specify `name`, `beforeOid`, `afterOid`, `force`. `beforeOid` means a reference must currently equal the reviewed old OID, otherwise the update is rejected. Multi-ref updates are atomic within that mutation. This is the proposed *future* server-enforced compare-and-swap (CAS), **not an operation implemented or performed by our code**. Verify actual availability, branch protections, access permissions and error handling in a separately approved disposable test repository before implementation.
+4. `editor/tools/plan-uncertain-save-outcome.cjs` and `review-backup-bound-save-outcome.cjs` intentionally refuse automatic retry when the result is unknown. A matching read response, a self-asserted manifest, temporary CI backup or a token in a browser does **not** meet the source/safety requirements.
 
 **Public reference documents (read-only):**
 - GitHub REST Git references: https://docs.github.com/en/rest/git/refs
@@ -24,7 +24,7 @@
 | R2: Remote identity | Authenticated API ref observation of the **exact approved repository and branch**, expected commit and source tree, with least-privilege server-controlled credentials; no redirects or secret logging | **Read-only preflight exists; not complete release attestation** |
 | R3: Source content | Independent exact Git commit/tree/blob verification, full 414-resource reconstruction and unchanged original custom/other website content. Pin **every** reviewed changed Git path and its old/new blob identities | **Research proofs, not production candidate approval** |
 | R4: Conflict and permissions | Reject if remote ref changes after review, paths change, branch protections disallow update, permission is missing, or an owner-managed process modifies content | **No live Save implementation** |
-| R5: True remote CAS | A separately approved update using exactly one intended branch and **required** old \`beforeOid\`, new \`afterOid\`, \`force:false\`. The new object must exist and be a reviewed descendant of old. Never allow force update, ref deletion, wildcard repository or unapproved path | **Not implemented or authorized** |
+| R5: True remote CAS | A separately approved update using exactly one intended branch and **required** old `beforeOid`, new `afterOid`, `force:false`. The new object must exist and be a reviewed descendant of old. Never allow force update, ref deletion, wildcard repository or unapproved path | **Not implemented or authorized** |
 | R6: Post-update evidence | Following an authenticated response, independently re-read remote ref and every reviewed file/tree from GitHub; confirm complete intended source, and separately validate browser/Admin/deployment outcome | **Not implemented** |
 | R7: Owner release | Explicitly approve deployment after backup, rollback proof and accessibility/source tests; deployment/hosting/service changes are a separate release action | **Not approved** |
 
@@ -41,8 +41,8 @@
 
 | Scenario | Required behaviour |
 | --- | --- |
-| Expected branch matches twice, then another editor advances it before update | A **server-side \`beforeOid\` mismatch** must refuse the update. Two reads do not prevent this race |
-| New intended Git commit is descendant of reviewed old, but another commit appears first | Refuse despite fast-forward compatibility; never fall back to REST \`force:false\` alone |
+| Expected branch matches twice, then another editor advances it before update | A **server-side `beforeOid` mismatch** must refuse the update. Two reads do not prevent this race |
+| New intended Git commit is descendant of reviewed old, but another commit appears first | Refuse despite fast-forward compatibility; never fall back to REST `force:false` alone |
 | API request times out, process crashes or reply is lost | **Do not retry automatically.** Independently read remote state, preserve local draft, alert owner; previous action may or may not have committed |
 | Remote head remains old after timeout | Hold; an in-flight action may exist and the state can change. Never replay blindly |
 | Remote head equals candidate after timeout | Independently verify commit, complete tree, changed/unchanged file bytes and any external release effect; do not treat HEAD equality alone as proof of who made the change |
@@ -56,15 +56,15 @@
 
 - **No real write client** belongs in the read-only preflight or proof modules. No GitHub token embedded in website HTML or browser JavaScript; choose a separately reviewed server-controlled credential mechanism, with least privilege and auditable owner approval.
 - Never place a bearer token, private bundle, historical secrets, full source, remote account settings or private files in public logs, PR comments, Actions artifacts or screenshots.
-- \`beforeOid\` must be server enforced at the mutation, not emulated by two reads. Do not assume GitHub API offers a cross-provider deployment lock or idempotent Save retry.
+- `beforeOid` must be server enforced at the mutation, not emulated by two reads. Do not assume GitHub API offers a cross-provider deployment lock or idempotent Save retry.
 - An atomic Git ref update is not an atomic website deployment or backup transaction. Define deployment isolation and rollback separately. A ref update may trigger other systems; avoid live trials on production.
 - A GitHub API observation authenticates the **response from the intended provider under its TLS/credential trust boundary**, not who personally authored every commit nor completeness of untracked/external service data.
 - A valid release must protect all old/custom website source outside deliberately approved resource and page edits and have a tested restore of **every required tracked byte and fetched history object** from retained owner files.
 
 ## Evidence status at creation
 
-- **PR #56:** all three workflows passed at \`c26102e604478f8624d27a148f7eae4a23e8e5ce\`; remains draft.
-- **PR #57:** both workflows passed at \`3ce3266db3eeb6f7759106c9998afe6003bc3cae\` before this document-only change; remains draft.
+- **PR #56:** all three workflows passed at `c26102e604478f8624d27a148f7eae4a23e8e5ce`; remains draft.
+- **PR #57:** both workflows passed at `3ce3266db3eeb6f7759106c9998afe6003bc3cae` before this document-only change; remains draft.
 - **No durable retained owner backup, no 415/418 approval, no genuine write or live deployment.** Research results prove local Git integrity and temporary recovery only.
 
 ## Owner decisions later, once the technical evidence is ready
