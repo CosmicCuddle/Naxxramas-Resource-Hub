@@ -52,6 +52,7 @@ function createSandboxProposal(input) {
   return Object.freeze({
     format:FORMAT,
     targetRepository:input.targetRepository,branch:input.branch,
+    targetRepositoryNodeId:input.repositoryId,
     beforeOid,afterOid,independentlyExpectedTreeOid:input.expectedTree,
     graphqlQuery:MUTATION,graphqlVariables:JSON.parse(JSON.stringify(variables)),
     sourceRepositoryWriteAllowed:false,
@@ -77,6 +78,7 @@ function validateProposal(proposal) {
   if(!proposal||proposal.format!==FORMAT||
      proposal.targetRepository===PRODUCTION||
      !REPO.test(proposal.targetRepository||'')||
+     typeof proposal.targetRepositoryNodeId!=='string'||
      !safeBranch(proposal.branch)||
      proposal.beforeOid===proposal.afterOid||
      !SHA.test(proposal.beforeOid||'')||
@@ -91,6 +93,7 @@ function validateProposal(proposal) {
     throw Error('Only independently constructed sandbox-ref proposals are permitted.');
   const input=proposal.graphqlVariables.input;
   if(!/^[A-Za-z0-9_=+-]{3,180}$/.test(input.repositoryId||'')||
+     input.repositoryId!==proposal.targetRepositoryNodeId||
      input.clientMutationId!=='naxx-sandbox-'+proposal.afterOid.slice(0,16)||
      !Array.isArray(input.refUpdates)||input.refUpdates.length!==1||
      input.refUpdates[0].name!=='refs/heads/'+proposal.branch||
