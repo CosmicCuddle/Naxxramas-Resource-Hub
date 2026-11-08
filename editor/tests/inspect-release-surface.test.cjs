@@ -22,9 +22,11 @@ function fakeReader({changedResearch=false,protectedValue=false,
     if(name==='rulesets')return rs;
     if(name==='pages')return pages;
     if(!BRANCHES.includes(name))throw Error('unexpected fixture read');
-    if(name===BRANCHES[2]&&changedResearch&&++researchReads===2)
-      return meta(name,OTHER,protectedValue);
-    if(name===BRANCHES[2])researchReads++;
+    if(name===BRANCHES[2]){
+      researchReads++;
+      if(changedResearch&&researchReads===2)
+        return meta(name,OTHER,protectedValue);
+    }
     return meta(name,COMMIT,protectedValue);
   };
   return {read,calls};
