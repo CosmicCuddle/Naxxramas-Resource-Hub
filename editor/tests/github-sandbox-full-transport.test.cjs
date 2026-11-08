@@ -82,7 +82,7 @@ function fictionalGithub(fixture,behavior={}){
     if(request.path==='/graphql'){
       assert.equal(request.method,'POST');
       if(data.query.startsWith('query')){
-        response={data:{repository:{id:NODE,nameWithOwner:REPO}}};
+        response={data:{repository:{id:NODE,nameWithOwner:REPO,visibility:'PRIVATE',isPrivate:true,isArchived:false,isDisabled:false,isLocked:false}}};
       }else{
         counters.mutations++;
         const input=data.variables.input;
