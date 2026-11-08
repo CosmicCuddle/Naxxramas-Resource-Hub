@@ -251,6 +251,8 @@ jobs:
         run: node --test editor/tests/rehearse-sandbox-remote-save.test.cjs
       - name: Verify expected-old GitHub GraphQL ref transport in disposable mock repository
         run: node --test editor/tests/conditional-remote-ref-transport.test.cjs
+      - name: Rebuild original browser ZIP into 418 byte-exact sandbox source files and simulate verified Save
+        run: node --test editor/tests/prepare-sandbox-source-from-zip.test.cjs
       - name: Review real 31 MB original source over local loopback
         run: node --test editor/tests/local-save-real-source.test.cjs
       - name: Commit 415-resource proposal only to disposable Git clone; check exact old ref and restoration
