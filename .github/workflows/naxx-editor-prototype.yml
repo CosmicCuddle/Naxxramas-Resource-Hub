@@ -237,6 +237,8 @@ jobs:
           node --test editor/tests/local-save-companion.test.cjs
       - name: Verify sandbox Git blob, full tree, and one-parent commit staging rules
         run: node --test editor/tests/stage-sandbox-git-objects.test.cjs
+      - name: Rehearse complete source-backed Git object to conditional ref lifecycle without any live network
+        run: node --test editor/tests/rehearse-sandbox-remote-save.test.cjs
       - name: Verify expected-old GitHub GraphQL ref transport in disposable mock repository
         run: node --test editor/tests/conditional-remote-ref-transport.test.cjs
       - name: Review real 31 MB original source over local loopback
