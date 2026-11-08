@@ -8,7 +8,7 @@
  * Existence now is NOT owner-controlled durable retention or remote identity.
  */
 const fs=require('node:fs'),os=require('node:os'),path=require('node:path');
-const crypto=require('node:crypto');
+const crypto=require('node:crypto'),cp=require('node:child_process');
 const {baseline,verifyRecovery}=require('./rehearse-full-git-recovery.cjs');
 const {instructions}=require('./create-local-git-backup.cjs');
 const HEX=/^[a-f0-9]{40}$|^[a-f0-9]{64}$/;
@@ -87,6 +87,31 @@ function validateReceipt(receipt,source,bundleBytes,pins){
       throw Error('Saved Git ref receipt differs from the independently pinned source.');
   }
 }
+function mirrorRefsMatch(temp,expected){
+  // verifyRecovery has already cloned the bundle to this disposable mirror.
+  // Recheck exact restored ref SET, not just preservation of expected refs.
+  const mirror=path.join(temp,'mirror.git');
+  const git=cp.spawnSync('git',['-C',mirror,'for-each-ref',
+    '--format=%(refname)%00%(objectname)',
+    'refs/heads','refs/tags','refs/remotes'],{
+    encoding:'utf8',timeout:30000,maxBuffer:4*1024*1024,
+    stdio:['ignore','pipe','pipe']
+  });
+  if(git.error||git.status!==0)
+    throw Error('Recovered Git ref inventory was unavailable.');
+  const rows=git.stdout.trim().split('\n').filter(Boolean);
+  const actual=new Map();
+  for(const entry of rows){
+    const parts=entry.split('\0');
+    if(parts.length!==2||actual.has(parts[0])||
+       !/^[a-f0-9]{40}$|^[a-f0-9]{64}$/.test(parts[1]))
+      throw Error('Recovered Git ref inventory has invalid or duplicated entries.');
+    actual.set(parts[0],parts[1]);
+  }
+  if(actual.size!==expected.size||
+     [...expected].some(([ref,id])=>actual.get(ref)!==id))
+    throw Error('Recovered Git bundle contains missing, unexpected or changed refs.');
+}
 function inspectSavedBackup(repo,bundle,pins,options={}){
   if(!exactKeys(pins,[
     'expectedCommit','expectedTree','expectedTrackedSha256','expectedBundleSha256'
@@ -114,6 +139,7 @@ function inspectSavedBackup(repo,bundle,pins,options={}){
   let result;
   try{
     result=verifyRecovery(repo,archive,temporary,source);
+    mirrorRefsMatch(temporary,source.refs);
     if(result.independentGitMirrorRestored!==true||
        result.headMatches!==true||result.treeMatches!==true||
        result.trackedFilesMatch!==true||result.trackedBytesMatch!==true||
