@@ -8,9 +8,10 @@
   var isNode=typeof module==='object'&&!!module.exports;
   var reader=isNode?require('./revision-source-reader.js'):root.NaxxRevisionSourceReader;
   var reviewer=isNode?require('./revision-draft-review.js'):root.NaxxRevisionDraftReview;
-  var engine=factory(reader,reviewer);
+  var rules=isNode?require('./resource-title-core.js'):root.NaxxResourceTitles;
+  var engine=factory(reader,reviewer,rules);
   if(isNode)module.exports=engine;else root.NaxxRevisionDemo=engine;
-})(typeof globalThis==='object'?globalThis:this,function(reader,reviewer){
+})(typeof globalThis==='object'?globalThis:this,function(reader,reviewer,rules){
   'use strict';
   var COUNT=414;
   var pathFor=function(i){
@@ -98,12 +99,61 @@
     return reviewer.prepare(example.snapshot,example.trust,cryptoObj,[change]);
   }
   function check(draft,example){
-    if(!draft||draft.format!==reviewer.FORMAT||!example||!example.fictional)
-      return Object.freeze({decision:'invalid',message:'No valid fictional draft is ready.'});
+    var invalid=function(){
+      return Object.freeze({decision:'invalid',message:
+        'Invalid fictional draft refused. Keep your original example and review it again.'});
+    };
+    if(!draft||typeof draft!=='object'||Array.isArray(draft)||
+       !example||!example.fictional||!example.snapshot||
+       !example.snapshot.manifest||!reviewer||!rules||
+       Object.keys(draft).sort().join(',')!==
+         'changes,format,revision,sourceBaselineSha256,sourceSha256'||
+       draft.format!==reviewer.FORMAT||
+       draft.sourceBaselineSha256!==reader.ANCHOR||
+       !Number.isSafeInteger(draft.revision)||draft.revision<0||
+       typeof draft.sourceSha256!=='string'||!/^[a-f0-9]{64}$/.test(draft.sourceSha256))
+      return invalid();
     var current=example.snapshot.manifest;
     if(draft.revision!==current.revision||draft.sourceSha256!==current.sourceSha256)
       return Object.freeze({decision:'stale',message:
         'Older draft refused. The saved example is retained. Review changes against the newer source manually.'});
+    if(!Array.isArray(draft.changes)||draft.changes.length<1||
+       draft.changes.length>COUNT||!Array.isArray(current.resources)||
+       current.resources.length!==COUNT)return invalid();
+    var seen=new Set(),last=-1;
+    for(var i=0;i<draft.changes.length;i++){
+      var edit=draft.changes[i];
+      if(!edit||typeof edit!=='object'||Array.isArray(edit)||
+         !Number.isInteger(edit.index)||edit.index<0||edit.index>=COUNT||
+         edit.index<=last||seen.has(edit.index)||
+         typeof edit.expectedSha256!=='string'||
+         !/^[a-f0-9]{64}$/.test(edit.expectedSha256)||
+         !current.resources[edit.index]||
+         edit.expectedSha256!==current.resources[edit.index].sha256)
+        return invalid();
+      var keys=Object.keys(edit).sort().join(',');
+      if(!['expectedSha256,index,title','content,expectedSha256,index',
+            'content,expectedSha256,index,title'].includes(keys))
+        return invalid();
+      var existing;
+      try{existing=resource(example,edit.index);}catch(_){return invalid();}
+      var changed=false;
+      if(Object.prototype.hasOwnProperty.call(edit,'title')){
+        if(typeof rules.titleValid!=='function'||!rules.titleValid(edit.title))
+          return invalid();
+        changed=changed||edit.title!==existing.title;
+      }
+      if(Object.prototype.hasOwnProperty.call(edit,'content')){
+        if(typeof rules.contentValid!=='function'||!rules.contentValid(edit.content))
+          return invalid();
+        changed=changed||edit.content!==existing.content;
+      }
+      if(!changed)return invalid();
+      last=edit.index;
+      seen.add(edit.index);
+    }
+    // This verifies only structure and SELF-GENERATED fictional metadata.
+    // Real source trust and actual GitHub Save are strictly outside this page.
     return Object.freeze({decision:'matching',message:
       'Example version metadata matches. This does NOT authenticate GitHub or allow a Save.'});
   }
