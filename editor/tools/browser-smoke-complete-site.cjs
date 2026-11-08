@@ -853,12 +853,78 @@ async function inspectBrowser(site,work){
       }
       revisionDemoChecks.push({width,checks:Object.keys(result.checks).length});
     }
+
+    // Real keyboard-only trial in a freshly loaded FICTIONAL page.
+    // Unlike the DOM-click probe above, Tab and Enter come from Chrome CDP.
+    // Enter is dispatched only to a verified fictional Version 2 button:
+    // never to original Admin, forms, source pickers or navigation links.
+    const revisionDemoKeyboardChecks=[];
+    for(const width of [1440,390]){
+      await send('Emulation.setDeviceMetricsOverride',{
+        width,height:900,deviceScaleFactor:1,mobile:width<500
+      });
+      await send('Page.navigate',{url:origin+'/editor/revision-demo-preview.html'});
+      let ready=false;
+      for(let i=0;i<160;i++){
+        const state=await send('Runtime.evaluate',{
+          expression:"document.readyState==='complete' && document.activeElement===document.body && !document.getElementById('prepare-draft')?.disabled",
+          returnByValue:true
+        });
+        if(state.result?.value){ready=true;break;}
+        await delay(120);
+      }
+      if(!ready)throw Error('Fictional keyboard preview not ready at body focus.');
+      const trail=[];
+      for(let i=0;i<6;i++){
+        const event={key:'Tab',code:'Tab',
+          windowsVirtualKeyCode:9,nativeVirtualKeyCode:9,modifiers:0};
+        await send('Input.dispatchKeyEvent',{type:'rawKeyDown',...event});
+        await send('Input.dispatchKeyEvent',{type:'keyUp',...event});
+        await delay(70);
+        const focused=await send('Runtime.evaluate',{
+          expression:"({id:document.activeElement?.id||'',tag:document.activeElement?.tagName||''})",
+          returnByValue:true
+        });
+        if(focused.exceptionDetails)throw Error('Fictional keyboard focus observation failed.');
+        trail.push(focused.result?.value);
+        if(i===1){
+          if(trail[i]?.id!=='revision-two'||trail[i]?.tag!=='BUTTON')
+            throw Error('Tab did not reach the fictional Version 2 button safely.');
+          const enter={key:'Enter',code:'Enter',windowsVirtualKeyCode:13,
+            nativeVirtualKeyCode:13,modifiers:0};
+          await send('Input.dispatchKeyEvent',{
+            type:'keyDown',...enter,text:'\\r',unmodifiedText:'\\r'
+          });
+          await send('Input.dispatchKeyEvent',{type:'keyUp',...enter});
+          await delay(100);
+        }
+      }
+      const after=await send('Runtime.evaluate',{
+        expression:"({pathname:location.pathname,revision:document.getElementById('revision-label')?.textContent,source:document.getElementById('held-summary')?.textContent,focused:document.activeElement?.id})",
+        returnByValue:true
+      });
+      if(after.exceptionDetails)throw Error('Fictional keyboard status observation failed.');
+      const ids=trail.map(item=>item?.id);
+      const expected=['revision-one','revision-two','resource-index',
+        'edit-title','edit-content','prepare-draft'];
+      if(ids.join(',')!==expected.join(',')||
+         !after.result?.value?.revision?.includes('Version 2')||
+         !after.result.value.pathname.endsWith('/editor/revision-demo-preview.html')||
+         !after.result.value.source?.includes('No fictional draft')||
+         metrics.formSubmissions!==0||metrics.nonLocalResponses!==0)
+        throw Error('Fictional keyboard-only Tab/Enter sequence differed from safe expected controls.');
+      revisionDemoKeyboardChecks.push({
+        width,realChromeTabPresses:6,realChromeEnterPresses:1,
+        exactFocusOrder:true,fictionalVersion2Activated:true,
+        savedFiles:0,formsSubmitted:0
+      });
+    }
     assert.ok(metrics.localReadRequests>12,'Local resource scripts/assets were not loaded.');
     assert.equal(metrics.formSubmissions,0,'No browser form submission is permitted.');
     assert.equal(metrics.nonLocalResponses,0,'Non-local browser responses are forbidden.');
     return {
       safeLocalBrowserCheck:true,pass:true,
-      scenarios:checks,adminGateChecks,adminSurfaceChecks,adminAccessibilityChecks,adminKeyboardChecks,adminReturnChecks,adminPrefixedReturnChecks,adminReturnEnterPreflightChecks,adminKeyboardEntryChecks,restorePreflightExamples,restoreFileChecks,restoreFolderChecks,saveReviewChecks,unifiedReviewChecks,revisionDemoChecks,
+      scenarios:checks,adminGateChecks,adminSurfaceChecks,adminAccessibilityChecks,adminKeyboardChecks,adminReturnChecks,adminPrefixedReturnChecks,adminReturnEnterPreflightChecks,adminKeyboardEntryChecks,restorePreflightExamples,restoreFileChecks,restoreFolderChecks,saveReviewChecks,unifiedReviewChecks,revisionDemoChecks,revisionDemoKeyboardChecks,
       localReadRequests:metrics.localReadRequests,
       rejectedExternalRequests:metrics.rejectedExternalRequests,
       nonLocalResponses:metrics.nonLocalResponses,
@@ -928,6 +994,7 @@ async function main(){
     assert.equal(report.browserInspection.saveReviewChecks.length,2);
     assert.equal(report.browserInspection.unifiedReviewChecks.length,2);
     assert.equal(report.browserInspection.revisionDemoChecks.length,2);
+    assert.equal(report.browserInspection.revisionDemoKeyboardChecks.length,2);
     assert.equal(report.browserInspection.formSubmissions,0);
     assert.equal(report.browserInspection.nonLocalResponses,0);
     assert.equal(report.deployable,false);
@@ -951,6 +1018,7 @@ async function main(){
       saveReviewChecks:report.browserInspection.saveReviewChecks,
       unifiedReviewChecks:report.browserInspection.unifiedReviewChecks,
       revisionDemoChecks:report.browserInspection.revisionDemoChecks,
+      revisionDemoKeyboardChecks:report.browserInspection.revisionDemoKeyboardChecks,
       localReadRequests:report.browserInspection.localReadRequests,
       blockedExternalAttempts:report.browserInspection.rejectedExternalRequests,
       nonLocalResponses:0,formSubmissions:0,
