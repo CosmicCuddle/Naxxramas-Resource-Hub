@@ -16,9 +16,10 @@ function fixture(){
     {path:'site-content.html',bytes:Buffer.from('Fictional rebuilt website'),mode:'100644'},
     {path:'rules/content.html',bytes:Buffer.from('Fictional edited rules'),mode:'100644'}
   ];
-  const overlays=filePaths().map((p,i)=>({
+  const overlays=Array.from(filePaths()).map((p,i)=>({
     path:p,bytes:Buffer.from('Synthetic resource '+i+' '+p),mode:'100644'
   }));
+  assert.equal(filePaths().size,COUNT+1);
   const files=[...pages,...overlays].map(x=>({...x,oid:gitBlobOid(x.bytes)}));
   const proof={
     format:'naxx-private-git-tree-intent-from-browser-zip-v1',
