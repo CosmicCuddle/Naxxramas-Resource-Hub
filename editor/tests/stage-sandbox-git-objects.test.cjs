@@ -13,9 +13,10 @@ function setup(){
     {path:'site-content.html',mode:'100644',bytes:Buffer.from('Rebuilt fictional runtime')},
     {path:'rules/content.html',mode:'100644',bytes:Buffer.from('Edited fictional rules')}
   ];
-  const sourceFiles=filePaths().map((name,i)=>({
+  const sourceFiles=Array.from(filePaths()).map((name,i)=>({
     path:name,mode:'100644',bytes:Buffer.from('Synthetic source '+i+' '+name)
   }));
+  assert.equal(filePaths().size,COUNT+1);
   const files=[...tracked,...sourceFiles].map(item=>({
     ...item,oid:gitBlobOid(item.bytes)
   }));
