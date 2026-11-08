@@ -9,6 +9,9 @@ const mockPlan={
   format:'naxx-private-browser-zip-to-git-review-v1',
   reviewOnly:true,gitHubReady:false,expectedGitCommit:sha,
   cleanGitCheckoutBeforeAndAfter:true,checkedResourceCount:414,
+  compatibilityReconstructionVerified:true,resourceCandidateRollbackVerified:true,
+  originalResourceRuntimeSha256:'34455f6d901c538e2491a8c16681692e4c02d918b1984d7d0ba081aacb1049e8',
+  sourceLayoutSelected:false,completeRepositoryBackup:false,
   canApply:false,canPush:false,canPublish:false,
   repositoryFilesWritten:0,gitHubWrites:0,
   existingPageAndNavigationChanges:2,proposedResourceChanges:3
