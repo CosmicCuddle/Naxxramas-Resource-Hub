@@ -241,6 +241,8 @@ jobs:
         run: |
           node --test editor/tests/github-save-client.test.cjs
           node --test editor/tests/local-save-companion.test.cjs
+      - name: Exercise complete 415-source Save through server-only GitHub adapter with mocked remote races
+        run: node --test editor/tests/github-sandbox-full-transport.test.cjs
       - name: Verify isolated server-side GitHub sandbox API serialization and credential safety
         run: node --test editor/tests/github-sandbox-api.test.cjs
       - name: Verify sandbox Git blob, full tree, and one-parent commit staging rules
