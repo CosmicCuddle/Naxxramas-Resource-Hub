@@ -172,7 +172,7 @@ function inspectSavedBackup(repo,bundle,pins,options={}){
     reachableCommitsVerified:result.reachableCommitCount,
     savedBundleFilesPresentAtCheck:true,
     existingBundleRestoredInDisposableCheckout:true,
-    fullGitHistoryAndTrackedFilesMatched:true,
+    locallyFetchedGitHistoryAndTrackedFilesMatched:true,
     temporaryRestorationDeleted:true,
     externallyAuthenticatedGitHubSource:false,
     durableOwnerRetentionIndependentlyProven:false,
