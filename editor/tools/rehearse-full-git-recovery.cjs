@@ -28,11 +28,11 @@ function rootsEqual(a,b){
   const left=fs.realpathSync(a),right=fs.realpathSync(b);
   if(left===right)return true;
   if(process.platform!=='win32')return false;
-  // Native Windows Git may return a different drive/path letter case from
-  // Node's realpath result. Windows also permits per-directory case-sensitive
-  // names: matching case-insensitive strings alone is not enough.
-  if(path.normalize(left).toLowerCase()!==path.normalize(right).toLowerCase())
-    return false;
+  // Windows Git and Node can spell the SAME physical directory differently
+  // (e.g. 8.3 short names, slashes, extended path prefixes, drive casing).
+  // The GitHub Windows runner proved canonical path strings still differed
+  // while BOTH stat identities were identical. Do not trust case-folding:
+  // Windows can contain case-sensitive folders with distinct file identities.
   const l=fs.statSync(left),r=fs.statSync(right);
   return l.isDirectory()&&r.isDirectory()&&
     l.dev===r.dev&&l.ino!==0&&l.ino===r.ino;
