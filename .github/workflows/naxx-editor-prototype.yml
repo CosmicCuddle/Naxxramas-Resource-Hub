@@ -69,6 +69,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node --test editor/tests/verify-retained-backup.test.cjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node --test editor/tests/full-git-recovery.test.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node --test editor/tests/private-backup-folder-picker.test.cjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
