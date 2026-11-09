@@ -66,8 +66,11 @@ jobs:
         shell: pwsh
         run: |
           node --test editor/tests/local-git-backup.test.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node --test editor/tests/verify-retained-backup.test.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node --test editor/tests/private-backup-folder-picker.test.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
   save-outcome-contract:
     # Short, independent guard so an assertion failure is visible before
