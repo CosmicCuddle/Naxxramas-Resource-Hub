@@ -191,4 +191,4 @@ if(require.main===module){
     process.exitCode=1;
   }
 }
-module.exports={baseline,fingerprint,verifyRecovery,rehearse};
+module.exports={rootsEqual,baseline,fingerprint,verifyRecovery,rehearse};
