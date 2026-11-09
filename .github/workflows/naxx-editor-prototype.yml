@@ -62,6 +62,9 @@ jobs:
               throw 'Private backup PowerShell entrypoint did not parse safely.'
             }
           }
+      - name: Investigate anonymous Windows Git-to-Node root identity in a synthetic repo
+        shell: pwsh
+        run: node editor/tests/windows-root-recovery-diagnostic.cjs
       - name: Test actual Windows Git bundle creation and independent retained-file restore with fictional sources
         shell: pwsh
         run: |
