@@ -82,3 +82,17 @@ test('refuses non-absolute or incomplete roots and has no network credentials',(
   assert.match(s,/baseline/);
   assert.match(s,/privateBackupWritten:false/);
 });
+
+test('real original website source is ready only if complete Git checkout is clean and checksum matches',()=>{
+  const website=path.resolve(__dirname,'..','..');
+  const report=checkBackupReadiness(website);
+  assert.equal(report.format,FORMAT);
+  assert.equal(report.cleanCompleteGitCheckout,true);
+  assert.equal(report.originalWebsiteChecksumVerified,true);
+  assert.equal(report.sourceCommit,git(website,'rev-parse','HEAD'));
+  assert.ok(report.trackedFileCount>=10);
+  assert.equal(report.privateBackupWritten,false);
+  assert.equal(report.ownerHeldOffMachineCopyVerified,false);
+  assert.equal(report.githubWrites,0);
+  assert.equal(report.publishEnabled,false);
+});
