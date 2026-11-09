@@ -25,7 +25,17 @@ function git(root,args,options={}){
   return p.stdout;
 }
 function rootsEqual(a,b){
-  return fs.realpathSync(a)===fs.realpathSync(b);
+  const left=fs.realpathSync(a),right=fs.realpathSync(b);
+  if(left===right)return true;
+  if(process.platform!=='win32')return false;
+  // Native Windows Git may return a different drive/path letter case from
+  // Node's realpath result. Windows also permits per-directory case-sensitive
+  // names: matching case-insensitive strings alone is not enough.
+  if(path.normalize(left).toLowerCase()!==path.normalize(right).toLowerCase())
+    return false;
+  const l=fs.statSync(left),r=fs.statSync(right);
+  return l.isDirectory()&&r.isDirectory()&&
+    l.dev===r.dev&&l.ino!==0&&l.ino===r.ino;
 }
 function baseline(root,{requireWebsite=true}={}){
   const top=git(root,['rev-parse','--show-toplevel']).trim();
