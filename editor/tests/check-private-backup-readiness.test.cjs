@@ -96,3 +96,15 @@ test('real original website source is ready only if complete Git checkout is cle
   assert.equal(report.githubWrites,0);
   assert.equal(report.publishEnabled,false);
 });
+
+test('Git explicitly preserves the original resource payload LF bytes on Windows checkout',()=>{
+  const website=path.resolve(__dirname,'..','..');
+  const attributes=fs.readFileSync(path.join(website,'.gitattributes'),'utf8');
+  assert.match(attributes,/^site-content\.html text eol=lf\s*$/m);
+  const configured=git(website,'check-attr','eol','--','site-content.html');
+  assert.match(configured,/site-content\.html: eol: lf/);
+  const actual=fs.readFileSync(path.join(website,'site-content.html'));
+  const crypto=require('node:crypto');
+  assert.equal(crypto.createHash('sha256').update(actual).digest('hex'),
+    '34455f6d901c538e2491a8c16681692e4c02d918b1984d7d0ba081aacb1049e8');
+});
