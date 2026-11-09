@@ -108,6 +108,43 @@ try {
     [Environment]::NewLine + [Environment]::NewLine +
     'No real website Save, GitHub upload or publication occurred.'
   ) 'Naxxramas — retained backup verified' 'Information'
+
+  # The owner may explicitly copy a concise NON-SENSITIVE result into ChatGPT.
+  # Never copy the path, .bundle, receipt, raw JSON, credentials or content.
+  # This is a restoration claim only; it is NOT proof of off-machine storage.
+  $safeSummary = @(
+    'NAXXRAMAS PRIVATE GIT BACKUP — LOCAL VERIFICATION',
+    'Existing bundle and sidecars: VERIFIED',
+    'Physical Git history restore: PASSED',
+    'Exact local Git checkout: MATCHED',
+    'Original files unchanged: VERIFIED',
+    'Original Git commit: ' + [string]$report.verifiedOriginalCommit,
+    'GitHub writes and publication: NONE',
+    'Off-machine storage: NOT independently verified by tool',
+    'Whole-server/GitHub-settings backup: NO',
+    'No file paths or backup contents included'
+  ) -join [Environment]::NewLine
+
+  $copyChoice = [System.Windows.Forms.MessageBox]::Show(
+    'Would you like to COPY a safe verification summary for your records?' +
+    [Environment]::NewLine + [Environment]::NewLine +
+    'Only the original Git commit and PASS/NOT VERIFIED statuses are copied.' +
+    [Environment]::NewLine +
+    'Your private folder path, file contents and recovery files are NOT copied.' +
+    [Environment]::NewLine + [Environment]::NewLine +
+    'Choosing No leaves the clipboard unchanged.',
+    'Naxxramas — copy safe backup result?',
+    [System.Windows.Forms.MessageBoxButtons]::YesNo,
+    [System.Windows.Forms.MessageBoxIcon]::Question
+  )
+  if ($copyChoice -eq [System.Windows.Forms.DialogResult]::Yes) {
+    [System.Windows.Forms.Clipboard]::SetText($safeSummary)
+    Show-RestoreNotice (
+      'A short, non-sensitive confirmation was copied to your clipboard.' +
+      [Environment]::NewLine +
+      'You can paste it into our chat, without sharing the backup itself.'
+    ) 'Naxxramas — safe confirmation copied' 'Information'
+  }
 } catch {
   Write-Warning 'Existing private backup verification failed or was refused.'
   Write-Warning 'The backup and website have not been changed. No GitHub upload was made.'
