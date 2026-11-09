@@ -30,15 +30,16 @@ permissions:
 jobs:
   windows-private-backup-compatibility:
     # Windows-specific verification without GUI, owner files, credentials or remote writes.
-    # Actually tests synthetic local Git backup and physical restore with Windows Git.
+    # Tests synthetic Git backup/recovery AND protected 31 MB source readiness.
     runs-on: windows-latest
     timeout-minutes: 15
     permissions:
       contents: read
     steps:
-      - name: Check out the draft without retained GitHub credentials
+      - name: Check out complete draft Git history without retained GitHub credentials
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           persist-credentials: false
       - name: Use Node.js 22
         uses: actions/setup-node@v4
@@ -75,6 +76,11 @@ jobs:
           node --test editor/tests/full-git-recovery.test.cjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node --test editor/tests/private-backup-folder-picker.test.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Reject incomplete or dirty source before Windows backup destination selection
+        shell: pwsh
+        run: |
+          node --test editor/tests/check-private-backup-readiness.test.cjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
   save-outcome-contract:
@@ -291,6 +297,8 @@ jobs:
           node-version: '22'
       - name: Check manual Windows private backup folder-picker stays offline and uses verified Git recovery
         run: node --test editor/tests/private-backup-folder-picker.test.cjs
+      - name: Verify original-site Git backup readiness before any user-selected destination
+        run: node --test editor/tests/check-private-backup-readiness.test.cjs
       - name: Rehearse restoring original Git history to one private sandbox-only branch with no remote writes
         run: node --test editor/tests/rehearse-private-sandbox-branch-seed.test.cjs
       - name: Verify retained Git history backup against exact commit with fresh private restore
