@@ -138,12 +138,25 @@ try {
     [System.Windows.Forms.MessageBoxIcon]::Question
   )
   if ($copyChoice -eq [System.Windows.Forms.DialogResult]::Yes) {
-    [System.Windows.Forms.Clipboard]::SetText($safeSummary)
-    Show-RestoreNotice (
-      'A short, non-sensitive confirmation was copied to your clipboard.' +
-      [Environment]::NewLine +
-      'You can paste it into our chat, without sharing the backup itself.'
-    ) 'Naxxramas — safe confirmation copied' 'Information'
+    # Clipboard availability is NOT part of physical Git recovery. A locked
+    # clipboard must never turn a verified backup into a false failure.
+    try {
+      [System.Windows.Forms.Clipboard]::SetText($safeSummary)
+      Show-RestoreNotice (
+        'A short, non-sensitive confirmation was copied to your clipboard.' +
+        [Environment]::NewLine +
+        'You can paste it into our chat, without sharing the backup itself.'
+      ) 'Naxxramas — safe confirmation copied' 'Information'
+    } catch {
+      Write-Warning 'Backup verification PASSED, but the clipboard was unavailable.'
+      Show-RestoreNotice (
+        'Your backup was VERIFIED and restore-tested.' +
+        [Environment]::NewLine +
+        'Only copying the optional status to the clipboard failed.' +
+        [Environment]::NewLine +
+        'Your backup and verification result remain valid.'
+      ) 'Naxxramas — backup verified; clipboard unavailable' 'Warning'
+    }
   }
 } catch {
   Write-Warning 'Existing private backup verification failed or was refused.'
