@@ -89,3 +89,27 @@ test('manual verification picker selects an existing bundle and calls only the r
     ])assert.equal(script.toLowerCase().includes(banned.toLowerCase()),false,banned);
   }
 });
+
+test('verified Windows backup offers ONLY optional clipboard copy of safe, non-secret status',()=>{
+  const content=fs.readFileSync(path.join(dir,'Verify-Naxxramas-Private-Backup.ps1'),'utf8');
+  assert.match(content,/MessageBoxButtons\]::YesNo/);
+  assert.match(content,/DialogResult\]::Yes/);
+  assert.match(content,/Clipboard\]::SetText\(\$safeSummary\)/);
+  assert.match(content,/Choosing No leaves the clipboard unchanged/);
+  assert.match(content,/Original Git commit: /);
+  assert.match(content,/Off-machine storage: NOT independently verified by tool/);
+  assert.match(content,/No file paths or backup contents included/);
+  const begin=content.indexOf('$safeSummary = @(');
+  const end=content.indexOf(') -join [Environment]::NewLine',begin);
+  assert.ok(begin>=0&&end>begin);
+  const summary=content.slice(begin,end);
+  for(const unsafe of [
+    '$backupPath','$resultText','$verifyTool','$node',
+    'receipt.json','READ_ME_FIRST.txt','ConvertTo-Json',
+    'SelectedPath','FileName','Authorization:','GitHub_TOKEN'
+  ])assert.equal(summary.includes(unsafe),false,
+    'Clipboard summary may not include private source paths, recovery files or credentials: '+unsafe);
+  assert.ok(content.indexOf('if ($copyChoice -eq [System.Windows.Forms.DialogResult]::Yes) {')<
+    content.indexOf('[System.Windows.Forms.Clipboard]::SetText($safeSummary)'),
+    'Clipboard writes must only be made after owner selects Yes');
+});
