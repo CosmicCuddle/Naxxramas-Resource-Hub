@@ -36,6 +36,8 @@ After setup, verify using the authenticated GitHub connection or an equivalent o
 
 ## 3. Retained source recovery and exact test branch
 
+For an accessible, **one-step-at-a-time Windows owner test**, see [`OWNER-WINDOWS-BACKUP-FIRST-TEST.md`](./OWNER-WINDOWS-BACKUP-FIRST-TEST.md). This is guidance, not proof the owner has performed it.
+
 Before any authenticated remote upload:
 
 - Create a **new private, owner-held, durable backup** of the original *clean, complete* source checkout using `editor/tools/create-local-git-backup.cjs`. It creates one `.bundle` and two sidecars (receipt + recovery notes). Store these **outside Git and off-machine** in the owner's selected private location. Never upload them to public GitHub/CI artifacts.
@@ -72,10 +74,10 @@ Do not disclose the credential or captured GitHub response bodies if they could 
 | --- | --- |
 | Draft-branch local browser Save, full-source reconciliation and isolated local Git commit | CI evidence available in PR #56; verify exact latest SHA |
 | Server adapter with fictional GitHub responses | Implemented and tested; **not a real authenticated GitHub Save** |
-| Private test repository created and visible | **Not confirmed** |
+| Private test repository created and visible | **Confirmed private, non-archived and empty** through GitHub metadata on 9 November 2026; no branches or imports |
 | Original history seeded into separate test repository | **Not done** |
-| Durable owner-held, restore-tested backup | **Not confirmed** |
-| Authorised scoped test credential | **Not provisioned** |
+| Durable owner-held, restore-tested backup | **Not confirmed**; the owner must verify the separate retained copy, not a CI temporary bundle |
+| Sandbox Actions disabled | **Owner-reported**, not independently API-verified; Pages/deployments still require a separate check |\n| Windows backup helpers | GitHub Actions Windows CI **passed** on 9 November 2026; interactive owner-side GUI test remains **unverified** |\n| Authorised scoped test credential | **Not provisioned** |
 | Authenticated sandbox write, conflict and rollback | **Not performed** |
 | One-click Save to actual Resource Hub development branch | **Disabled** |
 | `main` merge, live website or Pages publication | **Not authorised** |
