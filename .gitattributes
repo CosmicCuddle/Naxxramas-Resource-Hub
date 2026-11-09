@@ -1,0 +1,5 @@
+# Preserve the original 31 MB resource payload byte-for-byte on Windows.
+# Git for Windows can otherwise convert LF to CRLF on checkout while still
+# reporting a clean worktree. The private backup verifier must never accept
+# changed original website bytes.
+site-content.html text eol=lf
