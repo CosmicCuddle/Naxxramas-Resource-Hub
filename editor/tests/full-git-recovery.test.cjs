@@ -2,7 +2,7 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),os=require('node:os'),path=require('node:path');
 const cp=require('node:child_process');
-const {baseline,fingerprint,rehearse}=require('../tools/rehearse-full-git-recovery.cjs');
+const {rootsEqual,baseline,fingerprint,rehearse}=require('../tools/rehearse-full-git-recovery.cjs');
 function git(root,...args){
   const result=cp.spawnSync('git',args,{
     cwd:root,encoding:'utf8',maxBuffer:3*1024*1024,stdio:['ignore','pipe','pipe']
@@ -106,5 +106,22 @@ test('tracked-file snapshot rejects malicious traversal, duplicates and missing 
     assert.throws(()=>fingerprint(root,['missing.txt']),/ENOENT/);
     const names=['index.html','pages/guide.html'];
     assert.deepEqual(fingerprint(root,names),fingerprint(root,names.slice().reverse()));
+  });
+});
+
+test('original Git checkout identity accepts Windows drive case only for the SAME physical directory',()=>{
+  fixture(({root,work})=>{
+    assert.equal(rootsEqual(root,root),true);
+    assert.equal(rootsEqual(root,work),false);
+    assert.equal(rootsEqual(root,path.join(root,'..')),false);
+    if(process.platform==='win32'){
+      const swapped=root[0]===root[0].toUpperCase()?
+        root[0].toLowerCase()+root.slice(1):
+        root[0].toUpperCase()+root.slice(1);
+      assert.equal(rootsEqual(root,swapped),true,
+        'Windows native Git and Node may spell the same drive letter differently.');
+      assert.equal(rootsEqual(root,root.replace(/\\/g,'/')),true,
+        'Windows Git may return forward slashes for the same root.');
+    }
   });
 });
