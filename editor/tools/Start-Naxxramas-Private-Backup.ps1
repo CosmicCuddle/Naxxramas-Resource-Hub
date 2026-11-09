@@ -42,6 +42,27 @@ try {
   $node = Get-Command 'node.exe' -ErrorAction Stop
   [void](Get-Command 'git.exe' -ErrorAction Stop)
 
+  # Verify the complete, clean original website BEFORE asking the owner
+  # where to save a backup. This check only reads local Git and source bytes.
+  $readinessTool = Join-Path $PSScriptRoot 'check-private-backup-readiness.cjs'
+  if (-not [System.IO.File]::Exists($readinessTool)) {
+    throw 'The original-site private backup readiness check is missing.'
+  }
+  $readinessOutput = & $node.Source $readinessTool '--check'
+  if ($LASTEXITCODE -ne 0) {
+    throw 'This is not a clean complete Git checkout of the original website.'
+  }
+  $ready = ($readinessOutput -join [Environment]::NewLine) | ConvertFrom-Json
+  if ($ready.cleanCompleteGitCheckout -ne $true -or
+      $ready.fullFetchedHistoryPresent -ne $true -or
+      $ready.originalWebsiteChecksumVerified -ne $true -or
+      $ready.privateBackupWritten -ne $false -or
+      $ready.githubWrites -ne 0 -or
+      $ready.realSaveEnabled -ne $false -or
+      [string]::IsNullOrWhiteSpace([string]$ready.sourceCommit)) {
+    throw 'Original site read-only backup readiness did not pass.'
+  }
+
   Show-OwnerNotice (
     'This creates a PRIVATE backup of locally fetched website Git history.' +
     [Environment]::NewLine + [Environment]::NewLine +
