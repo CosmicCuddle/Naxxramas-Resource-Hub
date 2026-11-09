@@ -57,3 +57,35 @@ test('success and failure messages distinguish verified local recovery from off-
   assert.match(ps,/exit 0/);
   assert.match(ps,/Do not choose a public or shared folder/);
 });
+
+test('manual verification picker selects an existing bundle and calls only the read-only restore checker',()=>{
+  const file=fs.readFileSync(path.join(dir,'Verify-Naxxramas-Private-Backup.ps1'),'utf8');
+  const shortcut=fs.readFileSync(path.join(dir,'Verify-Naxxramas-Private-Backup.cmd'),'utf8');
+  assert.match(file,/OpenFileDialog/);
+  assert.match(file,/Git history bundles \(\*\.bundle\)/);
+  assert.match(file,/CheckFileExists = \$true/);
+  assert.match(file,/Multiselect = \$false/);
+  assert.match(file,/verify-retained-backup\.cjs/);
+  assert.match(file,/\$node\.Source \$verifyTool '--backup' \$backupPath/);
+  assert.match(file,/ConvertFrom-Json/);
+  assert.match(file,/exactGitCheckoutBound/);
+  assert.match(file,/existingBundleAndSidecarsIntact/);
+  assert.match(file,/restoredAgainFromExistingBundle/);
+  assert.match(file,/originalCheckoutUnchanged/);
+  assert.match(file,/realSaveEnabled -ne \$false/);
+  assert.match(file,/githubWrites -ne 0/);
+  assert.match(file,/does not determine whether that drive is off-machine/);
+  assert.match(shortcut,/%~dp0Verify-Naxxramas-Private-Backup\.ps1/);
+  assert.match(shortcut,/-NoProfile/);
+  assert.match(shortcut,/-ExecutionPolicy RemoteSigned/);
+  assert.match(shortcut,/-STA/);
+  for(const script of [file,shortcut]){
+    for(const banned of [
+      'Invoke-WebRequest','Invoke-RestMethod','git push',
+      'gh repo','GITHUB_TOKEN','GH_TOKEN',
+      'https.request','Authorization:',
+      'Set-ExecutionPolicy','-ExecutionPolicy Bypass',
+      'create-local-git-backup.cjs','Start-BitsTransfer'
+    ])assert.equal(script.toLowerCase().includes(banned.toLowerCase()),false,banned);
+  }
+});
