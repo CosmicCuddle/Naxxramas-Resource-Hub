@@ -36,4 +36,7 @@ try{
     GitRootWasRecognized:rootsEqual(fromGit,source)
   };
   process.stdout.write('WINDOWS_ROOT_DIAGNOSTIC_BOOLEAN_FLAGS '+JSON.stringify(flags)+'\n');
+  if(!flags.sameDevice||!flags.sameInode||!flags.nonzeroInode||
+     !flags.bothDirectories||!flags.GitRootWasRecognized)
+    throw Error('Git and Node did not agree on the exact Windows physical checkout directory.');
 }finally{fs.rmSync(work,{recursive:true,force:true});}
