@@ -1,6 +1,6 @@
 # Private GitHub Save sandbox — setup and acceptance gate
 
-**Status: PREPARATION ONLY — draft PR #56.** No separate sandbox repository has been created by this work. This is not permission to import site history, upload files, provide credentials, or activate real GitHub Save or Publish.
+**Status: PREPARATION ONLY — draft PR #56.** The owner has separately created an empty, private GitHub sandbox, which is verified through connected repository metadata. The owner reports GitHub Actions disabled, but the connected app cannot independently verify that administrative setting. The owner-held off-machine backup and interactive Windows UI tests are **not yet verified**. This is not permission to import site history, upload files, provide credentials, or activate real GitHub Save or Publish.
 
 ## Purpose
 
