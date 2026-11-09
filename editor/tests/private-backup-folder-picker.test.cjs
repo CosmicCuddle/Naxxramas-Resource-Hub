@@ -113,3 +113,18 @@ test('verified Windows backup offers ONLY optional clipboard copy of safe, non-s
     content.indexOf('[System.Windows.Forms.Clipboard]::SetText($safeSummary)'),
     'Clipboard writes must only be made after owner selects Yes');
 });
+
+test('Windows owner backup checks clean original Git source before asking for destination',()=>{
+  const src=fs.readFileSync(path.join(dir,'Start-Naxxramas-Private-Backup.ps1'),'utf8');
+  assert.match(src,/check-private-backup-readiness\.cjs/);
+  assert.match(src,/\$node\.Source \$readinessTool '--check'/);
+  assert.match(src,/cleanCompleteGitCheckout -ne \$true/);
+  assert.match(src,/fullFetchedHistoryPresent -ne \$true/);
+  assert.match(src,/originalWebsiteChecksumVerified -ne \$true/);
+  assert.match(src,/privateBackupWritten -ne \$false/);
+  assert.match(src,/realSaveEnabled -ne \$false/);
+  assert.ok(src.indexOf("$node.Source $readinessTool '--check'")<
+    src.indexOf('FolderBrowserDialog'),
+    'Read-only preflight must finish BEFORE offering destination picker.');
+  assert.equal(src.includes('Get-ChildItem Env:'),false);
+});
