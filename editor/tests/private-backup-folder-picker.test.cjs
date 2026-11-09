@@ -128,3 +128,14 @@ test('Windows owner backup checks clean original Git source before asking for de
     'Read-only preflight must finish BEFORE offering destination picker.');
   assert.equal(src.includes('Get-ChildItem Env:'),false);
 });
+
+test('optional clipboard errors cannot falsely invalidate a verified Git recovery',()=>{
+  const src=fs.readFileSync(path.join(dir,'Verify-Naxxramas-Private-Backup.ps1'),'utf8');
+  const block=src.slice(src.indexOf("if ($copyChoice -eq [System.Windows.Forms.DialogResult]::Yes) {"));
+  assert.ok(block.includes('try {'), 'Clipboard action must handle clipboard errors separately');
+  assert.match(block,/\[System\.Windows\.Forms\.Clipboard\]::SetText\(\$safeSummary\)/);
+  assert.match(block,/Backup verification PASSED, but the clipboard was unavailable/);
+  assert.match(block,/Your backup and verification result remain valid/);
+  assert.ok(block.indexOf('catch {')<block.indexOf('} catch {')+4000,
+    'Clipboard errors must be isolated from the outer backup validation');
+});
