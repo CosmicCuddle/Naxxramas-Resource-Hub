@@ -240,6 +240,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Check manual Windows private backup folder-picker stays offline and uses verified Git recovery
+        run: node --test editor/tests/private-backup-folder-picker.test.cjs
       - name: Rehearse restoring original Git history to one private sandbox-only branch with no remote writes
         run: node --test editor/tests/rehearse-private-sandbox-branch-seed.test.cjs
       - name: Verify retained Git history backup against exact commit with fresh private restore
