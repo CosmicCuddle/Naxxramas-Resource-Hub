@@ -106,6 +106,8 @@ jobs:
         run: node --test editor/tests/protected-save-companion.test.cjs
       - name: Verify simple repeated Save and Load of one private draft without any public website writes
         run: node --test editor/tests/private-draft-github-store.test.cjs
+      - name: Verify private Save and Load browser/server integration without network or tokens
+        run: node --test editor/tests/private-draft-integration.test.cjs
 
   editor-prototype:
     runs-on: ubuntu-latest
