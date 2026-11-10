@@ -6,6 +6,7 @@
 (function (root) {
   'use strict';
   var EXPECTED_REPOSITORY = 'CosmicCuddle/Naxxramas-Resource-Hub';
+  var PRIVATE_REPOSITORY = 'CosmicCuddle/Naxxramas-Editor-Save-Sandbox-01';
   var SHA = /^[0-9a-f]{40}(?:[0-9a-f]{24})?$/;
   var SHA256 = /^[0-9a-f]{64}$/;
   var BRANCH = /^editor-saves\/[a-z0-9][a-z0-9._/-]{0,100}$/;
@@ -24,6 +25,18 @@
       !branch.split('/').some(function (part) { return part.endsWith('.lock'); });
   }
   function validateCapability(data) {
+    if(data && data.storageMode==='private-draft-zip'){
+      if(data.format!=='naxx-editor-local-save-capability-v1'||
+         data.ready!==true||data.authenticated!==true||
+         data.repository!==PRIVATE_REPOSITORY||
+         data.branch!=='main'||data.publishDisabled!==true||
+         data.exactOldHeadEnforced!==true||
+         !SHA.test(data.expectedHead)||!TOKEN.test(data.csrfToken))
+        throw Error('Private editor draft storage is not safely connected.');
+      return Object.freeze({storageMode:'private-draft-zip',
+        branch:'main',expectedHead:data.expectedHead,
+        csrfToken:data.csrfToken});
+    }
     if (!data || data.format !== 'naxx-editor-local-save-capability-v1' ||
         data.ready !== true || data.authenticated !== true ||
         data.repository !== EXPECTED_REPOSITORY ||
@@ -37,6 +50,17 @@
       csrfToken: data.csrfToken});
   }
   function validateReceipt(data, capability) {
+    if(capability.storageMode==='private-draft-zip'){
+      if(!data||data.format!=='naxx-editor-private-draft-save-v1'||
+         data.result!=='saved-private-draft'||
+         data.repository!==PRIVATE_REPOSITORY||data.branch!=='main'||
+         data.parentCommit!==capability.expectedHead||
+         !SHA.test(data.commit)||data.commit===data.parentCommit||
+         !SHA.test(data.gitBlobSha)||data.published!==false)
+        throw Error('The private GitHub draft Save was not independently verified.');
+      return Object.freeze({storageMode:'private-draft-zip',branch:'main',
+        commit:data.commit,gitBlobSha:data.gitBlobSha,published:false});
+    }
     if (!data || data.format !== 'naxx-editor-local-save-result-v1' ||
         data.result !== 'saved-and-independently-verified' ||
         data.repository !== EXPECTED_REPOSITORY ||
@@ -65,7 +89,9 @@
     });
     var data = await jsonReply(response);
     if (!data || data.format !== 'naxx-editor-local-save-capability-v1' ||
-        data.repository !== EXPECTED_REPOSITORY ||
+        !((data.repository === EXPECTED_REPOSITORY && !data.storageMode) ||
+          (data.repository===PRIVATE_REPOSITORY &&
+           data.storageMode==='private-draft-zip')) ||
         data.publishDisabled !== true || !TOKEN.test(data.csrfToken))
       throw Error('The local editor connection did not match the protected protocol.');
     return data;
@@ -115,7 +141,7 @@
     } catch (_) {
       // Any failed, malformed or lost response could follow an unseen write.
       // Never retry automatically, silently discard the draft or claim Saved.
-      throw Error('Save result is uncertain or refused. Keep all local edits and do NOT retry automatically. Check the development branch before another Save.');
+      throw Error('Save result is uncertain or refused. Keep all local edits; do NOT retry automatically. Check your private draft or development branch first.');
     }
     var changedDuringSave = true;
     try {
@@ -125,6 +151,33 @@
       // New unapplied text also means the owner has edits not in this Save.
     }
     return Object.freeze({...verified, changedDuringSave: changedDuringSave});
+  }
+
+  async function loadPrivateDraft(options) {
+    if(!options||!allowedHost(options.location)||typeof options.fetchFn!=='function')
+      throw Error('Private drafts can only be loaded through the trusted local editor.');
+    var capability=await connect(options.location,options.fetchFn);
+    if(capability.storageMode!=='private-draft-zip')
+      throw Error('Private draft storage is not connected.');
+    var response=await options.fetchFn('/api/editor/latest-draft',{
+      method:'POST',cache:'no-store',credentials:'same-origin',redirect:'error',
+      headers:{'X-Naxx-Editor-Protocol':'naxx-local-load-private-draft-v1',
+        'X-Naxx-Csrf-Token':capability.csrfToken}
+    });
+    var data=await jsonReply(response);
+    if(!data||data.format!=='naxx-editor-private-draft-load-v1'||
+       data.repository!==PRIVATE_REPOSITORY||data.branch!=='main'||
+       !SHA.test(data.commit)||data.published!==false||
+       typeof data.zipBase64!=='string'||
+       data.zipBase64.length<32||data.zipBase64.length>MAX_PACKAGE_BYTES*4/3+8||
+       !/^[a-zA-Z0-9+/]*={0,2}$/.test(data.zipBase64))
+      throw Error('The saved private draft was not verified.');
+    var raw=atob(data.zipBase64);
+    if(raw.length<22||raw.length>MAX_PACKAGE_BYTES||
+       raw.charCodeAt(0)!==0x50||raw.charCodeAt(1)!==0x4b)
+      throw Error('The private draft ZIP content is invalid.');
+    var bytes=Uint8Array.from(raw,function(ch){return ch.charCodeAt(0);});
+    return Object.freeze({bytes,commit:data.commit,published:false});
   }
 
   function validateReviewResult(data) {
@@ -189,24 +242,28 @@
   var api = Object.freeze({allowedHost: allowedHost, safeBranch: safeBranch,
     validateCapability: validateCapability, validateReceipt: validateReceipt,
     readStatus:readStatus,connect: connect, save: save,
-    validateReviewResult:validateReviewResult,reviewChanges:reviewChanges});
+    validateReviewResult:validateReviewResult,reviewChanges:reviewChanges,
+    loadPrivateDraft:loadPrivateDraft});
   root.NaxxGitHubSaveClient = api;
   if (typeof module !== 'undefined' && module.exports)module.exports = api;
 
   if (typeof document === 'undefined') return;
   var button = document.getElementById('github-save');
+  var loadButton = document.getElementById('github-load-private-draft');
   var check = document.getElementById('github-check-connection');
   var reviewButton = document.getElementById('github-review');
   var status = document.getElementById('github-save-status');
   if (!button || !check || !reviewButton || !status) return;
-  var busy = false, ready = false, canReview = false;
+  var busy = false, ready = false, canReview = false,privateMode=false;
   function notice(message, error) {
     status.textContent = message;
     status.classList.toggle('error', !!error);
   }
   async function updateConnection() {
-    ready = false;canReview = false;
+    ready = false;canReview = false;privateMode=false;
     button.disabled = true;reviewButton.disabled = true;
+    if(loadButton)loadButton.disabled=true;
+    button.textContent='Save to GitHub (development branch)';
     if (!allowedHost(root.location)) {
       notice('Direct GitHub Save requires a trusted local service, not an ordinary downloaded HTML file. Draft downloads remain available.', false);
       return;
@@ -218,8 +275,15 @@
       if (statusInfo.ready === true) {
         var capability = validateCapability(statusInfo);
         ready = true;button.disabled = false;
-        notice('Development branch ' + capability.branch +
-          ' is ready for a protected Save. Publishing remains separate.', false);
+        privateMode=capability.storageMode==='private-draft-zip';
+        if(privateMode){
+          button.textContent='Save My Edits Privately';
+          if(loadButton)loadButton.disabled=statusInfo.draftExists!==true;
+          notice('Private draft saving is ready. Your website will NOT be published.',false);
+        }else{
+          notice('Development branch ' + capability.branch +
+            ' is ready for a protected Save. Publishing remains separate.', false);
+        }
       } else if (canReview) {
         notice('Local source review is available. Save to GitHub is still disabled; you can check your edits without publishing.', false);
       } else {
@@ -271,10 +335,12 @@
         getPageDraft: pages.getDraft, getResourceDraft: resources.getDraft,
         build: review.build, zipTools: root.NaxxEditorZip});
       notice((result.changedDuringSave ?
-        'An earlier draft was saved; edits made during Save are NOT stored. ' :
+        'An earlier draft was saved; newer edits are NOT stored. ' :
         'Saved and independently verified. ') +
-        'Development branch: ' + result.branch +
-        '. Your public website was NOT published. Keep your draft until you review this change.', false);
+        (result.storageMode==='private-draft-zip' ?
+          'Your edits are stored privately and can be loaded later. The public website was NOT published.' :
+          'Development branch: '+result.branch+
+          '. The public website was NOT published.'),false);
       ready = false; // Force a fresh remote check before another Save.
     } catch (error) {
       ready = false;
@@ -282,6 +348,26 @@
     } finally {
       busy = false;check.disabled = false;button.disabled = true;
       reviewButton.disabled = !canReview;
+    }
+  });
+  if(loadButton)loadButton.addEventListener('click',async function(){
+    if(busy||!ready||!privateMode)return;
+    busy=true;loadButton.disabled=true;button.disabled=true;check.disabled=true;
+    notice('Loading your latest privately saved edits…',false);
+    try{
+      var saved=await loadPrivateDraft({
+        location:root.location,fetchFn:root.fetch.bind(root)
+      });
+      if(!root.NaxxCombinedReviewRecovery ||
+         typeof root.NaxxCombinedReviewRecovery.inspectBytes!=='function')
+        throw Error('The protected draft recovery screen is unavailable.');
+      await root.NaxxCombinedReviewRecovery.inspectBytes(saved.bytes);
+      notice('Your latest private draft was loaded and verified. Use the Restore Page and Restore Resource buttons above. Nothing was published.',false);
+    }catch(error){
+      notice((error&&error.message)||'Your private draft could not be loaded.',true);
+    }finally{
+      busy=false;check.disabled=false;button.disabled=!ready;
+      loadButton.disabled=!ready||!privateMode;
     }
   });
   updateConnection();
