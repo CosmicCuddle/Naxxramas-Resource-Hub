@@ -104,6 +104,8 @@ jobs:
           node --test editor/tests/backup-bound-save-outcome.test.cjs
       - name: Prove browser Save reaches only a separately approved development-branch writer
         run: node --test editor/tests/protected-save-companion.test.cjs
+      - name: Verify simple repeated Save and Load of one private draft without any public website writes
+        run: node --test editor/tests/private-draft-github-store.test.cjs
 
   editor-prototype:
     runs-on: ubuntu-latest
