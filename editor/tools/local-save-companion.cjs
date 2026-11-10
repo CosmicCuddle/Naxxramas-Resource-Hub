@@ -208,7 +208,7 @@ function createCompanion(options={}) {
       // disabled Save route. Keep its explicit 423 refusal rather than
       // changing it into an unrelated 403; both remain unwritable.
       const protocolAllowed=protocol===requiredProtocol ||
-        (url==='/api/editor/save'&&!protectedSave &&
+        (url==='/api/editor/save'&&!protectedSave&&!privateDraftStore &&
          protocol==='naxx-local-review-v1');
       if(req.headers.origin!==origin ||
          (req.headers['sec-fetch-site'] && req.headers['sec-fetch-site']!=='same-origin') ||
