@@ -280,6 +280,8 @@ jobs:
           node-version: '22'
       - name: Verify real private Git bundle and browser ZIP use the same original checkout
         run: node --test editor/qa/backup-bound-browser-review.test.cjs
+      - name: Verify changed-only original website Save can preserve its existing Git layout
+        run: node --test editor/tests/prepare-original-layout-save.test.cjs
 
   disposable-local-save-commit:
     # Isolated Git history and loopback only. No GitHub write token is present.
