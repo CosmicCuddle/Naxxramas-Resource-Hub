@@ -108,6 +108,8 @@ jobs:
         run: node --test editor/tests/private-draft-github-store.test.cjs
       - name: Verify private Save and Load browser/server integration without network or tokens
         run: node --test editor/tests/private-draft-integration.test.cjs
+      - name: Verify owner-launched private draft editor never exposes token or touches public site
+        run: node --test editor/tests/private-draft-launcher.test.cjs
 
   editor-prototype:
     runs-on: ubuntu-latest
