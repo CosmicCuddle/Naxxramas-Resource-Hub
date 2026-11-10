@@ -18,6 +18,7 @@ const {planFromReviewZip} = require('./review-private-combined-zip.cjs');
 const {checkedSetup,checkedReceipt} = require('./protected-save-contract.cjs');
 
 const REPO = 'CosmicCuddle/Naxxramas-Resource-Hub';
+const PRIVATE_DRAFT_REPO='CosmicCuddle/Naxxramas-Editor-Save-Sandbox-01';
 const MAX_ZIP = 20 * 1024 * 1024;
 const COMMIT = /^[a-f0-9]{40}$/;
 const ASSETS = new Map([
@@ -114,8 +115,15 @@ function createCompanion(options={}) {
   // independently audited owner-approved branch writer to enable real Save.
   const protectedSave=options.protectedSave ?
     checkedSetup(options.protectedSave) : null;
+  const privateDraftStore=options.privateDraftStore||null;
+  if(privateDraftStore && (protectedSave ||
+     privateDraftStore.repository!==PRIVATE_DRAFT_REPO||
+     typeof privateDraftStore.status!=='function'||
+     typeof privateDraftStore.save!=='function'||
+     typeof privateDraftStore.load!=='function'))
+    throw Error('Only the separately reviewed private GitHub draft store may be attached.');
   const session=crypto.randomBytes(32).toString('hex');
-  let reviewing=false,saveAttempted=false;
+  let reviewing=false,saveAttempted=false,privateDraftUncertain=false;
   const server=http.createServer(async(req,res)=>{
     // No proxy trust, permissive CORS, DNS rebinding, or non-loopback Host.
     const addr=server.address();
@@ -146,6 +154,27 @@ function createCompanion(options={}) {
       reject(403,'Cross-origin requests are not permitted.');return;
     }
     if(req.method==='GET' && url==='/api/editor/status') {
+      if(privateDraftStore){
+        try {
+          const state=await privateDraftStore.status();
+          if(!state||state.repository!==PRIVATE_DRAFT_REPO||
+             state.branch!=='main'||state.privateVerified!==true||
+             !COMMIT.test(state.expectedHead||''))
+            throw Error('Private draft identity was not verified.');
+          reply(200,{
+            format:'naxx-editor-local-save-capability-v1',
+            ready:!privateDraftUncertain,authenticated:true,
+            storageMode:'private-draft-zip',repository:PRIVATE_DRAFT_REPO,
+            publishDisabled:true,backupVerified:false,
+            exactOldHeadEnforced:true,branch:'main',
+            expectedHead:state.expectedHead,draftExists:state.draftExists===true,
+            csrfToken:session
+          });
+        } catch(_) {
+          reject(503,'Private draft Save is not ready. The sandbox must be initialised and verified.');
+        }
+        return;
+      }
       reply(200,{
         format:'naxx-editor-local-save-capability-v1',
         ready:!!protectedSave&&!saveAttempted,
@@ -162,7 +191,8 @@ function createCompanion(options={}) {
       return;
     }
     if(req.method==='POST' && (url==='/api/editor/save'||
-       url==='/api/editor/review'||url==='/api/editor/test-commit')){
+       url==='/api/editor/review'||url==='/api/editor/test-commit'||
+       url==='/api/editor/latest-draft')){
       const origin='http://'+host;
       const csrf=req.headers['x-naxx-csrf-token'];
       const submitted=typeof csrf==='string' && /^[a-f0-9]{64}$/.test(csrf) ?
@@ -172,6 +202,7 @@ function createCompanion(options={}) {
       const requiredProtocol=url==='/api/editor/test-commit' ?
         'naxx-local-test-commit-v1' :
         url==='/api/editor/save' ? 'naxx-local-save-v1' :
+        url==='/api/editor/latest-draft' ? 'naxx-local-load-private-draft-v1' :
         'naxx-local-review-v1';
       // The old read-only companion sent a review protocol to the
       // disabled Save route. Keep its explicit 423 refusal rather than
@@ -184,14 +215,39 @@ function createCompanion(options={}) {
          !protocolAllowed || !match){
         reject(403,'Local editor session or origin was not verified.');return;
       }
-      if(url==='/api/editor/save'&&(!protectedSave||saveAttempted)){
+      if(url==='/api/editor/latest-draft'){
+        if(!privateDraftStore||privateDraftUncertain){
+          reject(423,'Private draft loading is unavailable.');return;
+        }
+        try {
+          const loaded=await privateDraftStore.load();
+          if(!loaded||!Buffer.isBuffer(loaded.bytes)||!COMMIT.test(loaded.commit||''))
+            throw Error('No verified private saved draft exists.');
+          reply(200,{format:'naxx-editor-private-draft-load-v1',
+            repository:PRIVATE_DRAFT_REPO,branch:'main',
+            commit:loaded.commit,zipBase64:loaded.bytes.toString('base64'),
+            published:false});
+        }catch(_){reject(503,'Private draft could not be safely loaded.');}
+        return;
+      }
+      if(url==='/api/editor/save'&&privateDraftStore&&privateDraftUncertain){
+        reject(423,'Private draft Save has an uncertain earlier outcome. Inspect before retrying.');return;
+      }
+      if(url==='/api/editor/save'&&!privateDraftStore&&(!protectedSave||saveAttempted)){
         reject(423,'Real GitHub Save remains disabled. No repository files were written.');return;
       }
-      if(url==='/api/editor/save'&&
+      if(url==='/api/editor/save'&&!privateDraftStore&&
          req.headers['x-naxx-expected-head']!==protectedSave.expectedHead){
         reject(409,'The reviewed development branch commit is stale. Refresh before saving.');return;
       }
-      const handler=url==='/api/editor/save'?protectedSave.writer:
+      if(url==='/api/editor/save'&&privateDraftStore&&
+         !COMMIT.test(req.headers['x-naxx-expected-head']||'')){
+        reject(409,'The private draft branch head is missing or invalid.');return;
+      }
+      const handler=url==='/api/editor/save' ?
+        (privateDraftStore ?
+          async(bytes)=>privateDraftStore.save(bytes,req.headers['x-naxx-expected-head']) :
+          protectedSave.writer) :
         url==='/api/editor/test-commit'?testCommit:review;
       if(!handler){reject(503,'No pinned source review or disposable commit trial is configured.');return;}
       if(reviewing){reject(409,'Another review is already running.');return;}
@@ -205,7 +261,10 @@ function createCompanion(options={}) {
       reviewing=true;
       // A Save consumes this server session on any attempt that reaches the
       // body/writer. Unknown remote outcomes must never be retried blindly.
-      if(url==='/api/editor/save')saveAttempted=true;
+      if(url==='/api/editor/save'){
+        if(privateDraftStore)privateDraftUncertain=true;
+        else saveAttempted=true;
+      }
       try{
         let total=0;
         const chunks=[];
@@ -221,7 +280,23 @@ function createCompanion(options={}) {
             repository:protectedSave.repository,branch:protectedSave.branch,
             expectedHead:protectedSave.expectedHead,publishDisabled:true
           }) : undefined);
-        if(url==='/api/editor/save'){
+        if(url==='/api/editor/save'&&privateDraftStore){
+          if(!checked||checked.repository!==PRIVATE_DRAFT_REPO||
+             checked.branch!=='main'||
+             checked.result!=='private-draft-saved-and-verified'||
+             checked.privateVerified!==true||
+             checked.websiteSourceUnchanged!==true||
+             checked.published!==false||
+             !COMMIT.test(checked.commit||'')||
+             checked.parentCommit!==req.headers['x-naxx-expected-head'])
+            throw Error('The private draft receipt is not independently verified.');
+          privateDraftUncertain=false;
+          reply(200,{format:'naxx-editor-private-draft-save-v1',
+            result:'saved-private-draft',repository:PRIVATE_DRAFT_REPO,
+            branch:'main',commit:checked.commit,
+            parentCommit:checked.parentCommit,
+            gitBlobSha:checked.gitBlobSha,published:false});
+        } else if(url==='/api/editor/save'){
           reply(200,checkedReceipt(checked,protectedSave));
         } else if(url==='/api/editor/test-commit') {
           // This response describes only a local, deleted Git clone.
@@ -239,7 +314,7 @@ function createCompanion(options={}) {
         }
       } catch(_) {
         if(url==='/api/editor/save')
-          reject(503,'SAVE_OUTCOME_UNCERTAIN: retain edits and inspect the protected branch. Do not retry automatically.');
+          reject(503,'SAVE_OUTCOME_UNCERTAIN: retain edits and inspect the saved draft or protected branch. Do not retry automatically.');
         else
           reject(422,'Source review refused this package. No GitHub files were changed.');
       } finally{reviewing=false;}
