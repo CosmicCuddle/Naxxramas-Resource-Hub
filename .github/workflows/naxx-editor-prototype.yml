@@ -102,6 +102,8 @@ jobs:
           node --test editor/tests/exact-head-save-guard.test.cjs
           node --test editor/tests/uncertain-save-outcome.test.cjs
           node --test editor/tests/backup-bound-save-outcome.test.cjs
+      - name: Prove browser Save reaches only a separately approved development-branch writer
+        run: node --test editor/tests/protected-save-companion.test.cjs
 
   editor-prototype:
     runs-on: ubuntu-latest
