@@ -168,14 +168,20 @@ function createCompanion(options={}) {
       const submitted=typeof csrf==='string' && /^[a-f0-9]{64}$/.test(csrf) ?
         Buffer.from(csrf,'hex') : Buffer.alloc(32);
       const match=crypto.timingSafeEqual(submitted,Buffer.from(session,'hex'));
+      const protocol=req.headers['x-naxx-editor-protocol'];
+      const requiredProtocol=url==='/api/editor/test-commit' ?
+        'naxx-local-test-commit-v1' :
+        url==='/api/editor/save' ? 'naxx-local-save-v1' :
+        'naxx-local-review-v1';
+      // The old read-only companion sent a review protocol to the
+      // disabled Save route. Keep its explicit 423 refusal rather than
+      // changing it into an unrelated 403; both remain unwritable.
+      const protocolAllowed=protocol===requiredProtocol ||
+        (url==='/api/editor/save'&&!protectedSave &&
+         protocol==='naxx-local-review-v1');
       if(req.headers.origin!==origin ||
          (req.headers['sec-fetch-site'] && req.headers['sec-fetch-site']!=='same-origin') ||
-         req.headers['x-naxx-editor-protocol']!==
-           (url==='/api/editor/test-commit' ?
-             'naxx-local-test-commit-v1' :
-             url==='/api/editor/save' ? 'naxx-local-save-v1' :
-             'naxx-local-review-v1') ||
-         !match){
+         !protocolAllowed || !match){
         reject(403,'Local editor session or origin was not verified.');return;
       }
       if(url==='/api/editor/save'&&(!protectedSave||saveAttempted)){
