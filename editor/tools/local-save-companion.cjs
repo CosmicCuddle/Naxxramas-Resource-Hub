@@ -15,6 +15,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const {planFromReviewZip} = require('./review-private-combined-zip.cjs');
+const {checkedSetup,checkedReceipt} = require('./protected-save-contract.cjs');
 
 const REPO = 'CosmicCuddle/Naxxramas-Resource-Hub';
 const MAX_ZIP = 20 * 1024 * 1024;
@@ -109,8 +110,12 @@ function createCompanion(options={}) {
   const editorDir=options.editorDir || path.resolve(__dirname,'..');
   const review=typeof options.review==='function' ? options.review : null;
   const testCommit=typeof options.testCommit==='function' ? options.testCommit : null;
+  // The normal CLI never passes this. It takes an explicitly supplied,
+  // independently audited owner-approved branch writer to enable real Save.
+  const protectedSave=options.protectedSave ?
+    checkedSetup(options.protectedSave) : null;
   const session=crypto.randomBytes(32).toString('hex');
-  let reviewing=false;
+  let reviewing=false,saveAttempted=false;
   const server=http.createServer(async(req,res)=>{
     // No proxy trust, permissive CORS, DNS rebinding, or non-loopback Host.
     const addr=server.address();
@@ -143,9 +148,14 @@ function createCompanion(options={}) {
     if(req.method==='GET' && url==='/api/editor/status') {
       reply(200,{
         format:'naxx-editor-local-save-capability-v1',
-        ready:false,authenticated:false,repository:REPO,
-        publishDisabled:true,backupVerified:false,
-        exactOldHeadEnforced:false,branch:null,expectedHead:null,
+        ready:!!protectedSave&&!saveAttempted,
+        authenticated:!!protectedSave&&!saveAttempted,
+        repository:REPO,
+        publishDisabled:true,
+        backupVerified:!!protectedSave&&!saveAttempted,
+        exactOldHeadEnforced:!!protectedSave&&!saveAttempted,
+        branch:protectedSave&&!saveAttempted?protectedSave.branch:null,
+        expectedHead:protectedSave&&!saveAttempted?protectedSave.expectedHead:null,
         reviewReady:!!review,disposableCommitTrialReady:!!testCommit,
         csrfToken:session
       });
@@ -162,14 +172,21 @@ function createCompanion(options={}) {
          (req.headers['sec-fetch-site'] && req.headers['sec-fetch-site']!=='same-origin') ||
          req.headers['x-naxx-editor-protocol']!==
            (url==='/api/editor/test-commit' ?
-             'naxx-local-test-commit-v1':'naxx-local-review-v1') ||
+             'naxx-local-test-commit-v1' :
+             url==='/api/editor/save' ? 'naxx-local-save-v1' :
+             'naxx-local-review-v1') ||
          !match){
         reject(403,'Local editor session or origin was not verified.');return;
       }
-      if(url==='/api/editor/save'){
+      if(url==='/api/editor/save'&&(!protectedSave||saveAttempted)){
         reject(423,'Real GitHub Save remains disabled. No repository files were written.');return;
       }
-      const handler=url==='/api/editor/test-commit'?testCommit:review;
+      if(url==='/api/editor/save'&&
+         req.headers['x-naxx-expected-head']!==protectedSave.expectedHead){
+        reject(409,'The reviewed development branch commit is stale. Refresh before saving.');return;
+      }
+      const handler=url==='/api/editor/save'?protectedSave.writer:
+        url==='/api/editor/test-commit'?testCommit:review;
       if(!handler){reject(503,'No pinned source review or disposable commit trial is configured.');return;}
       if(reviewing){reject(409,'Another review is already running.');return;}
       if(req.headers['content-type']!=='application/zip'){
@@ -180,6 +197,9 @@ function createCompanion(options={}) {
         reject(413,'Review ZIP size is missing or outside the limit.');return;
       }
       reviewing=true;
+      // A Save consumes this server session on any attempt that reaches the
+      // body/writer. Unknown remote outcomes must never be retried blindly.
+      if(url==='/api/editor/save')saveAttempted=true;
       try{
         let total=0;
         const chunks=[];
@@ -190,8 +210,14 @@ function createCompanion(options={}) {
           chunks.push(chunk);
         }
         if(total!==sizeHeader)throw Error('Review ZIP length did not match.');
-        const checked=await handler(Buffer.concat(chunks));
-        if(url==='/api/editor/test-commit') {
+        const checked=await handler(Buffer.concat(chunks),
+          url==='/api/editor/save' ? Object.freeze({
+            repository:protectedSave.repository,branch:protectedSave.branch,
+            expectedHead:protectedSave.expectedHead,publishDisabled:true
+          }) : undefined);
+        if(url==='/api/editor/save'){
+          reply(200,checkedReceipt(checked,protectedSave));
+        } else if(url==='/api/editor/test-commit') {
           // This response describes only a local, deleted Git clone.
           // It is intentionally incompatible with the real GitHub Save receipt.
           reply(200,makeDisposableCommitResult(checked));
@@ -206,7 +232,10 @@ function createCompanion(options={}) {
           reply(200,checked);
         }
       } catch(_) {
-        reject(422,'Source review refused this package. No GitHub files were changed.');
+        if(url==='/api/editor/save')
+          reject(503,'SAVE_OUTCOME_UNCERTAIN: retain edits and inspect the protected branch. Do not retry automatically.');
+        else
+          reject(422,'Source review refused this package. No GitHub files were changed.');
       } finally{reviewing=false;}
       return;
     }
