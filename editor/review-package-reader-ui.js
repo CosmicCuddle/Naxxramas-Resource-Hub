@@ -112,6 +112,37 @@
     if(!inspected||!inspected.hasResourceDraft)return;
     directLoad('Resource draft',inspected.resourceDraftText,root.NaxxLocalResourceReview);
   });
+  // The private Save connection may bring back verified ZIP bytes without
+  // downloading a file. Reuse the SAME archive/draft integrity checks and
+  // existing source-verified Restore buttons as manual ZIP recovery.
+  async function inspectBytes(bytes){
+    if(busy)throw Error('A draft archive is already being checked.');
+    if(!(bytes instanceof Uint8Array)||bytes.length<22||
+       bytes.length>reader.MAX_ARCHIVE)
+      throw Error('The private draft archive is missing or oversized.');
+    const ticket=++revision;
+    reset();busy=true;picker.disabled=true;
+    notice('Verifying the privately saved draft archive…',false);
+    try{
+      const result=await reader.inspect(bytes,root.NaxxEditorZip,
+        root.NaxxEditorReview);
+      if(ticket!==revision)throw Error('A newer archive has replaced this draft.');
+      inspected=result;
+      page.disabled=!result.hasPageDraft;
+      resource.disabled=!result.hasResourceDraft;
+      directPage.disabled=!result.hasPageDraft;
+      directResource.disabled=!result.hasResourceDraft;
+      notice('Private saved ZIP verified. Use Restore Page Draft and Restore Resource Draft to continue editing. Nothing was published.',false);
+      return Object.freeze({hasPageDraft:result.hasPageDraft,
+        hasResourceDraft:result.hasResourceDraft});
+    }catch(_){
+      if(ticket===revision){
+        reset();notice('Saved private ZIP did not pass validation. Existing edits remain unchanged.',true);
+      }
+      throw Error('The saved private draft could not be verified or restored.');
+    }finally{busy=false;picker.disabled=false;}
+  }
+  root.NaxxCombinedReviewRecovery=Object.freeze({inspectBytes});
   reset();
   notice('Choose a previously saved private review ZIP to inspect it locally.',false);
 })(typeof window==='undefined'?globalThis:window);
