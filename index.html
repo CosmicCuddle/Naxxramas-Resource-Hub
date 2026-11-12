@@ -37,19 +37,22 @@
       var gameClientsStyleURL = new URL("assets/naxx-game-clients-guide.css?v=1", siteRoot).href;
       var threePagesURL = new URL("assets/naxx-three-pages.js?v=2", siteRoot).href;
       var gameClientsURL = new URL("assets/naxx-game-clients-guide.js?v=1", siteRoot).href;
-      html = html.replace(/<\/head>/i, '<link rel="stylesheet" href="' + styleURL + '"><link rel="stylesheet" href="' + new URL("assets/naxx-theme-v2.css", siteRoot).href + '"><link rel="stylesheet" href="' + new URL("assets/naxx-theme-v3.css?v=2", siteRoot).href + '"><link rel="stylesheet" href="' + compactStyleURL + '"><link rel="stylesheet" href="' + classPanelStyleURL + '"><link rel="stylesheet" href="' + threePagesStyleURL + '"><link rel="stylesheet" href="' + gameClientsStyleURL + '"></head>');
+      var editorSaveBridgeURL = new URL("assets/naxx-original-editor-save-bridge.js?v=1", siteRoot).href;
+      html = html.replace(/<\/head>/i, '<link data-naxx-loader-injected="1" rel="stylesheet" href="' + styleURL + '"><link data-naxx-loader-injected="1" rel="stylesheet" href="' + new URL("assets/naxx-theme-v2.css", siteRoot).href + '"><link data-naxx-loader-injected="1" rel="stylesheet" href="' + new URL("assets/naxx-theme-v3.css?v=2", siteRoot).href + '"><link data-naxx-loader-injected="1" rel="stylesheet" href="' + compactStyleURL + '"><link data-naxx-loader-injected="1" rel="stylesheet" href="' + classPanelStyleURL + '"><link data-naxx-loader-injected="1" rel="stylesheet" href="' + threePagesStyleURL + '"><link data-naxx-loader-injected="1" rel="stylesheet" href="' + gameClientsStyleURL + '"></head>');
       var closingBody = html.toLowerCase().lastIndexOf("</body>");
-      html = html.slice(0, closingBody) + '<script src="' + scriptURL + '"><\/script>'
-        + '<scr'+'ipt src="' + navScriptURL + '"></scr'+'ipt>'
-        + '<scr'+'ipt src="' + handbookScriptURL + '"></scr'+'ipt>'
-        + '<scr'+'ipt src="' + resourceInfoURL + '"></scr'+'ipt>'
-        + '<scr'+'ipt src="' + classPanelURL + '"></scr'+'ipt>'
-        + '<scr'+'ipt src="' + talentSetsSyncURL + '"></scr'+'ipt>'
-        + '<scr'+'ipt src="' + fullTalentSetsURL + '"></scr'+'ipt>'
-        + '<scr'+'ipt src="' + warriorSetsURL + '"></scr'+'ipt>'
-        + '<scr'+'ipt src="' + finalTalentsURL + '"></scr'+'ipt>'
-        + '<scr'+'ipt src="' + threePagesURL + '"></scr'+'ipt>'
-        + '<scr'+'ipt src="' + gameClientsURL + '"></scr'+'ipt>' + html.slice(closingBody);
+      html = html.slice(0, closingBody) + '<script data-naxx-loader-injected="1" src="' + scriptURL + '"><\/script>'
+        + '<scr'+'ipt data-naxx-loader-injected="1" src="' + navScriptURL + '"></scr'+'ipt>'
+        + '<scr'+'ipt data-naxx-loader-injected="1" src="' + handbookScriptURL + '"></scr'+'ipt>'
+        + '<scr'+'ipt data-naxx-loader-injected="1" src="' + resourceInfoURL + '"></scr'+'ipt>'
+        + '<scr'+'ipt data-naxx-loader-injected="1" src="' + classPanelURL + '"></scr'+'ipt>'
+        + '<scr'+'ipt data-naxx-loader-injected="1" src="' + talentSetsSyncURL + '"></scr'+'ipt>'
+        + '<scr'+'ipt data-naxx-loader-injected="1" src="' + fullTalentSetsURL + '"></scr'+'ipt>'
+        + '<scr'+'ipt data-naxx-loader-injected="1" src="' + warriorSetsURL + '"></scr'+'ipt>'
+        + '<scr'+'ipt data-naxx-loader-injected="1" src="' + finalTalentsURL + '"></scr'+'ipt>'
+        + '<scr'+'ipt data-naxx-loader-injected="1" src="' + threePagesURL + '"></scr'+'ipt>'
+        + '<scr'+'ipt data-naxx-loader-injected="1" src="' + gameClientsURL + '"></scr'+'ipt>'
+        + '<scr'+'ipt data-naxx-loader-injected="1" src="' + editorSaveBridgeURL + '"></scr'+'ipt>'
+        + html.slice(closingBody);
       document.open();
       document.write(html);
       document.close();
