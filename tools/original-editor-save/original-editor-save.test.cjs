@@ -143,7 +143,7 @@ test('Save bridge captures old editor output and strips only loader-injected run
   context.globalThis=context;context.window=context;
   vm.createContext(context);
   vm.runInContext(
-    'function naxxCreateZipArchive(entries){return entries;}\\n'+
+    'function naxxCreateZipArchive(entries){return entries;}\n'+
     'function exportUpdatedHtml(){naxxCreateZipArchive(['+
     '{name:"index.html",data:SAMPLE_HTML},'+
     '{name:"HOW_TO_UPDATE_GITHUB.txt",data:"legacy"}]);}',
@@ -208,7 +208,7 @@ test('launcher requires explicit action and GitHub CLI, but never Git for Window
   const token=getGhToken((program,args,opts)=>{
     assert.equal(program,'gh');assert.equal(opts.shell,false);
     assert.deepEqual(args,['auth','token','--hostname','github.com']);
-    return {status:0,stdout:'fictional_secure_test_token\\n'};
+    return {status:0,stdout:'fictional_secure_test_token\n'};
   });
   assert.equal(token,'fictional_secure_test_token');
   const cmd=fs.readFileSync(path.resolve(__dirname,
