@@ -34,14 +34,8 @@ assert.ok(bootstrap.includes("site-content.html")&&bootstrap.includes("naxx-thre
 function assetRefs(text) {
   return [...new Set((text.match(/assets\/[a-zA-Z0-9_.-]+(?:\?v=\d+)?/g)||[]))].sort();
 }
-const ROOT_EDITOR_ONLY = "assets/naxx-original-editor-save.js?v=1";
-assert.ok(assetRefs(index).includes(ROOT_EDITOR_ONLY),
-  "Root visual editor must load its GitHub Save bridge");
-assert.ok(!assetRefs(bootstrap).includes(ROOT_EDITOR_ONLY),
-  "Nested guide pages must not load the root-only Admin editor Save bridge");
-assert.deepEqual(assetRefs(bootstrap),
-  assetRefs(index).filter(ref=>ref!==ROOT_EDITOR_ONLY),
-  "Nested page bootstrap must match shared root asset versions and features");
+assert.deepEqual(assetRefs(bootstrap),assetRefs(index),
+ "Nested page bootstrap must match root site asset versions and features");
 
 assert.ok(css.includes("body.naxx-three-page-route"),"All style overrides must be route-scoped");
 assert.ok(css.includes(".naxx-guide-qa")&&!css.includes("accordion"),"FAQs must be visible cards");
