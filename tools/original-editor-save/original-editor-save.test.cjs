@@ -44,7 +44,7 @@ test('Save bridge removes only loader-added overlay tags from original editor sn
     '</head><body><script id="embedded-data">window.NAXX_DATA={};</script>'+
     '<script>function exportUpdatedHtml(){}</script>'+
     '<script src="https://example.invalid/assets/naxx-game-clients-guide.js?v=1"></script>'+
-    '<p>KEEP ME</p></body></html>';
+    '<p>KEEP ME</p>'+(' '.repeat(2000))+'</body></html>';
   const cleaned=context.NaxxOriginalAdminSave.stripInjected(raw);
   assert.equal(cleaned.includes('naxx-theme-v2.css'),false);
   assert.equal(cleaned.includes('naxx-game-clients-guide.js'),false);
