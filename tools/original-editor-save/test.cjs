@@ -6,7 +6,7 @@ const path=require('node:path');
 const crypto=require('node:crypto');
 const {
   BRANCH,FILE,BASELINE_BLOB,gitBlobSha,splitEmbedded,
-  validateCandidate,validateBaseline
+  validateCandidate,validateBaseline,runtimeEditorBytes
 }=require('./server.cjs');
 
 const root=path.resolve(__dirname,'..','..');
@@ -71,20 +71,24 @@ test('GitHub Save target is one draft branch and site-content only',()=>{
 test('original editor Save bridge uses the current DATA and never exports replacement index.html',()=>{
   const helper=fs.readFileSync(helperPath,'utf8');
   assert.match(helper,/JSON\.stringify\(DATA\)/);
-  assert.match(helper,/fetch\('\/site-content\.html'/);
+  assert.match(helper,/fetch\('\/site-content\.html\?raw=1'/);
   assert.match(helper,/\/api\/original-editor\/save/);
   assert.match(helper,/editor-saves\/original-ui/);
   assert.doesNotMatch(helper,/name\s*:\s*['"]index\.html/);
   assert.doesNotMatch(helper,/replace the existing index\.html/i);
 });
 
-test('root loader keeps the same visual site and loads Save bridge last',()=>{
+test('public root loader stays unchanged; localhost injects Save bridge only at runtime',()=>{
   const index=fs.readFileSync(indexPath,'utf8');
-  const game=index.indexOf("gameClientsURL + '");
-  const save=index.indexOf("originalEditorSaveURL + '");
-  assert.ok(game>=0&&save>game);
-  assert.match(index,/assets\/naxx-original-editor-save\.js\?v=1/);
   assert.match(index,/site-content\.html/);
+  assert.doesNotMatch(index,/naxx-original-editor-save\.js/);
+  const baseline=validateBaseline();
+  const runtime=runtimeEditorBytes(baseline.bytes);
+  const tag='<script src="/assets/naxx-original-editor-save.js"></script>';
+  assert.equal((runtime.toString('utf8').match(/naxx-original-editor-save\.js/g)||[]).length,1);
+  assert.ok(runtime.toString('utf8').includes(tag));
+  assert.equal(gitBlobSha(baseline.bytes),BASELINE_BLOB);
+  assert.notEqual(gitBlobSha(runtime),BASELINE_BLOB);
 });
 
 test('one-click Windows launcher needs Node and GitHub CLI, not Git or GitHub Desktop',()=>{
