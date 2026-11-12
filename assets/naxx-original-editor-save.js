@@ -39,7 +39,7 @@
     return {prefix:source.slice(0,bodyStart),suffix:source.slice(end)};
   }
   async function buildUpdatedSource(){
-    var response=await root.fetch('/site-content.html',{cache:'no-store',credentials:'same-origin'});
+    var response=await root.fetch('/site-content.html?raw=1',{cache:'no-store',credentials:'same-origin'});
     if(!response.ok)throw Error('The original editor source could not be loaded.');
     var source=await response.text();
     var parts=parseEmbedded(source);
