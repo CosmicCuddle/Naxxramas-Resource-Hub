@@ -1,0 +1,32 @@
+name: Original visual editor Save checks
+
+on:
+  pull_request:
+    paths:
+      - 'tools/original-editor/**'
+      - '.github/workflows/original-visual-editor-save.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  original-editor-save:
+    name: original-editor-save-${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    steps:
+      - name: Checkout without retained GitHub credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify original Admin UI Save path and protected GitHub branch writer
+        run: node --test tools/original-editor/test-original-editor-save.cjs
