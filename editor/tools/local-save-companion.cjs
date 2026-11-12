@@ -276,7 +276,7 @@ function createCompanion(options={}) {
         }
         if(total!==sizeHeader)throw Error('Review ZIP length did not match.');
         const checked=await handler(Buffer.concat(chunks),
-          url==='/api/editor/save' ? Object.freeze({
+          url==='/api/editor/save' && protectedSave ? Object.freeze({
             repository:protectedSave.repository,branch:protectedSave.branch,
             expectedHead:protectedSave.expectedHead,publishDisabled:true
           }) : undefined);
