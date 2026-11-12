@@ -110,6 +110,8 @@ jobs:
         run: node --test editor/tests/private-draft-integration.test.cjs
       - name: Verify owner-launched private draft editor never exposes token or touches public site
         run: node --test editor/tests/private-draft-launcher.test.cjs
+      - name: Verify original visual Admin Save updates only site-content on protected branch
+        run: node --test editor/tests/original-visual-editor-save.test.cjs
 
   editor-prototype:
     runs-on: ubuntu-latest
