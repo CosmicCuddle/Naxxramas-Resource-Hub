@@ -341,12 +341,16 @@
           'Your edits are stored privately and can be loaded later. The public website was NOT published.' :
           'Development branch: '+result.branch+
           '. The public website was NOT published.'),false);
-      ready = false; // Force a fresh remote check before another Save.
+      // Private draft Save already rechecks the remote head on every click.
+      // Keep Save available after a verified success; public source Save stays one-shot.
+      ready = result.storageMode==='private-draft-zip';
+      if(loadButton)loadButton.disabled=!ready;
     } catch (error) {
       ready = false;
       notice((error && error.message) || 'Save unavailable. Local drafts were kept.', true);
     } finally {
-      busy = false;check.disabled = false;button.disabled = true;
+      busy = false;check.disabled = false;button.disabled = !ready;
+      if(loadButton&&!ready)loadButton.disabled=true;
       reviewButton.disabled = !canReview;
     }
   });
