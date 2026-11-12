@@ -1,0 +1,32 @@
+name: Original editor GitHub Save checks
+
+on:
+  push:
+    branches:
+      - feature/original-editor-github-save-2026-11-12
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'assets/naxx-original-editor-save.js'
+      - 'Start-Naxxramas-Editor.cmd'
+      - 'tools/original-editor-save/**'
+      - '.github/workflows/original-editor-save-checks.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  original-editor-save:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out complete source without write credentials
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify original editor preservation and Save target
+        run: node --test tools/original-editor-save/test.cjs
