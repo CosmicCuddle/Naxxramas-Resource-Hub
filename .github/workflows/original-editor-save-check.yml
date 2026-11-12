@@ -1,0 +1,26 @@
+name: Original visual editor Save checks
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tools/original-editor/**'
+      - 'Start-Naxxramas-Editor.cmd'
+      - '.github/workflows/original-editor-save-check.yml'
+permissions:
+  contents: read
+jobs:
+  native-save:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check original website and changed-file-only Save
+        run: node --test tools/original-editor/native-save.test.cjs
+      - name: Exercise the original visual editor in Chrome with a fictional writer
+        run: node tools/original-editor/native-browser-smoke.cjs
