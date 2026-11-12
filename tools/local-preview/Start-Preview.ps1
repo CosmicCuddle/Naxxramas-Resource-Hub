@@ -59,6 +59,18 @@ try {
       } else {
         $rawPath = $parts[1].Split("?")[0]
         $decoded = [System.Uri]::UnescapeDataString($rawPath)
+
+        # The live GitHub Pages website lives below /Naxxramas-Resource-Hub/.
+        # The original visual editor intentionally contains that production path.
+        # For LOCAL preview only, mirror that prefix back to this checkout root so
+        # original navigation/Admin behaviour works unchanged.
+        $pagesPrefix = "/Naxxramas-Resource-Hub"
+        if ($decoded -eq $pagesPrefix) {
+          $decoded = "/"
+        } elseif ($decoded.StartsWith($pagesPrefix + "/", [System.StringComparison]::OrdinalIgnoreCase)) {
+          $decoded = $decoded.Substring($pagesPrefix.Length)
+        }
+
         $rel = $decoded.TrimStart("/").Replace("/",[System.IO.Path]::DirectorySeparatorChar)
         $filePath = [System.IO.Path]::GetFullPath((Join-Path $Root $rel))
         $rootPrefix = $Root.TrimEnd([System.IO.Path]::DirectorySeparatorChar) +
