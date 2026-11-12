@@ -215,7 +215,8 @@ async function start(options={}){
     if(req.method==='GET'&&pathname==='/api/original-editor/status'){
       try{
         const fresh=await readRemoteState(token,false);
-        remoteHead=fresh.head;
+        if(fresh.head!==remoteHead)
+          throw Error('GitHub draft changed outside this editor. Close and reopen the editor before saving.');
         json(200,{format:'naxx-original-editor-save-capability-v1',
           ready:true,repository:REPO,branch:BRANCH,
           expectedHead:remoteHead,publishDisabled:true,csrfToken:csrf});
