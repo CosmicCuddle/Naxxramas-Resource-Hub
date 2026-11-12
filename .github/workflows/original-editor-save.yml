@@ -1,0 +1,31 @@
+name: Original visual editor simple Save checks
+
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'assets/naxx-original-editor-save-bridge.js'
+      - 'tools/original-editor-save/**'
+      - '.github/workflows/original-editor-save.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  original-editor-save:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout without retained write credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run original editor Save safety tests
+        shell: pwsh
+        run: |
+          node --test tools/original-editor-save/original-editor-save.test.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

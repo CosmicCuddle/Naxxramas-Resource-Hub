@@ -26,7 +26,8 @@
     "assets/naxx-warrior-talent-sets.js?v=1",
     "assets/naxx-final-vanilla-talent-sets.js?v=1",
     "assets/naxx-three-pages.js?v=2",
-    "assets/naxx-game-clients-guide.js?v=1"
+    "assets/naxx-game-clients-guide.js?v=1",
+    "assets/naxx-original-editor-save-bridge.js?v=1"
   ];
   fetch(new URL("site-content.html",root),{cache:"default"})
     .then(function(response){
