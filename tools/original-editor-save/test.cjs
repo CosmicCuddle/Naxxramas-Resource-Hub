@@ -64,6 +64,8 @@ test('GitHub Save target is one draft branch and site-content only',()=>{
   assert.doesNotMatch(server,/\/git\/refs\/heads\/main/);
   assert.doesNotMatch(server,/FILE\s*=\s*['"]index\.html/);
   assert.doesNotMatch(server,/git push/);
+  assert.match(server,/fresh\.head!==remoteHead/);
+  assert.match(server,/Close and reopen the editor before saving/);
 });
 
 test('original editor Save bridge uses the current DATA and never exports replacement index.html',()=>{
