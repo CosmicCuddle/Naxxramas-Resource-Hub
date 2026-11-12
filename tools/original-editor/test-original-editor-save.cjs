@@ -27,6 +27,11 @@ function modifiedEmbeddedScript(){
 
 test('rebuild changes only embedded DATA content in original site-content.html',()=>{
   const original=fs.readFileSync(sourcePath);
+  assert.equal(
+    sha256(original),
+    '34455f6d901c538e2491a8c16681692e4c02d918b1984d7d0ba081aacb1049e8',
+    'Original live site-content.html bytes must remain exact.'
+  );
   const script=modifiedEmbeddedScript();
   const rebuilt=rebuildSiteContent(original,script);
   assert.notEqual(sha256(rebuilt),sha256(original));
