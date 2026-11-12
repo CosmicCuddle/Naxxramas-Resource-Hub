@@ -180,6 +180,16 @@ async function writeRemote(token,candidate,expectedHead){
     throw Error('GitHub Save readback did not match the exact saved website.');
   return {commit:commit.sha,blobSha:candidate.blobSha};
 }
+function runtimeEditorBytes(bytes){
+  if(!Buffer.isBuffer(bytes))throw Error('Runtime website source is missing.');
+  const text=bytes.toString('utf8');
+  const close=text.toLowerCase().lastIndexOf('</body>');
+  if(close<0)throw Error('Runtime website body is incomplete.');
+  const tag='<script src="/assets/naxx-original-editor-save.js"></script>';
+  if(text.includes(tag))throw Error('Runtime Save bridge was already injected.');
+  return Buffer.from(text.slice(0,close)+tag+text.slice(close),'utf8');
+}
+
 function safeStaticPath(urlPath){
   let decoded;
   try{decoded=decodeURIComponent(urlPath);}catch(_){return null;}
@@ -260,10 +270,12 @@ async function start(options={}){
       res.writeHead(405,{'Content-Type':'text/plain; charset=utf-8'});res.end('Method not allowed.');return;
     }
     if(pathname==='/site-content.html'){
+      const bytes=parsed.searchParams.get('raw')==='1' ?
+        draftBytes : runtimeEditorBytes(draftBytes);
       res.writeHead(200,{'Content-Type':'text/html; charset=utf-8',
-        'Content-Length':String(draftBytes.length),'Cache-Control':'no-store',
+        'Content-Length':String(bytes.length),'Cache-Control':'no-store',
         'X-Content-Type-Options':'nosniff'});
-      if(req.method==='GET')res.end(draftBytes);else res.end();
+      if(req.method==='GET')res.end(bytes);else res.end();
       return;
     }
     const file=safeStaticPath(pathname);
@@ -302,4 +314,4 @@ if(require.main===module){
 }
 
 module.exports=Object.freeze({REPO,BRANCH,FILE,BASELINE_BLOB,gitBlobSha,
-  splitEmbedded,validateCandidate,validateBaseline,getToken,start});
+  splitEmbedded,validateCandidate,validateBaseline,runtimeEditorBytes,getToken,start});
