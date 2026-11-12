@@ -1,0 +1,48 @@
+name: Original visual editor direct Save checks
+
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'assets/naxx-original-admin-save.js'
+      - 'tools/original-editor-save/**'
+      - '.github/workflows/original-editor-save.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  original-editor-save:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout complete branch without retained credentials
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify scripts parse
+        run: |
+          node --check assets/naxx-original-admin-save.js
+          node --check tools/original-editor-save/github-site-content-store.cjs
+          node --check tools/original-editor-save/start-original-editor.cjs
+      - name: Verify original editor Save protections
+        run: node --test tools/original-editor-save/original-editor-save.test.cjs
+      - name: Prove the feature branch does not alter original site-content source
+        shell: bash
+        run: |
+          git fetch origin main --no-tags
+          changed="$(git diff --name-only origin/main...HEAD)"
+          printf '%s\n' "$changed"
+          if printf '%s\n' "$changed" | grep -Eq '^(site-content\.html|new-players/content\.html|rules/content\.html|apply/content\.html|game-clients/content\.html)$'; then
+            echo "Protected original website content was unexpectedly changed."
+            exit 1
+          fi
+          if ! printf '%s\n' "$changed" | grep -qx 'assets/naxx-original-admin-save.js'; then
+            echo "Expected original-editor Save bridge is missing."
+            exit 1
+          fi
