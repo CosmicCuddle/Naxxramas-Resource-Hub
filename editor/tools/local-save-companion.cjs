@@ -262,8 +262,7 @@ function createCompanion(options={}) {
       // A Save consumes this server session on any attempt that reaches the
       // body/writer. Unknown remote outcomes must never be retried blindly.
       if(url==='/api/editor/save'){
-        if(privateDraftStore)privateDraftUncertain=true;
-        else saveAttempted=true;
+        if(!privateDraftStore)saveAttempted=true;
       }
       try{
         let total=0;
@@ -275,6 +274,13 @@ function createCompanion(options={}) {
           chunks.push(chunk);
         }
         if(total!==sizeHeader)throw Error('Review ZIP length did not match.');
+        if(url==='/api/editor/save'&&privateDraftStore){
+          const state=await privateDraftStore.status();
+          if(!state||state.repository!==PRIVATE_DRAFT_REPO||state.privateVerified!==true||state.branch!=='main'||state.expectedHead!==req.headers['x-naxx-expected-head']){
+            reject(409,'Private draft has changed. Reload before saving.');return;
+          }
+          privateDraftUncertain=true;
+        }
         const checked=await handler(Buffer.concat(chunks),
           url==='/api/editor/save' && protectedSave ? Object.freeze({
             repository:protectedSave.repository,branch:protectedSave.branch,
