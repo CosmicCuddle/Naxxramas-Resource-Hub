@@ -21,6 +21,18 @@ const REPO = 'CosmicCuddle/Naxxramas-Resource-Hub';
 const PRIVATE_DRAFT_REPO='CosmicCuddle/Naxxramas-Editor-Save-Sandbox-01';
 const MAX_ZIP = 20 * 1024 * 1024;
 const COMMIT = /^[a-f0-9]{40}$/;
+const SITE_MIME = Object.freeze({
+  '.html':'text/html; charset=utf-8','.htm':'text/html; charset=utf-8',
+  '.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8',
+  '.json':'application/json; charset=utf-8','.svg':'image/svg+xml',
+  '.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg',
+  '.gif':'image/gif','.webp':'image/webp','.ico':'image/x-icon',
+  '.woff':'font/woff','.woff2':'font/woff2','.ttf':'font/ttf',
+  '.wasm':'application/wasm','.pdf':'application/pdf',
+  '.docx':'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+});
+const SITE_DENY = new Set(['.git','.github','editor','docs','tools']);
+const SITE_ALIAS='/Naxxramas-Resource-Hub';
 const ASSETS = new Map([
   ['index.html','text/html; charset=utf-8'],
   ['export-zip.js','text/javascript; charset=utf-8'],
@@ -109,6 +121,9 @@ function buildReviewer(checkout,expectedCommit) {
 }
 function createCompanion(options={}) {
   const editorDir=options.editorDir || path.resolve(__dirname,'..');
+  const serveOriginalSite=options.serveOriginalSite===true;
+  const siteDir=serveOriginalSite ?
+    path.resolve(options.siteDir || path.resolve(editorDir,'..')) : null;
   const review=typeof options.review==='function' ? options.review : null;
   const testCommit=typeof options.testCommit==='function' ? options.testCommit : null;
   // The normal CLI never passes this. It takes an explicitly supplied,
@@ -345,6 +360,42 @@ function createCompanion(options={}) {
         });
         res.end(fs.readFileSync(file));
       }catch(_){reject(404,'Editor asset unavailable.');}
+      return;
+    }
+    if(serveOriginalSite && (req.method==='GET'||req.method==='HEAD')){
+      try{
+        const raw=String(url).split('?')[0];
+        let decoded=decodeURIComponent(raw);
+        if(decoded===SITE_ALIAS)decoded=SITE_ALIAS+'/';
+        if(decoded.startsWith(SITE_ALIAS+'/'))
+          decoded=decoded.slice(SITE_ALIAS.length);
+        if(!decoded.startsWith('/')||decoded.includes('\\')||decoded.includes('\0'))
+          throw Error('Invalid local site path.');
+        const parts=decoded.split('/').filter(Boolean);
+        if(parts.some(part=>part==='.'||part==='..'||SITE_DENY.has(part)))
+          throw Error('Private development path is not public website content.');
+        let file=path.resolve(siteDir,'.'+decoded);
+        const rootPrefix=siteDir.endsWith(path.sep)?siteDir:siteDir+path.sep;
+        if(file!==siteDir&&!file.startsWith(rootPrefix))
+          throw Error('Local site path escaped the extracted website.');
+        let info=fs.lstatSync(file);
+        if(info.isDirectory()){
+          file=path.join(file,'index.html');
+          info=fs.lstatSync(file);
+        }
+        if(!info.isFile()||info.isSymbolicLink()||info.size>40*1024*1024)
+          throw Error('Unsafe local website asset.');
+        const mime=SITE_MIME[path.extname(file).toLowerCase()]||
+          'application/octet-stream';
+        res.writeHead(200,{
+          'Content-Type':mime,'Content-Length':info.size,
+          'Cache-Control':'no-store','X-Content-Type-Options':'nosniff',
+          'Referrer-Policy':'no-referrer',
+          'Cross-Origin-Resource-Policy':'same-origin'
+        });
+        if(req.method==='HEAD')res.end();
+        else fs.createReadStream(file).pipe(res);
+      }catch(_){reject(404,'Local website file not found.');}
       return;
     }
     reject(404,'Unknown editor route.');
