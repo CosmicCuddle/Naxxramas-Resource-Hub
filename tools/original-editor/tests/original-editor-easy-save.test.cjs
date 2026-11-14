@@ -84,8 +84,8 @@ function syntheticHtml(){
 test('Windows source identity diagnostic exposes hashes only, never website content',()=>{
   const bytes=fs.readFileSync(path.join(ROOT,'site-content.html'));
   const text=bytes.toString('utf8');
-  const crlf=Buffer.from(text.replace(/\\r\\n/g,'\\n'),'utf8');
-  const allCr=Buffer.from(text.replace(/\\r\\n|\\r/g,'\\n'),'utf8');
+  const crlf=Buffer.from(text.replace(/\r\n/g,'\n'),'utf8');
+  const allCr=Buffer.from(text.replace(/\r\n|\r/g,'\n'),'utf8');
   console.log('ORIGINAL_EDITOR_SOURCE_IDENTITY',JSON.stringify({
     rawBytes:bytes.length,
     rawGitBlob:writer.gitBlobSha(bytes),
