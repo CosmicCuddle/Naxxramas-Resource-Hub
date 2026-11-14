@@ -50,7 +50,7 @@ function rebuildOriginalSiteContent(originalBytes,exportedBytes){
   // GitHub ZIPs retain LF while Git for Windows may present CRLF. Always
   // reconstruct the GitHub-bound file with canonical LF bytes so Windows
   // line endings can never turn the whole 31 MB file into a false change.
-  const original=localOriginal.replace(/\\r\\n/g,'\\n');
+  const original=localOriginal.replace(/\\r\\n|\\r/g,'\\n');
   if(gitBlobSha(Buffer.from(original,'utf8'))!==ORIGINAL_SOURCE_GIT_BLOB_SHA)
     throw Error('The local original site-content.html is not the approved website source.');
   const base=embeddedDataBounds(original);
