@@ -44,8 +44,9 @@ test('explicit private owner launcher opens a read-only loopback editor with pri
   try{
     assert.equal(run.privateDrafts,true);
     assert.equal(run.published,false);
-    assert.match(run.url,/^http:\/\/127\.0\.0\.1:\d+\/editor\/index\.html$/);
-    const status=await fetch(run.url.replace('/editor/index.html','/api/editor/status'));
+    assert.match(run.url,/^http:\/\/127\.0\.0\.1:\d+\/Naxxramas-Resource-Hub\/$/);
+    const origin=run.url.replace('/Naxxramas-Resource-Hub/','');
+    const status=await fetch(origin+'/api/editor/status');
     assert.equal(status.status,200);
     const body=await status.json();
     assert.equal(body.repository,REPO);
@@ -55,6 +56,14 @@ test('explicit private owner launcher opens a read-only loopback editor with pri
     assert.equal(body.publishDisabled,true);
     assert.equal(body.backupVerified,false);
     assert.equal(body.draftExists,false);
+    const site=await fetch(run.url,{method:'HEAD'});
+    assert.equal(site.status,200);
+    assert.match(site.headers.get('content-type')||'',/text\/html/);
+    const original=await fetch(run.url+'site-content.html?v=admin-local',{method:'HEAD'});
+    assert.equal(original.status,200);
+    assert.ok(Number(original.headers.get('content-length'))>30*1024*1024);
+    const privateTool=await fetch(run.url+'editor/tools/local-save-companion.cjs');
+    assert.equal(privateTool.status,404);
     assert.ok(calls.length>=6);
     assert.ok(calls.every(x=>x.method==='GET'&&x.uri.startsWith('/repos/'+REPO)));
   }finally{
