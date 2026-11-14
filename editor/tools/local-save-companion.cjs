@@ -162,7 +162,12 @@ function createCompanion(options={}) {
       reject(403,'Only the local editor origin is allowed.');return;
     }
     const url=req.url;
-    if(typeof url!=='string'||url.length>180||url.includes('?')||url.includes('#')){
+    const staticSiteRequest=serveOriginalSite &&
+      (req.method==='GET'||req.method==='HEAD') &&
+      typeof url==='string' &&
+      !url.startsWith('/api/')&&!url.startsWith('/editor/');
+    if(typeof url!=='string'||url.length>500||url.includes('#')||
+       (url.includes('?')&&!staticSiteRequest)){
       reject(404,'Unknown editor route.');return;
     }
     if(req.method==='OPTIONS'){
