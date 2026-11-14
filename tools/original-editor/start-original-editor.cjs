@@ -43,13 +43,17 @@ function embeddedDataBounds(text){
 function rebuildOriginalSiteContent(originalBytes,exportedBytes){
   if(!Buffer.isBuffer(originalBytes)||!Buffer.isBuffer(exportedBytes))
     throw Error('Original and exported website bytes are required.');
-  if(sha256(originalBytes)!==ORIGINAL_SOURCE_SHA256)
-    throw Error('The local original site-content.html is not the approved website source.');
-  const original=originalBytes.toString('utf8');
+  const localOriginal=originalBytes.toString('utf8');
   const exported=exportedBytes.toString('utf8');
-  if(!Buffer.from(original,'utf8').equals(originalBytes)||
+  if(!Buffer.from(localOriginal,'utf8').equals(originalBytes)||
      !Buffer.from(exported,'utf8').equals(exportedBytes))
     throw Error('Website source was not valid UTF-8.');
+  // GitHub ZIPs retain LF while Git for Windows may present CRLF. Always
+  // reconstruct the GitHub-bound file with canonical LF bytes so Windows
+  // line endings can never turn the whole 31 MB file into a false change.
+  const original=localOriginal.replace(/\\r\\n/g,'\\n');
+  if(sha256(Buffer.from(original,'utf8'))!==ORIGINAL_SOURCE_SHA256)
+    throw Error('The local original site-content.html is not the approved website source.');
   const base=embeddedDataBounds(original);
   const edited=embeddedDataBounds(exported);
   const rebuilt=Buffer.from(
