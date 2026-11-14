@@ -7,7 +7,7 @@ const http=require('node:http');
 const crypto=require('node:crypto');
 const {
   PREFIX,ROOT,patchOriginalEditor,createOriginalEditorServer,
-  rebuildOriginalSiteContent,ORIGINAL_SOURCE_SHA256
+  rebuildOriginalSiteContent,ORIGINAL_SOURCE_GIT_BLOB_SHA
 }=require('../start-original-editor.cjs');
 const writer=require('../github-visual-admin-writer.cjs');
 
@@ -84,8 +84,7 @@ function syntheticHtml(){
 test('GitHub-bound site rebuild keeps the original shell and carries only edited embedded DATA',()=>{
   const original=fs.readFileSync(path.join(ROOT,'site-content.html'));
   const canonical=Buffer.from(original.toString('utf8').replace(/\r\n/g,'\n'),'utf8');
-  assert.equal(crypto.createHash('sha256').update(canonical).digest('hex'),
-    ORIGINAL_SOURCE_SHA256);
+  assert.equal(writer.gitBlobSha(canonical),ORIGINAL_SOURCE_GIT_BLOB_SHA);
   const text=canonical.toString('utf8');
   const injected=text.replace('</body>',
     '<script src="http://127.0.0.1:9999/Naxxramas-Resource-Hub/assets/naxx-countdowns.js"></script></body>');
