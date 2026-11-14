@@ -22,7 +22,8 @@ test('real original visual Admin export is patched only at obsolete ZIP tail',()
   assert.match(patched,/naxxLocalSaveUpdatedSite\(output\)/);
   assert.match(patched,/__naxx_local_original_save_bridge\.js/);
   const begin=patched.indexOf('function exportUpdatedHtml(){');
-  const end=patched.indexOf('\n}\n\ninit();',begin);
+  const init=patched.indexOf('init();',begin);
+  const end=init>=0?patched.lastIndexOf('}',init):-1;
   const fn=patched.slice(begin,end);
   assert.doesNotMatch(fn,/name:"index\.html"/);
   assert.doesNotMatch(fn,/Naxxramas_Resource_Hub_GitHub_Update\.zip/);
@@ -61,7 +62,8 @@ test('local server redirects root and serves real GitHub Pages base path instead
     assert.match(html,/Administrator/);
     assert.match(html,/naxxLocalSaveUpdatedSite/);
     const begin=html.indexOf('function exportUpdatedHtml(){');
-    const end=html.indexOf('\n}\n\ninit();',begin);
+    const init=html.indexOf('init();',begin);
+    const end=init>=0?html.lastIndexOf('}',init):-1;
     assert.ok(begin>=0&&end>begin);
     assert.doesNotMatch(html.slice(begin,end),/name:"index\.html"/);
   }finally{
