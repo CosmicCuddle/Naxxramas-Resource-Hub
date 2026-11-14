@@ -16,15 +16,14 @@ const fs=require('node:fs');
 const path=require('node:path');
 const crypto=require('node:crypto');
 const cp=require('node:child_process');
-const {status:githubStatus,saveHtml,REPOSITORY,BRANCH,FILE,MAX_HTML}=
+const {status:githubStatus,saveHtml,gitBlobSha,REPOSITORY,BRANCH,FILE,MAX_HTML}=
   require('./github-visual-admin-writer.cjs');
 
 const PREFIX='/Naxxramas-Resource-Hub/';
 const ROOT=path.resolve(__dirname,'..','..');
 const BRIDGE=path.join(__dirname,'original-editor-save-bridge.js');
 const SESSION=crypto.randomBytes(32).toString('hex');
-const ORIGINAL_SOURCE_SHA256='34455f6d901c538e2491a8c16681692e4c02d918b1984d7d0ba081aacb1049e8';
-function sha256(bytes){return crypto.createHash('sha256').update(bytes).digest('hex');}
+const ORIGINAL_SOURCE_GIT_BLOB_SHA='71ab9f2bf4cf12282fcbe135f7ec787805715b62';
 function embeddedDataBounds(text){
   if(typeof text!=='string')throw Error('Website source must be text.');
   const re=/<script\\b[^>]*\\bid=(["'])embedded-data\\1[^>]*>/ig;
@@ -52,7 +51,7 @@ function rebuildOriginalSiteContent(originalBytes,exportedBytes){
   // reconstruct the GitHub-bound file with canonical LF bytes so Windows
   // line endings can never turn the whole 31 MB file into a false change.
   const original=localOriginal.replace(/\\r\\n/g,'\\n');
-  if(sha256(Buffer.from(original,'utf8'))!==ORIGINAL_SOURCE_SHA256)
+  if(gitBlobSha(Buffer.from(original,'utf8'))!==ORIGINAL_SOURCE_GIT_BLOB_SHA)
     throw Error('The local original site-content.html is not the approved website source.');
   const base=embeddedDataBounds(original);
   const edited=embeddedDataBounds(exported);
@@ -279,6 +278,6 @@ if(require.main===module){
     process.exitCode=1;
   });
 }
-module.exports=Object.freeze({PREFIX,ROOT,ORIGINAL_SOURCE_SHA256,
+module.exports=Object.freeze({PREFIX,ROOT,ORIGINAL_SOURCE_GIT_BLOB_SHA,
   embeddedDataBounds,rebuildOriginalSiteContent,patchOriginalEditor,
   createOriginalEditorServer,start});
