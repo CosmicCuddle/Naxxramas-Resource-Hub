@@ -131,6 +131,13 @@ function createCompanion(options={}) {
   const protectedSave=options.protectedSave ?
     checkedSetup(options.protectedSave) : null;
   const privateDraftStore=options.privateDraftStore||null;
+  const originalAdminStore=options.originalAdminStore||null;
+  if(originalAdminStore && (
+     originalAdminStore.repository!==REPO||
+     originalAdminStore.branch!=='editor-saves/original-admin'||
+     typeof originalAdminStore.status!=='function'||
+     typeof originalAdminStore.save!=='function'))
+    throw Error('Only the exact original-Admin GitHub draft writer may be attached.');
   if(privateDraftStore && (protectedSave ||
      privateDraftStore.repository!==PRIVATE_DRAFT_REPO||
      typeof privateDraftStore.status!=='function'||
@@ -139,6 +146,7 @@ function createCompanion(options={}) {
     throw Error('Only the separately reviewed private GitHub draft store may be attached.');
   const session=crypto.randomBytes(32).toString('hex');
   let reviewing=false,saveAttempted=false,privateDraftUncertain=false;
+  let originalAdminSaving=false;
   const server=http.createServer(async(req,res)=>{
     // No proxy trust, permissive CORS, DNS rebinding, or non-loopback Host.
     const addr=server.address();
@@ -172,6 +180,92 @@ function createCompanion(options={}) {
     }
     if(req.method==='OPTIONS'){
       reject(403,'Cross-origin requests are not permitted.');return;
+    }
+    if(req.method==='GET' && url==='/api/original-admin/status'){
+      if(!originalAdminStore){
+        reject(423,'Original Admin GitHub draft Save is not connected.');return;
+      }
+      try{
+        const state=await originalAdminStore.status();
+        if(!state||state.repository!==REPO||
+           state.branch!=='editor-saves/original-admin'||
+           !COMMIT.test(state.expectedHead||'')||
+           state.liveMainWriteAllowed!==false||state.published!==false||
+           state.file!=='site-content.html')
+          throw Error('Original Admin GitHub draft identity was not verified.');
+        reply(200,{
+          format:'naxx-original-admin-local-save-capability-v1',
+          ready:!originalAdminSaving,repository:REPO,
+          branch:state.branch,file:'site-content.html',
+          expectedHead:state.expectedHead,
+          branchExists:state.branchExists===true,
+          liveMainWriteAllowed:false,published:false,
+          csrfToken:session
+        });
+      }catch(_){
+        reject(503,'Original Admin GitHub draft Save is not ready.');
+      }
+      return;
+    }
+    if(req.method==='POST' && url==='/api/original-admin/save'){
+      const origin='http://'+host;
+      const csrf=req.headers['x-naxx-csrf-token'];
+      const submitted=typeof csrf==='string' && /^[a-f0-9]{64}$/.test(csrf) ?
+        Buffer.from(csrf,'hex') : Buffer.alloc(32);
+      const match=crypto.timingSafeEqual(submitted,Buffer.from(session,'hex'));
+      if(!originalAdminStore||
+         req.headers.origin!==origin||
+         (req.headers['sec-fetch-site'] && req.headers['sec-fetch-site']!=='same-origin')||
+         req.headers['x-naxx-editor-protocol']!=='naxx-original-admin-save-v1'||
+         !match){
+        reject(403,'Original Admin local Save session was not verified.');return;
+      }
+      if(originalAdminSaving){
+        reject(409,'An original Admin Save is already running.');return;
+      }
+      if(req.headers['content-type']!=='text/html; charset=utf-8'){
+        reject(415,'The original Admin must submit the complete site-content HTML.');return;
+      }
+      const sizeHeader=Number(req.headers['content-length']);
+      if(!Number.isSafeInteger(sizeHeader)||
+         sizeHeader<20*1024*1024||sizeHeader>40*1024*1024){
+        reject(413,'Original Admin HTML size is missing or outside the protected range.');return;
+      }
+      const expected=req.headers['x-naxx-expected-head'];
+      if(typeof expected!=='string'||!COMMIT.test(expected)){
+        reject(409,'The GitHub draft branch head is missing or invalid.');return;
+      }
+      originalAdminSaving=true;
+      try{
+        let total=0;const chunks=[];
+        for await(const chunk of req){
+          total+=chunk.length;
+          if(total>sizeHeader||total>40*1024*1024)
+            throw Error('Original Admin HTML exceeded the declared size.');
+          chunks.push(chunk);
+        }
+        if(total!==sizeHeader)throw Error('Original Admin HTML length did not match.');
+        const saved=await originalAdminStore.save(Buffer.concat(chunks),expected);
+        if(!saved||saved.result!=='saved-to-github-draft'||
+           saved.repository!==REPO||
+           saved.branch!=='editor-saves/original-admin'||
+           saved.file!=='site-content.html'||
+           saved.parentCommit!==expected||
+           !COMMIT.test(saved.commit||'')||
+           !COMMIT.test(saved.blobSha||'')||
+           saved.liveMainWriteAllowed!==false||saved.published!==false)
+          throw Error('Original Admin GitHub draft receipt was not verified.');
+        reply(200,{
+          format:'naxx-original-admin-local-save-result-v1',
+          result:'saved-to-github-draft',repository:REPO,
+          branch:saved.branch,file:saved.file,parentCommit:saved.parentCommit,
+          commit:saved.commit,blobSha:saved.blobSha,sha256:saved.sha256,
+          liveMainWriteAllowed:false,published:false
+        });
+      }catch(_){
+        reject(503,'SAVE_OUTCOME_UNCERTAIN: keep the editor open and inspect the GitHub draft branch before retrying.');
+      }finally{originalAdminSaving=false;}
+      return;
     }
     if(req.method==='GET' && url==='/api/editor/status') {
       if(privateDraftStore){
@@ -405,9 +499,9 @@ function createCompanion(options={}) {
     }
     reject(404,'Unknown editor route.');
   });
-  server.requestTimeout=15000;
+  server.requestTimeout=180000;
   server.headersTimeout=10000;
-  server.timeout=30000;
+  server.timeout=180000;
   return server;
 }
 function parseArgs(argv) {
