@@ -1,0 +1,49 @@
+name: Original Admin editor Save checks
+
+on:
+  pull_request:
+    paths:
+      - "index.html"
+      - "assets/naxx-original-admin-save-bridge.js"
+      - "tools/original-editor/**"
+      - ".github/workflows/original-admin-editor-save.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository without retained credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Test original Admin Save path
+        run: |
+          node --test tools/original-editor/tests/original-admin-github-store.test.cjs
+          node --test tools/original-editor/tests/original-editor-server.test.cjs
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository without retained credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Test original Admin Save path on Windows
+        shell: pwsh
+        run: |
+          node --test tools/original-editor/tests/original-admin-github-store.test.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node --test tools/original-editor/tests/original-editor-server.test.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
