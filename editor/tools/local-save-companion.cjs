@@ -226,10 +226,11 @@ function createCompanion(options={}) {
       if(req.headers['content-type']!=='text/html; charset=utf-8'){
         reject(415,'The original Admin must submit the complete site-content HTML.');return;
       }
-      const sizeHeader=Number(req.headers['content-length']);
-      if(!Number.isSafeInteger(sizeHeader)||
-         sizeHeader<20*1024*1024||sizeHeader>40*1024*1024){
-        reject(413,'Original Admin HTML size is missing or outside the protected range.');return;
+      const rawSize=req.headers['content-length'];
+      const sizeHeader=rawSize===undefined?null:Number(rawSize);
+      if(sizeHeader!==null&&(!Number.isSafeInteger(sizeHeader)||
+         sizeHeader<20*1024*1024||sizeHeader>40*1024*1024)){
+        reject(413,'Original Admin HTML size is outside the protected range.');return;
       }
       const expected=req.headers['x-naxx-expected-head'];
       if(typeof expected!=='string'||!COMMIT.test(expected)){
@@ -240,11 +241,13 @@ function createCompanion(options={}) {
         let total=0;const chunks=[];
         for await(const chunk of req){
           total+=chunk.length;
-          if(total>sizeHeader||total>40*1024*1024)
-            throw Error('Original Admin HTML exceeded the declared size.');
+          if(total>40*1024*1024||(sizeHeader!==null&&total>sizeHeader))
+            throw Error('Original Admin HTML exceeded the protected size.');
           chunks.push(chunk);
         }
-        if(total!==sizeHeader)throw Error('Original Admin HTML length did not match.');
+        if(total<20*1024*1024||
+           (sizeHeader!==null&&total!==sizeHeader))
+          throw Error('Original Admin HTML length did not match.');
         const saved=await originalAdminStore.save(Buffer.concat(chunks),expected);
         if(!saved||saved.result!=='saved-to-github-draft'||
            saved.repository!==REPO||
