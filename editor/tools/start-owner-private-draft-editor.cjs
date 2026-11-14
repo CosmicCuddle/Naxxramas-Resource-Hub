@@ -15,6 +15,7 @@
  * The owner can close the console to stop the server. No background service.
  */
 const cp=require('node:child_process');
+const path=require('node:path');
 const {createCompanion}=require('./local-save-companion.cjs');
 const {createPrivateDraftStore,strictHttpsTransport,REPOSITORY}=
   require('./private-draft-github-store.cjs');
@@ -50,17 +51,21 @@ async function startOwnerPrivateEditor(args,dependencies={}){
   if(state.privateVerified!==true||!state.expectedHead||
      state.repository!==REPOSITORY)
     throw Error('Private draft repository was not independently verified.');
-  const server=createCompanion({privateDraftStore:store});
+  const server=createCompanion({
+    privateDraftStore:store,
+    serveOriginalSite:true,
+    siteDir:path.resolve(__dirname,'..','..')
+  });
   await new Promise((ok,bad)=>server.once('error',bad).listen(0,'127.0.0.1',ok));
   const port=server.address().port;
-  const url='http://127.0.0.1:'+port+'/editor/index.html';
+  const url='http://127.0.0.1:'+port+'/Naxxramas-Resource-Hub/';
   return Object.freeze({server,url,privateDrafts:true,published:false});
 }
 if(require.main===module){
   (async()=>{
     const started=await startOwnerPrivateEditor(process.argv.slice(2));
     process.stdout.write(
-      'PRIVATE DRAFT EDITOR: '+started.url+'\n'+
+      'ORIGINAL NAXXRAMAS EDITOR: '+started.url+'\n'+
       'Save stores unpublished edits only in the private sandbox.\n'+
       'The original public website and GitHub Pages are unchanged.\n'+
       'Close this window to stop the local editor.\n');
