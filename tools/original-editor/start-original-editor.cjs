@@ -23,6 +23,45 @@ const PREFIX='/Naxxramas-Resource-Hub/';
 const ROOT=path.resolve(__dirname,'..','..');
 const BRIDGE=path.join(__dirname,'original-editor-save-bridge.js');
 const SESSION=crypto.randomBytes(32).toString('hex');
+const ORIGINAL_SOURCE_SHA256='34455f6d901c538e2491a8c16681692e4c02d918b1984d7d0ba081aacb1049e8';
+function sha256(bytes){return crypto.createHash('sha256').update(bytes).digest('hex');}
+function embeddedDataBounds(text){
+  if(typeof text!=='string')throw Error('Website source must be text.');
+  const re=/<script\\b[^>]*\\bid=(["'])embedded-data\\1[^>]*>/ig;
+  const matches=[...text.matchAll(re)];
+  if(matches.length!==1)throw Error('Expected exactly one embedded-data script.');
+  const open=matches[0];
+  const start=open.index+open[0].length;
+  const end=text.toLowerCase().indexOf('</script>',start);
+  if(end<0)throw Error('Embedded data script did not close.');
+  const inner=text.slice(start,end).trim();
+  if(!inner.startsWith('window.NAXX_DATA = ')||!inner.endsWith(';')||
+     inner.length<1000000||inner.length>38*1024*1024)
+    throw Error('Embedded website data did not match the original Admin format.');
+  return {start,end,inner};
+}
+function rebuildOriginalSiteContent(originalBytes,exportedBytes){
+  if(!Buffer.isBuffer(originalBytes)||!Buffer.isBuffer(exportedBytes))
+    throw Error('Original and exported website bytes are required.');
+  if(sha256(originalBytes)!==ORIGINAL_SOURCE_SHA256)
+    throw Error('The local original site-content.html is not the approved website source.');
+  const original=originalBytes.toString('utf8');
+  const exported=exportedBytes.toString('utf8');
+  if(!Buffer.from(original,'utf8').equals(originalBytes)||
+     !Buffer.from(exported,'utf8').equals(exportedBytes))
+    throw Error('Website source was not valid UTF-8.');
+  const base=embeddedDataBounds(original);
+  const edited=embeddedDataBounds(exported);
+  const rebuilt=Buffer.from(
+    original.slice(0,base.start)+edited.inner+original.slice(base.end),
+    'utf8'
+  );
+  const check=embeddedDataBounds(rebuilt.toString('utf8'));
+  if(check.inner!==edited.inner||
+     rebuilt.length<20*1024*1024||rebuilt.length>MAX_HTML)
+    throw Error('Edited website data could not be rebuilt into the original source shell.');
+  return rebuilt;
+}
 const MIME=new Map([
   ['.html','text/html; charset=utf-8'],['.htm','text/html; charset=utf-8'],
   ['.css','text/css; charset=utf-8'],['.js','text/javascript; charset=utf-8'],
@@ -164,7 +203,10 @@ function createOriginalEditorServer(dependencies={}){
           chunks.push(chunk);
         }
         if(size!==declared)throw Error('Incomplete Save body.');
-        const result=save(Buffer.concat(chunks),expected);
+        const exported=Buffer.concat(chunks);
+        const original=fs.readFileSync(path.join(root,'site-content.html'));
+        const rebuilt=rebuildOriginalSiteContent(original,exported);
+        const result=save(rebuilt,expected);
         writeJson(res,200,{format:'naxx-original-editor-save-result-v1',
           ...result,published:false,mainUpdated:false});
       }catch(_){
@@ -233,5 +275,6 @@ if(require.main===module){
     process.exitCode=1;
   });
 }
-module.exports=Object.freeze({PREFIX,ROOT,patchOriginalEditor,
+module.exports=Object.freeze({PREFIX,ROOT,ORIGINAL_SOURCE_SHA256,
+  embeddedDataBounds,rebuildOriginalSiteContent,patchOriginalEditor,
   createOriginalEditorServer,start});
