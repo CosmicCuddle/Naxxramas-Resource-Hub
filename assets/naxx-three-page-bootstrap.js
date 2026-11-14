@@ -26,7 +26,8 @@
     "assets/naxx-warrior-talent-sets.js?v=1",
     "assets/naxx-final-vanilla-talent-sets.js?v=1",
     "assets/naxx-three-pages.js?v=2",
-    "assets/naxx-game-clients-guide.js?v=1"
+    "assets/naxx-game-clients-guide.js?v=1",
+    "assets/naxx-original-admin-save-bridge.js?v=1"
   ];
   fetch(new URL("site-content.html",root),{cache:"default"})
     .then(function(response){
@@ -36,12 +37,12 @@
     .then(function(html){
       if(!/<\/head>/i.test(html)||!/<\/body>/i.test(html))throw Error("Invalid Resource Hub page");
       var tags=styles.map(function(path){
-        return '<link rel="stylesheet" href="'+new URL(path,root).href+'">';
+        return '<link data-naxx-loader-injected="1" rel="stylesheet" href="'+new URL(path,root).href+'">';
       }).join("");
       html=html.replace(/<\/head>/i,tags+"</head>");
       var end=html.toLowerCase().lastIndexOf("</body>");
       var scriptTags=scripts.map(function(path){
-        return "<scr"+"ipt src=\""+new URL(path,root).href+"\"></scr"+"ipt>";
+        return "<scr"+"ipt data-naxx-loader-injected=\"1\" src=\""+new URL(path,root).href+"\"></scr"+"ipt>";
       }).join("");
       html=html.slice(0,end)+scriptTags+html.slice(end);
       document.open();document.write(html);document.close();
