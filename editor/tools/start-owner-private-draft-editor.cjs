@@ -17,12 +17,13 @@
 const cp=require('node:child_process');
 const path=require('node:path');
 const {createCompanion}=require('./local-save-companion.cjs');
-const {createPrivateDraftStore,strictHttpsTransport,REPOSITORY}=
-  require('./private-draft-github-store.cjs');
+const {createOriginalAdminGitHubStore,strictHttpsTransport,REPOSITORY}=
+  require('./original-admin-github-store.cjs');
 function parseArgs(args){
-  if(!Array.isArray(args)||args.length!==1||args[0]!=='--private-drafts')
-    throw Error('Explicit --private-drafts owner action is required.');
-  return Object.freeze({privateDrafts:true});
+  if(!Array.isArray(args)||args.length!==1||
+     !['--original-admin','--private-drafts'].includes(args[0]))
+    throw Error('Explicit --original-admin owner action is required.');
+  return Object.freeze({originalAdmin:true});
 }
 function getGhToken(spawn=cp.spawnSync){
   const r=spawn('gh',['auth','token','--hostname','github.com'],{
@@ -39,34 +40,33 @@ function getGhToken(spawn=cp.spawnSync){
 async function startOwnerPrivateEditor(args,dependencies={}){
   parseArgs(args);
   const token=(dependencies.getToken||getGhToken)();
-  const store=createPrivateDraftStore({
+  const store=createOriginalAdminGitHubStore({
     enabledByExplicitOwnerApproval:true,
     repository:REPOSITORY,token,
     request:dependencies.request||strictHttpsTransport()
   });
-  // Verify PRIVATE identity and an existing main branch BEFORE opening
-  // a browser or enabling the private-draft connection. An EMPTY repository
-  // must be explicitly bootstrapped after separate owner approval.
   const state=await store.status();
-  if(state.privateVerified!==true||!state.expectedHead||
-     state.repository!==REPOSITORY)
-    throw Error('Private draft repository was not independently verified.');
+  if(state.repository!==REPOSITORY||
+     state.branch!=='editor-saves/original-admin'||
+     !state.expectedHead||state.liveMainWriteAllowed!==false||
+     state.published!==false)
+    throw Error('Original Admin GitHub draft connection was not verified.');
   const server=createCompanion({
-    privateDraftStore:store,
+    originalAdminStore:store,
     serveOriginalSite:true,
     siteDir:path.resolve(__dirname,'..','..')
   });
   await new Promise((ok,bad)=>server.once('error',bad).listen(0,'127.0.0.1',ok));
   const port=server.address().port;
   const url='http://127.0.0.1:'+port+'/Naxxramas-Resource-Hub/';
-  return Object.freeze({server,url,privateDrafts:true,published:false});
+  return Object.freeze({server,url,originalAdmin:true,published:false});
 }
 if(require.main===module){
   (async()=>{
     const started=await startOwnerPrivateEditor(process.argv.slice(2));
     process.stdout.write(
       'ORIGINAL NAXXRAMAS EDITOR: '+started.url+'\n'+
-      'Save stores unpublished edits only in the private sandbox.\n'+
+      'Save writes only to GitHub draft branch editor-saves/original-admin.\n'+
       'The original public website and GitHub Pages are unchanged.\n'+
       'Close this window to stop the local editor.\n');
     if(process.platform==='win32'){
@@ -79,7 +79,7 @@ if(require.main===module){
     }
   })().catch(_=>{
     process.stderr.write(
-      'Private editor could not start. Check GitHub CLI login, the existing private sandbox main branch and your local connection. Nothing was saved.\n');
+      'Original editor could not start. Check GitHub CLI login and your local connection. Nothing was saved.\n');
     process.exitCode=1;
   });
 }
