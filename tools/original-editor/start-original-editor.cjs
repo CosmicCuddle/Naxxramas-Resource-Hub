@@ -26,7 +26,7 @@ const SESSION=crypto.randomBytes(32).toString('hex');
 const ORIGINAL_SOURCE_GIT_BLOB_SHA='71ab9f2bf4cf12282fcbe135f7ec787805715b62';
 function embeddedDataBounds(text){
   if(typeof text!=='string')throw Error('Website source must be text.');
-  const re=/<script\\b[^>]*\\bid=(["'])embedded-data\\1[^>]*>/ig;
+  const re=/<script\b[^>]*\bid=(["'])embedded-data\1[^>]*>/ig;
   const matches=[...text.matchAll(re)];
   if(matches.length!==1)throw Error('Expected exactly one embedded-data script.');
   const open=matches[0];
@@ -50,7 +50,7 @@ function rebuildOriginalSiteContent(originalBytes,exportedBytes){
   // GitHub ZIPs retain LF while Git for Windows may present CRLF. Always
   // reconstruct the GitHub-bound file with canonical LF bytes so Windows
   // line endings can never turn the whole 31 MB file into a false change.
-  const original=localOriginal.replace(/\\r\\n|\\r/g,'\\n');
+  const original=localOriginal.replace(/\r\n|\r/g,'\n');
   if(gitBlobSha(Buffer.from(original,'utf8'))!==ORIGINAL_SOURCE_GIT_BLOB_SHA)
     throw Error('The local original site-content.html is not the approved website source.');
   const base=embeddedDataBounds(original);
@@ -90,7 +90,7 @@ function patchOriginalEditor(html){
   const end=init>=0?html.lastIndexOf('}',init):-1;
   if(tail<0||init<0||end<tail||init-end>32||end-tail>7000)
     throw Error('Original visual Admin export tail did not match the reviewed shape.');
-  const eol=html.includes('\\r\\n')?'\\r\\n':'\\n';
+  const eol=html.includes('\r\n')?'\r\n':'\n';
   const oldTail=html.slice(tail,end);
   if(!oldTail.includes('name:"index.html"')||
      !oldTail.includes('Naxxramas_Resource_Hub_GitHub_Update.zip')||
