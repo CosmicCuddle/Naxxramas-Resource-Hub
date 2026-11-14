@@ -16,7 +16,7 @@ test('real original site-content passes the protected Save validator',()=>{
   const root=path.resolve(__dirname,'..','..','..');
   const bytes=fs.readFileSync(path.join(root,'site-content.html'));
   const result=validateHtml(bytes);
-  assert.ok(bytes.length>30*1024*1024);
+  assert.ok(bytes.length>30_000_000);
   assert.match(result.blobSha,/^[a-f0-9]{40}$/);
   assert.match(result.sha256,/^[a-f0-9]{64}$/);
   const altered=Buffer.from(bytes.toString('utf8').replace(
