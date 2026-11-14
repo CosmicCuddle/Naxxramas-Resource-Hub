@@ -6,7 +6,8 @@ const path=require('node:path');
 const http=require('node:http');
 const crypto=require('node:crypto');
 const {
-  PREFIX,ROOT,patchOriginalEditor,createOriginalEditorServer
+  PREFIX,ROOT,patchOriginalEditor,createOriginalEditorServer,
+  rebuildOriginalSiteContent,ORIGINAL_SOURCE_SHA256
 }=require('../start-original-editor.cjs');
 const writer=require('../github-visual-admin-writer.cjs');
 
@@ -78,6 +79,20 @@ function syntheticHtml(){
     'window.NAXX_DATA={}; function exportUpdatedHtml(){};'+
     '</script><div>Naxxramas</div><!--'+filler+'--></body></html>','utf8');
 }
+
+
+test('GitHub-bound site rebuild keeps the original shell and carries only edited embedded DATA',()=>{
+  const original=fs.readFileSync(path.join(ROOT,'site-content.html'));
+  const canonical=Buffer.from(original.toString('utf8').replace(/\r\n/g,'\n'),'utf8');
+  assert.equal(crypto.createHash('sha256').update(canonical).digest('hex'),
+    ORIGINAL_SOURCE_SHA256);
+  const text=canonical.toString('utf8');
+  const injected=text.replace('</body>',
+    '<script src="http://127.0.0.1:9999/Naxxramas-Resource-Hub/assets/naxx-countdowns.js"></script></body>');
+  const rebuilt=rebuildOriginalSiteContent(original,Buffer.from(injected,'utf8'));
+  assert.ok(rebuilt.equals(canonical));
+  assert.doesNotMatch(rebuilt.toString('utf8'),/127\.0\.0\.1:9999/);
+});
 
 test('writer can update only site-content.html on fixed non-main branch with exact old-head lease',()=>{
   const old='1'.repeat(40),baseTree='2'.repeat(40),newTree='3'.repeat(40),
