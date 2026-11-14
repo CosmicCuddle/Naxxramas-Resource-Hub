@@ -43,10 +43,12 @@ function patchOriginalEditor(html){
   const outputMarker='  const output = "<!doctype html>\\n" + clone.outerHTML;';
   const output=html.indexOf(outputMarker,first);
   if(output<0)throw Error('Original visual Admin output builder was not found.');
-  const tail=html.indexOf('\n\n  const zipBlob =',output+outputMarker.length);
-  const end=html.indexOf('\n}\n\ninit();',tail);
-  if(tail<0||end<0||end-tail>7000)
+  const tail=html.indexOf('  const zipBlob =',output+outputMarker.length);
+  const init=html.indexOf('init();',tail);
+  const end=init>=0?html.lastIndexOf('}',init):-1;
+  if(tail<0||init<0||end<tail||init-end>32||end-tail>7000)
     throw Error('Original visual Admin export tail did not match the reviewed shape.');
+  const eol=html.includes('\\r\\n')?'\\r\\n':'\\n';
   const oldTail=html.slice(tail,end);
   if(!oldTail.includes('name:"index.html"')||
      !oldTail.includes('Naxxramas_Resource_Hub_GitHub_Update.zip')||
@@ -61,14 +63,15 @@ function patchOriginalEditor(html){
     '  }',
     '',
     '  window.naxxLocalSaveUpdatedSite(output);'
-  ].join('\n');
+  ].join(eol);
   let patched=html.slice(0,tail)+localTail+html.slice(end);
   const lower=patched.toLowerCase();
   const body=lower.lastIndexOf('</body>');
   if(body<0)throw Error('Original website closing body was not found.');
   const tag='\n<script src="/__naxx_local_original_save_bridge.js"></script>\n';
   patched=patched.slice(0,body)+tag+patched.slice(body);
-  const fnEnd=patched.indexOf('\n}\n\ninit();',first);
+  const patchedInit=patched.indexOf('init();',first);
+  const fnEnd=patchedInit>=0?patched.lastIndexOf('}',patchedInit):-1;
   const savedFunction=patched.slice(first,fnEnd);
   if(!savedFunction.includes('clone.querySelector("#resourceGrid")')||
      !savedFunction.includes('JSON.stringify(DATA)')||
