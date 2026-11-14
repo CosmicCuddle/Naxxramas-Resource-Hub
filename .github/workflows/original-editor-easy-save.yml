@@ -1,0 +1,37 @@
+name: Original editor easy Save checks
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'tools/original-editor/**'
+      - '.github/workflows/original-editor-easy-save.yml'
+      - 'site-content.html'
+      - 'index.html'
+
+permissions:
+  contents: read
+
+jobs:
+  original-editor-easy-save:
+    runs-on: windows-latest
+    steps:
+      - name: Check out complete source without write credentials
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify original Admin path and protected Save target
+        shell: pwsh
+        run: |
+          node --test tools/original-editor/tests/original-editor-easy-save.test.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Confirm live loader and original source were not changed by this feature
+        shell: pwsh
+        run: |
+          git diff --exit-code origin/main...HEAD -- index.html site-content.html
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
