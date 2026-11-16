@@ -8,16 +8,21 @@
 </head>
 <body>
 <div class="naxx-loading">Loading the Naxxramas Resource Hub…</div>
+<script src="assets/naxx-easy-save-public-mode.js?v=1"></script>
+<script>window.NaxxEasySaveConfig=window.NaxxEasySavePublicMode?.load(window)||null;</script>
+<script src="assets/naxx-easy-save-session.js?v=2"></script>
+<script src="assets/naxx-easy-save-public-bootstrap.js?v=1"></script>
 <script>
 (function () {
   var siteRoot = new URL("./", location.href);
   var source = new URL("site-content.html", siteRoot);
-  fetch(source, { cache: "default" })
+  var editor=window.NaxxEasySavePublicBootstrap?.setup(window,siteRoot,"main");
+  (editor?editor.source("site-content.html"):fetch(source, { cache: "default" })
     .then(function (response) {
       if (!response.ok) throw new Error("Could not load the Resource Hub (" + response.status + ").");
       return response.text();
-    })
-    .then(function (html) {
+    }))
+    .then(async function (html) {
       if (!/<\/head>/i.test(html) || !/<\/body>/i.test(html)) {
         throw new Error("The original website could not be read.");
       }
@@ -35,7 +40,7 @@
       var classPanelStyleURL = new URL("assets/naxx-home-class-selector.css?v=1", siteRoot).href;
       var threePagesStyleURL = new URL("assets/naxx-three-pages.css?v=3", siteRoot).href;
       var gameClientsStyleURL = new URL("assets/naxx-game-clients-guide.css?v=1", siteRoot).href;
-      var threePagesURL = new URL("assets/naxx-three-pages.js?v=2", siteRoot).href;
+      var threePagesURL = new URL("assets/naxx-three-pages.js?v=4", siteRoot).href;
       var gameClientsURL = new URL("assets/naxx-game-clients-guide.js?v=1", siteRoot).href;
       html = html.replace(/<\/head>/i, '<link rel="stylesheet" href="' + styleURL + '"><link rel="stylesheet" href="' + new URL("assets/naxx-theme-v2.css", siteRoot).href + '"><link rel="stylesheet" href="' + new URL("assets/naxx-theme-v3.css?v=2", siteRoot).href + '"><link rel="stylesheet" href="' + compactStyleURL + '"><link rel="stylesheet" href="' + classPanelStyleURL + '"><link rel="stylesheet" href="' + threePagesStyleURL + '"><link rel="stylesheet" href="' + gameClientsStyleURL + '"></head>');
       var closingBody = html.toLowerCase().lastIndexOf("</body>");
@@ -49,12 +54,14 @@
         + '<scr'+'ipt src="' + warriorSetsURL + '"></scr'+'ipt>'
         + '<scr'+'ipt src="' + finalTalentsURL + '"></scr'+'ipt>'
         + '<scr'+'ipt src="' + threePagesURL + '"></scr'+'ipt>'
-        + '<scr'+'ipt src="' + gameClientsURL + '"></scr'+'ipt>' + html.slice(closingBody);
+        + '<scr'+'ipt src="' + gameClientsURL + '"></scr'+'ipt>' + (editor?editor.scripts():'') + html.slice(closingBody);
+      if(editor)await editor.ready();
       document.open();
       document.write(html);
       document.close();
     })
     .catch(function (err) {
+      if(editor&&editor.recover(err))return;
       document.body.innerHTML = '<div class="naxx-loading"><div>Unable to load the Resource Hub.<p><a href="site-content.html">Open the original site</a></p></div></div>';
       if (window.console) console.error(err);
     });

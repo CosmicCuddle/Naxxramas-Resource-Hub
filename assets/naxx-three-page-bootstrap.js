@@ -25,15 +25,18 @@
     "assets/naxx-talent-sets-full-sync.js?v=3",
     "assets/naxx-warrior-talent-sets.js?v=1",
     "assets/naxx-final-vanilla-talent-sets.js?v=1",
-    "assets/naxx-three-pages.js?v=2",
+    "assets/naxx-easy-save-guide-admin.js?v=1",
+    "assets/naxx-three-pages.js?v=4",
     "assets/naxx-game-clients-guide.js?v=1"
   ];
-  fetch(new URL("site-content.html",root),{cache:"default"})
+  var route=location.pathname.slice(root.pathname.length).split("/")[0];
+  var editor=window.NaxxEasySavePublicBootstrap?.setup(window,root,route),guideMarkup=null;
+  (editor?Promise.all([editor.source("site-content.html"),editor.editing?editor.source(route+"/content.html"):Promise.resolve(null)]).then(function(values){guideMarkup=values[1];return values[0];}):fetch(new URL("site-content.html",root),{cache:"default"})
     .then(function(response){
       if(!response.ok)throw Error("Resource Hub unavailable ("+response.status+")");
       return response.text();
-    })
-    .then(function(html){
+    }))
+    .then(async function(html){
       if(!/<\/head>/i.test(html)||!/<\/body>/i.test(html))throw Error("Invalid Resource Hub page");
       var tags=styles.map(function(path){
         return '<link rel="stylesheet" href="'+new URL(path,root).href+'">';
@@ -43,10 +46,12 @@
       var scriptTags=scripts.map(function(path){
         return "<scr"+"ipt src=\""+new URL(path,root).href+"\"></scr"+"ipt>";
       }).join("");
-      html=html.slice(0,end)+scriptTags+html.slice(end);
+      html=html.slice(0,end)+scriptTags+(editor?editor.scripts():"")+html.slice(end);
+      if(editor)await editor.ready(guideMarkup);
       document.open();document.write(html);document.close();
     })
     .catch(function(error){
+      if(editor&&editor.recover(error))return;
       document.body.innerHTML='<main class="naxx-loading" role="alert"><div>Unable to load the Resource Hub.<p><a href="'+backHome+'">Return Home</a></p></div></main>';
       if(window.console)console.error(error);
     });
