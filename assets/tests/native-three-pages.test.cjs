@@ -18,7 +18,7 @@ const titles = ["New Player Guide","Server Rules","Apply to Join Naxxramas"];
 const faqs = [24,0,0];
 assert.ok(index.length<6500,"Original root index loader must stay small");
 assert.ok(index.includes("site-content.html"),"Existing site content must remain bootstrapped");
-assert.ok(index.includes("naxx-three-pages.js?v=2"));
+assert.ok(index.includes("naxx-three-pages.js?v=4"));
 assert.ok(index.includes("naxx-three-pages.css?v=3"));
 assert.ok(index.includes("naxx-talent-sets-full-sync.js?v=3"),
   "Newest Talent Sets regression fix must be preserved");
@@ -34,7 +34,7 @@ assert.ok(bootstrap.includes("site-content.html")&&bootstrap.includes("naxx-thre
 function assetRefs(text) {
   return [...new Set((text.match(/assets\/[a-zA-Z0-9_.-]+(?:\?v=\d+)?/g)||[]))].sort();
 }
-assert.deepEqual(assetRefs(bootstrap),assetRefs(index),
+assert.deepEqual(assetRefs(bootstrap).filter(x=>!x.includes("naxx-easy-save-")),assetRefs(index).filter(x=>!x.includes("naxx-easy-save-")),
  "Nested page bootstrap must match root site asset versions and features");
 
 assert.ok(css.includes("body.naxx-three-page-route"),"All style overrides must be route-scoped");
@@ -130,7 +130,7 @@ assert.ok(!/<iframe\b[^>]*\ssrc=/i.test(apply),
  "Never fetch Tally from the static HTML while applications are closed");
 assert.ok(apply.includes('href="https://tally.so/r/q5Lqr8"'),
  "Include a same-form direct fallback for when applications are later opened");
-assert.ok(nav.includes("var APPLICATION_EMBED_APPROVED = true;"),
+assert.ok(nav.includes("var APPLICATION_EMBED_APPROVED = !window.NaxxEasySaveSource;"),
  "Owner-approved release candidate must enable Tally on the Apply page only");
 assert.ok(nav.includes("if(!APPLICATION_EMBED_APPROVED)"),
  "Release toggle must retain the ability to close applications if authorised later");

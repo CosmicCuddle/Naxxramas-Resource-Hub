@@ -91,7 +91,7 @@
   // The approved blank Word template and full email-only privacy notice are
   // served above the owner-controlled Tally embed.
   // Tally's own Close form setting remains an independent account-side control.
-  var APPLICATION_EMBED_APPROVED = true;
+  var APPLICATION_EMBED_APPROVED = !window.NaxxEasySaveSource; // public submission unchanged; disabled inside editor
   var pageMarkup = null;
   var requestStarted = false;
   var requestFailed = false;
@@ -137,7 +137,7 @@
       var tallyPanel=grid.querySelector("#naxx-tally-live-application");
       if(!APPLICATION_EMBED_APPROVED){
         // Never fetch or initialize a Tally iframe during drafting or review.
-        if(area){area.hidden=false;area.setAttribute("aria-disabled","true");}
+        if(area){area.hidden=false;area.setAttribute("aria-disabled","true");area.querySelectorAll("input,button,select,textarea").forEach(function(x){x.disabled=true;});}
         if(tallyPanel)tallyPanel.hidden=true;
       }else if(tallyPanel){
         if(area)area.hidden=true;
@@ -204,8 +204,8 @@
       grid.innerHTML='<p class="naxx-guide-loading" role="status">Loading '+active.title+'…</p>';
     if(requestStarted)return;
     requestStarted=true;
-    fetch(new URL(active.slug+"/content.html",root),{cache:"default"})
-      .then(function(res){if(!res.ok)throw Error("Page content unavailable");return res.text();})
+    var preview=window.NaxxEasySaveSource;
+    (preview&&preview.route===active.slug&&typeof preview.guideMarkup==="string"?Promise.resolve(preview.guideMarkup):fetch(new URL(active.slug+"/content.html",root),{cache:"default"}).then(function(res){if(!res.ok)throw Error("Page content unavailable");return res.text();}))
       .then(function(html){
         pageMarkup=html;
         refreshGuideChrome();
@@ -217,7 +217,9 @@
         console.error("Naxx three-page content:",err);
       });
   }
+  window.NaxxEasySaveRefreshGuide=function(markup){if(!active||typeof markup!=="string")throw Error("Guide unavailable");pageMarkup=markup;var grid=document.getElementById("resourceGrid");if(!grid)throw Error("Guide grid missing");fillGuide(grid,markup);};
   function mount(){syncNavigation();mountContent();}
+  if(active&&window.NaxxEasySaveGuideAdmin)window.NaxxEasySaveGuideAdmin.install(window,active.slug,mount);
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",mount,{once:true});
   else mount();
   // The native site can rebuild sidebar buttons when its state changes.

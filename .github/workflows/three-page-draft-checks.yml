@@ -27,7 +27,7 @@ jobs:
   verify-draft:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - name: Check out draft branch
         uses: actions/checkout@v4
@@ -57,6 +57,12 @@ jobs:
         run: node assets/tests/native-three-pages-browser.test.cjs
         env:
           NAXX_VISUAL_REVIEW: '1'
+      - name: Install temporary browser test driver
+        run: npm install --prefix "$RUNNER_TEMP/naxx-easy-save-qa" playwright@1.55.0 --no-audit --no-fund
+      - name: Controlled Easy Save public and Admin browser acceptance
+        env:
+          NAXX_PLAYWRIGHT: ${{ runner.temp }}/naxx-easy-save-qa/node_modules/playwright
+        run: node assets/tests/easy-save-public-browser.test.cjs
       - name: Compare original Game Clients navigation against main baseline
         run: node assets/tests/native-game-clients-baseline.test.cjs
       - name: Check offline preview helper syntax and local-only HTTP access
